@@ -19,8 +19,6 @@ app.use(helmet());
 
 const corsOptions = {
   origin: [
-    "https://pepascoffee.com",
-    "https://www.pepascoffee.com",
     process.env.CORS_ORIGIN || "http://localhost:5173",
   ],
   credentials: true,
