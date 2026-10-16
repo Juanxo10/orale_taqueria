@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100svh;
+  box-sizing: border-box;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+.glass-nav {
+  background: rgba(45, 74, 47, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+.hero-text-shadow {
+  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.55), 0px 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+@keyframes subtle-zoom {
+  from { transform: scale(1.0); }
+  to { transform: scale(1.1); }
+}
