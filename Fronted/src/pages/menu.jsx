@@ -1,124 +1,88 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import MenuIcon from "../components/MenuIcons";
 import Navbar from "../components/Navbar";
 import { API_URL } from "../config";
 import { MENU, ALL_EXTRAS, DOM } from "../data/menuData";
 
-
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
+const slug = (s) => "cat-" + s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-:root{--g900:#1c1210;--g800:#fe2b24;--g700:#c81812;--g600:#e0241d;--g400:#fbba24;--g200:#f6d9b5;--g100:#fff1de;--gold:#fbba24;--cream:#f8f0e4;--border:#ecdcc6;--text:#1c1210;--muted:#7a6a60;}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
-.bowl-badge{background:var(--gold);color:var(--g900);border-radius:999px;font-size:.78rem;font-weight:700;padding:.3rem .9rem;display:flex;align-items:center;gap:.35rem;}
-.home-btn{background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;padding:.38rem .9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;transition:background .15s;display:flex;align-items:center;gap:.4rem;white-space:nowrap;}
-.home-btn:hover{background:rgba(255,255,255,.18);}
-.dot{width:7px;height:7px;background:var(--g900);border-radius:50%;}
-.layout{display:grid;grid-template-columns:1fr 340px;max-width:1100px;margin:0 auto;}
-.left-panel{padding:1.5rem 1.5rem 7rem;border-right:1px solid var(--border);}
-.sec-label{font-size:.65rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:.7rem;display:block;}
-.always-row{display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:1.5rem;}
-.tag-ck{display:flex;align-items:center;gap:.4rem;background:var(--g800);color:#fff;border-radius:999px;padding:.35rem .9rem;font-size:.8rem;font-weight:600;cursor:pointer;user-select:none;border:2px solid var(--g800);transition:all .15s;}
-.tag-ck.off{background:#fff;color:var(--muted);border-color:var(--border);}
-.tag-ck.off .chk{background:transparent;border-color:#bbb;color:transparent;}
-.chk{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--g900);background:var(--g400);border-color:var(--g400);flex-shrink:0;}
-.sec-card{background:#fff;border-radius:14px;padding:1.2rem 1.3rem;margin-bottom:1rem;border:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.sec-head{display:flex;align-items:center;gap:.7rem;margin-bottom:1rem;}
-.sec-num{width:26px;height:26px;border-radius:50%;background:var(--g800);color:#fff;font-size:.8rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.sec-title{font-size:.95rem;font-weight:700;}
-.sec-hint{font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:.1rem;}
-.pill-grid{display:flex;flex-wrap:wrap;gap:.5rem;}
-.pill{display:flex;align-items:center;gap:.4rem;border:1.5px solid var(--border);border-radius:999px;padding:.38rem .85rem;cursor:pointer;font-size:.82rem;font-weight:500;background:#fff;color:var(--text);transition:all .15s;user-select:none;}
-.pk{width:14px;height:14px;border-radius:50%;border:1.5px solid #bbb;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.55rem;color:transparent;transition:all .15s;}
-.pill.sel{border-color:var(--g600);background:var(--g100);color:var(--g800);font-weight:600;}
-.pill.sel .pk{background:var(--g600);border-color:var(--g600);color:#fff;}
-.cp{background:var(--g800);color:#fff;border-radius:999px;font-size:.7rem;font-weight:700;padding:.15rem .55rem;margin-left:.4rem;}
-.cp.full{background:var(--gold);color:var(--g900);}
-.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem;}
-.pc{border:1.5px solid var(--border);border-radius:10px;padding:.75rem .9rem;cursor:pointer;background:#fff;transition:all .15s;user-select:none;}
-.pc.sel{border-color:var(--g600);background:var(--g100);}
-.pn{font-size:.85rem;font-weight:600;display:block;}
-.pp{font-size:.78rem;color:var(--g600);font-weight:600;display:block;margin-top:.15rem;}
-.pc.sel .pn{color:var(--g800);}
-.add-wrap{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--border);padding:1rem 1.5rem;margin:0 -1.5rem;}
-.add-btn{width:100%;padding:.85rem;background:var(--g800);color:#fff;border:none;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.5rem;transition:all .15s;}
-.add-btn:hover{background:var(--g700);}
-.plus-ic{width:20px;height:20px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;line-height:1;}
-.rp{background:#fff;display:flex;flex-direction:column;border-left:1px solid var(--border);position:sticky;top:96px;height:calc(100vh - 96px);overflow:hidden;}
-.rt{padding:1.1rem 1.3rem .8rem;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;}
-.rt h3{font-size:1rem;font-weight:700;}
-.rt .sub{font-size:.75rem;color:var(--muted);margin-top:.1rem;}
-.olist{flex:1;overflow-y:auto;padding:.8rem 1.3rem;display:flex;flex-direction:column;gap:.75rem;}
-.bc{border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1rem;position:relative;}
-.bn{position:absolute;top:-.55rem;left:.8rem;background:var(--g600);color:#fff;font-size:.65rem;font-weight:700;padding:.1rem .55rem;border-radius:999px;}
-.bclose{position:absolute;top:.6rem;right:.7rem;background:#f8f0e4;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:.75rem;color:var(--muted);display:flex;align-items:center;justify-content:center;}
-.bcarb{font-size:.92rem;font-weight:700;margin:.3rem 0 .5rem;}
-.btags{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.6rem;}
-.bt{background:var(--g100);color:var(--g800);border-radius:6px;font-size:.7rem;font-weight:600;padding:.15rem .45rem;}
-.bt.p{background:#fff3e0;color:#b45309;}
-.bt.b{background:#e8f0fe;color:#3730a3;}
-.bprice{font-size:.9rem;font-weight:700;}
-.cbtn{border:1.5px dashed var(--border);border-radius:12px;padding:.85rem;cursor:pointer;background:transparent;width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:600;color:var(--g600);display:flex;align-items:center;justify-content:center;gap:.4rem;transition:all .15s;}
-.cbtn:hover{border-color:var(--g600);background:var(--g100);}
-.rf{border-top:1px solid var(--border);padding:1rem 1.3rem;}
-.pr{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted);margin-bottom:.4rem;}
-.pr.tot{color:var(--text);font-weight:700;font-size:1rem;border-top:1px solid var(--border);padding-top:.6rem;margin-top:.2rem;}
-.cfbtn{width:100%;padding:.9rem;background:var(--g800);color:#fff;border:none;border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;}
-.cfbtn:hover{background:var(--g700);}
-.abowl-btn{width:100%;padding:.7rem;background:transparent;color:var(--g600);border:1.5px dashed var(--g400);border-radius:12px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:.6rem;display:flex;align-items:center;justify-content:center;gap:.4rem;}
-.abowl-btn:hover{background:var(--g100);border-color:var(--g600);}
-.cafgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:.55rem;}
-.caf-item{border:1.5px solid var(--border);border-radius:10px;padding:.75rem .9rem;background:#fff;display:flex;flex-direction:column;gap:.3rem;}
-.caf-item.sel{border-color:var(--g600);background:var(--g100);}
-.caf-name{font-size:.85rem;font-weight:600;}
-.caf-price{font-size:.78rem;color:var(--g600);font-weight:600;}
-.qt-row{display:flex;align-items:center;gap:.5rem;margin-top:.3rem;}
-.qt-btn{width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-size:1.1rem;line-height:1;display:flex;align-items:center;justify-content:center;color:var(--g800);font-weight:700;}
-.qt-btn:hover{border-color:var(--g600);background:var(--g100);}
-.qt-val{font-size:.88rem;font-weight:700;min-width:16px;text-align:center;}
-.bt.caf{background:#fdf0ff;color:#6b21a8;}
-.acc-head{display:flex;align-items:center;justify-content:space-between;padding:.7rem .9rem;background:var(--g100);border:1.5px solid var(--border);border-radius:10px;cursor:pointer;margin-bottom:.5rem;user-select:none;transition:all .15s;}
-.acc-head:hover{border-color:var(--g400);background:var(--g200);}
-.acc-head.open{border-color:var(--g600);background:var(--g200);border-radius:10px 10px 0 0;margin-bottom:0;}
-.acc-label{font-size:.88rem;font-weight:700;color:var(--g800);display:flex;align-items:center;gap:.45rem;}
-.acc-badge{background:var(--gold);color:var(--g900);border-radius:999px;font-size:.65rem;font-weight:700;padding:.1rem .5rem;min-width:18px;text-align:center;}
-.acc-arrow{font-size:.8rem;color:var(--muted);transition:transform .2s;}
-.acc-arrow.open{transform:rotate(180deg);}
-.acc-body{border:1.5px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:.6rem;margin-bottom:.5rem;background:#fff;}
-.caf-desc{font-size:.7rem;color:var(--muted);line-height:1.4;margin-top:.15rem;}
-.closed-screen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;background:var(--cream);}
-.closed-icon{font-size:3.5rem;margin-bottom:1.2rem;}
-.closed-title{font-size:clamp(1.6rem,5vw,2.4rem);font-weight:800;letter-spacing:-.03em;color:var(--g900);margin-bottom:.6rem;}
-.closed-sub{font-size:.95rem;color:var(--muted);line-height:1.65;max-width:38ch;margin:0 auto 2rem;}
-.closed-badge{display:inline-flex;align-items:center;gap:.5rem;background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:999px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:700;margin-bottom:1.6rem;}
-.closed-badge .cd{width:8px;height:8px;border-radius:50%;background:#991b1b;}
-@media(max-width:720px){.layout{grid-template-columns:1fr;}.rp{position:static;height:auto;border-left:none;border-top:1px solid var(--border);}.pgrid{grid-template-columns:repeat(2,1fr);}.home-btn{padding:.32rem .65rem;font-size:.72rem;}.bowl-badge{font-size:.7rem;padding:.25rem .7rem;}.cafgrid{grid-template-columns:1fr;}}
-.pill.disabled{opacity:.5;cursor:not-allowed;background:#f8f0e4;border-color:var(--border);color:var(--muted);}
-.pill-remove{margin-left:auto;padding-left:.4rem;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.85rem;line-height:1;opacity:.6;transition:opacity .15s;}
-.pill:hover .pill-remove{opacity:1;}
-.pc-remove{position:absolute;top:.35rem;right:.4rem;background:rgba(0,0,0,.07);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:.7rem;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:background .15s;}
-.pc-remove:hover{background:rgba(220,38,38,.15);color:#dc2626;}
-.pc{position:relative;}
-.pill.disabled .pk{background:transparent;border-color:#ccc;}
-.pc.disabled{opacity:.5;cursor:not-allowed;background:#f9f7f5;border-color:var(--border);}
-.pc.disabled .pn{color:var(--muted);}
-.pc.disabled .pp{color:var(--muted);}
-.caf-item.disabled{opacity:.55;background:#faf9f7;border-color:var(--border);}
-.no-stock-tag{font-size:.6rem;font-weight:700;color:#991b1b;background:#fee2e2;border-radius:999px;padding:.1rem .45rem;white-space:nowrap;}
-.mode-selector{display:flex;gap:.5rem;margin-bottom:1.5rem;background:var(--g100);border-radius:12px;padding:.3rem;border:1px solid var(--border);}
-.mode-btn{flex:1;padding:.6rem 1rem;border:none;border-radius:9px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted);}
-.mode-btn.active{background:var(--g800);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);}
+:root{--red:#fe2b24;--red-d:#c81812;--yel:#fbba24;--bg:#140c0a;--card:#261715;--card2:#301c19;--line:#4a302b;--txt:#fbf1e3;--mut:#d9c3b0;}
+.mn{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
+.mn *{box-sizing:border-box;}
+.mn-hero{max-width:1200px;margin:0 auto;padding:2rem 1.25rem 1rem;}
+.mn-hero h1{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:800;line-height:1.1;}
+.mn-hero h1 span{color:var(--yel);}
+.mn-hero p{color:var(--mut);margin-top:.4rem;font-size:.95rem;}
+.mn-tabs{position:sticky;top:var(--nav-h,72px);z-index:30;background:rgba(20,12,10,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+.mn-tabs-in{max-width:1200px;margin:0 auto;padding:.7rem 1.25rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;}
+.mn-tabs-in::-webkit-scrollbar{display:none;}
+.mn-tab{display:flex;align-items:center;gap:.45rem;flex-shrink:0;border:1.5px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;padding:.45rem .95rem;font:600 .85rem 'Plus Jakarta Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.mn-tab:hover{color:var(--txt);border-color:var(--mut);}
+.mn-tab.on{background:var(--yel);border-color:var(--yel);color:#2a1204;}
+.mn-wrap{max-width:1200px;margin:0 auto;padding:1rem 1.25rem 7rem;display:grid;grid-template-columns:1fr;gap:2rem;}
+@media(min-width:960px){.mn-wrap{grid-template-columns:1fr 340px;padding-bottom:3rem;}}
+.mn-sec{scroll-margin-top:calc(var(--nav-h,72px) + 70px);margin-bottom:2.2rem;}
+.mn-sec h2{font-size:1.35rem;font-weight:800;display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem;color:var(--txt);}
+.mn-sec h2 svg{color:var(--yel);}
+.mn-note{color:var(--yel);font-size:.82rem;font-weight:600;margin-bottom:.8rem;}
+.mn-grid{display:grid;grid-template-columns:1fr;gap:.75rem;margin-top:.8rem;}
+@media(min-width:620px){.mn-grid{grid-template-columns:1fr 1fr;}}
+.mn-item{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:.5rem;transition:border-color .15s;}
+.mn-item.sel{border-color:var(--yel);}
+.mn-item.off{opacity:.5;}
+.mn-name{font-weight:700;font-size:1rem;line-height:1.25;}
+.mn-desc{color:var(--mut);font-size:.8rem;line-height:1.5;flex:1;}
+.mn-foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:auto;padding-top:.3rem;}
+.mn-price{color:var(--yel);font-weight:800;font-size:1.05rem;}
+.mn-add{background:var(--red);color:#fff;border:none;border-radius:999px;padding:.5rem 1.1rem;font:700 .85rem 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s;}
+.mn-add:hover{background:var(--red-d);}
+.mn-step{display:flex;align-items:center;background:var(--card2);border-radius:999px;border:1.5px solid var(--yel);}
+.mn-step button{width:34px;height:34px;border:none;background:transparent;color:var(--yel);font-size:1.2rem;font-weight:700;cursor:pointer;border-radius:50%;}
+.mn-step span{min-width:1.4rem;text-align:center;font-weight:800;font-size:.9rem;}
+.mn-out{font-size:.72rem;font-weight:700;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.3rem .7rem;}
+.mn-cart{background:var(--card);border:1.5px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;}
+.mn-aside{display:none;}
+@media(min-width:960px){.mn-aside{display:block;position:sticky;top:calc(var(--nav-h,72px) + 70px);align-self:start;}}
+.mn-cart h3{font-size:1.05rem;font-weight:800;padding:1rem 1.2rem;border-bottom:1px solid var(--line);}
+.mn-lines{padding:.5rem 1.2rem;max-height:46vh;overflow-y:auto;}
+.mn-empty{color:var(--mut);font-size:.88rem;text-align:center;padding:1.8rem 0;}
+.mn-line{display:flex;align-items:center;justify-content:space-between;gap:.6rem;padding:.65rem 0;border-bottom:1px solid var(--line);}
+.mn-line:last-child{border-bottom:none;}
+.mn-line-n{font-size:.88rem;font-weight:600;line-height:1.25;}
+.mn-line-p{color:var(--mut);font-size:.78rem;margin-top:.1rem;}
+.mn-line .mn-step button{width:28px;height:28px;font-size:1rem;}
+.mn-tot{padding:1rem 1.2rem;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:.35rem;}
+.mn-row{display:flex;justify-content:space-between;font-size:.85rem;color:var(--mut);}
+.mn-row.big{color:var(--txt);font-size:1.05rem;font-weight:800;margin-top:.2rem;}
+.mn-go{margin-top:.6rem;width:100%;background:var(--red);color:#fff;border:none;border-radius:12px;padding:.85rem;font:800 .95rem 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:background .15s;}
+.mn-go:hover{background:var(--red-d);}
+.mn-go:disabled{background:var(--line);color:var(--mut);cursor:not-allowed;}
+.mn-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%);}
+@media(min-width:960px){.mn-bar{display:none;}}
+.mn-bar button{width:100%;background:var(--red);color:#fff;border:none;border-radius:14px;padding:.95rem 1.1rem;font:800 .95rem 'Plus Jakarta Sans',sans-serif;display:flex;justify-content:space-between;align-items:center;cursor:pointer;box-shadow:0 6px 24px rgba(254,43,36,.45);}
+.mn-sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-end;}
+.mn-sheet{width:100%;max-height:85vh;overflow-y:auto;border-radius:20px 20px 0 0;}
+.mn-sheet .mn-cart{border-radius:20px 20px 0 0;border-bottom:none;}
+.mn-sheet .mn-lines{max-height:40vh;}
+.mn-close{float:right;background:none;border:none;color:var(--mut);font-size:1.2rem;cursor:pointer;}
+.mn-closed{max-width:480px;margin:0 auto;text-align:center;padding:5rem 1.5rem;}
+.mn-closed h2{font-size:1.5rem;font-weight:800;margin:.6rem 0;}
+.mn-closed p{color:var(--mut);margin-bottom:1.4rem;}
 `;
-
 
 export default function Menu() {
   const navigate = useNavigate();
   const [tiendaAbierta, setTiendaAbierta] = useState(null);
   const [desactivados, setDesactivados] = useState(new Set());
   const [extraItems, setExtraItems] = useState({});
-  const [openCats, setOpenCats] = useState({});
+  const [activeCat, setActiveCat] = useState(null);
+  const [sheet, setSheet] = useState(false);
+  const clickLock = useRef(false);
+  const rootRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/tienda/estado`)
@@ -131,171 +95,166 @@ export default function Menu() {
       .catch(() => {});
   }, []);
 
-  const toggleCat = (cat) => setOpenCats(prev => ({ ...prev, [cat]: !prev[cat] }));
+  // Resalta la categoría visible al hacer scroll; sin selección al inicio.
+  // La altura del navbar cambia por breakpoint, así que se mide y se expone como --nav-h.
+  useEffect(() => {
+    if (tiendaAbierta !== true) return;
+    const nav = document.querySelector("nav");
+    const setH = () => rootRef.current?.style.setProperty("--nav-h", (nav?.offsetHeight ?? 72) + "px");
+    setH();
+    window.addEventListener("resize", setH);
+    const navH = nav?.offsetHeight ?? 72;
+    const io = new IntersectionObserver((entries) => {
+      if (clickLock.current) return;
+      if (window.scrollY < 120) { setActiveCat(null); return; }
+      const vis = entries.filter((e) => e.isIntersecting).sort((x, y) => x.boundingClientRect.top - y.boundingClientRect.top)[0];
+      if (vis) setActiveCat(vis.target.dataset.cat);
+    }, { rootMargin: `-${navH + 70}px 0px -60% 0px` });
+    document.querySelectorAll(".mn-sec").forEach((el) => io.observe(el));
+    return () => { io.disconnect(); window.removeEventListener("resize", setH); };
+  }, [tiendaAbierta]);
 
-  const extrasTotal = ALL_EXTRAS.reduce((s, { name, price }) => s + (extraItems[name] || 0) * price, 0);
-  const totalQty = Object.values(extraItems).reduce((s, q) => s + q, 0);
-  const hasExtras = totalQty > 0;
-  const grand = extrasTotal + DOM;
-
-  const incExtra = (name) => setExtraItems((prev) => ({ ...prev, [name]: (prev[name] || 0) + 1 }));
-  const decExtra = (name) => {
-    setExtraItems((prev) => {
-      const q = (prev[name] || 0) - 1;
-      if (q <= 0) { const n = { ...prev }; delete n[name]; return n; }
-      return { ...prev, [name]: q };
-    });
+  const goCat = (cat) => {
+    setActiveCat(cat);
+    clickLock.current = true;
+    document.getElementById(slug(cat))?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => { clickLock.current = false; }, 800);
+    document.querySelector(".mn-tab.on")?.scrollIntoView({ inline: "center", block: "nearest" });
   };
 
+  const setQty = (name, delta) => setExtraItems((prev) => {
+    const q = (prev[name] || 0) + delta;
+    if (q <= 0) { const n = { ...prev }; delete n[name]; return n; }
+    return { ...prev, [name]: q };
+  });
+
+  const lines = ALL_EXTRAS.filter(({ name }) => extraItems[name] > 0);
+  const totalQty = lines.reduce((s, { name }) => s + extraItems[name], 0);
+  const extrasTotal = lines.reduce((s, { name, price }) => s + extraItems[name] * price, 0);
+
   const irAPago = () => {
-    if (!hasExtras) { alert("Agrega al menos un producto."); return; }
-    try { localStorage.setItem("pepas_order", JSON.stringify({ bowls: [], extraItems })); } catch (_) {}
+    if (!totalQty) return;
+    try { localStorage.setItem("pepas_order", JSON.stringify({ bowls: [], extraItems })); } catch { /* sin storage */ }
     navigate("/pago");
   };
 
-  return (
-    <>
-      <style>{CSS}</style>
-
-      <Navbar
-        active="menu"
-        position="sticky"
-        showLinks={false}
-        rightSlot={
-          <div className="bowl-badge">
-            <span className="dot"></span>
-            <span id="bowl-count">{totalQty} producto{totalQty !== 1 ? "s" : ""}</span>
+  const cart = (
+    <div className="mn-cart">
+      <h3>
+        Tu pedido
+        {sheet && <button className="mn-close" onClick={() => setSheet(false)} aria-label="Cerrar">✕</button>}
+      </h3>
+      <div className="mn-lines">
+        {!lines.length && <p className="mn-empty">Aún no has agregado nada. Toca "Agregar" en cualquier producto.</p>}
+        {lines.map(({ name, price }) => (
+          <div key={name} className="mn-line">
+            <div>
+              <div className="mn-line-n">{name}</div>
+              <div className="mn-line-p">{fmt(price * extraItems[name])}</div>
+            </div>
+            <div className="mn-step">
+              <button onClick={() => setQty(name, -1)} aria-label={`Quitar ${name}`}>−</button>
+              <span>{extraItems[name]}</span>
+              <button onClick={() => setQty(name, 1)} aria-label={`Agregar ${name}`}>+</button>
+            </div>
           </div>
-        }
-      />
+        ))}
+      </div>
+      <div className="mn-tot">
+        <div className="mn-row"><span>Productos</span><span>{fmt(extrasTotal)}</span></div>
+        <div className="mn-row"><span>Domicilio (centro)</span><span>{fmt(DOM)}</span></div>
+        <div className="mn-row big"><span>Total estimado</span><span>{totalQty ? fmt(extrasTotal + DOM) : "—"}</span></div>
+        <button className="mn-go" disabled={!totalQty} onClick={irAPago}>Confirmar pedido</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="mn" ref={rootRef}>
+      <style>{CSS}</style>
+      <Navbar active="menu" position="sticky" showLinks={false} />
 
       {tiendaAbierta === null && (
-        <div className="closed-screen">
-          <div className="closed-icon">⏳</div>
-          <h2 className="closed-title">Verificando disponibilidad…</h2>
-        </div>
+        <div className="mn-closed"><h2>Verificando disponibilidad…</h2></div>
       )}
 
       {tiendaAbierta === false && (
-        <div className="closed-screen">
-          <div className="closed-badge"><span className="cd" /> Cerrado ahora</div>
-          <div className="closed-icon"></div>
-          <h2 className="closed-title">No estamos recibiendo pedidos</h2>
-          <p className="closed-sub">
-            En este momento la tienda está cerrada. Vuelve más tarde durante nuestro horario de servicio para hacer tu pedido.
-          </p>
-          <button className="home-btn" style={{ fontSize: "1rem", padding: ".75rem 1.6rem", borderRadius: "12px", background: "var(--g800)", color: "#fff", border: "none" }} onClick={() => navigate("/")}>
-            ← Volver al inicio
-          </button>
+        <div className="mn-closed">
+          
+          <h2>No estamos recibiendo pedidos</h2>
+          <p>En este momento la tienda está cerrada. Vuelve más tarde durante nuestro horario de servicio.</p>
+          <button className="mn-add" onClick={() => navigate("/")}>← Volver al inicio</button>
         </div>
       )}
 
       {tiendaAbierta === true && (
-      <div className="layout">
-        {/* ── Left panel ── */}
-        <div className="left-panel">
-          <div className="sec-card">
-            <div className="sec-head">
-              <div>
-                <div className="sec-title">Menú Órale</div>
-                <div className="sec-hint">Toca una categoría para desplegar</div>
-              </div>
+        <>
+          <header className="mn-hero">
+            <h1>Nuestro <span>menú</span></h1>
+            <p>Elige lo que se te antoje, compa. Te lo llevamos o lo recoges.</p>
+          </header>
+
+          <nav className="mn-tabs" aria-label="Categorías">
+            <div className="mn-tabs-in">
+              {MENU.map(({ cat }) => (
+                <button key={cat} className={`mn-tab${activeCat === cat ? " on" : ""}`} onClick={() => goCat(cat)}>
+                  <MenuIcon cat={cat} size={18} /> {cat}
+                </button>
+              ))}
             </div>
-            {MENU.map(({ cat, items, note }) => {
-              const open = !!openCats[cat];
-              const catQty = items.reduce((s, it) => s + (extraItems[it.name] || 0), 0);
-              return (
-                <div key={cat}>
-                  <div className={`acc-head${open ? " open" : ""}`} onClick={() => toggleCat(cat)}>
-                    <span className="acc-label">
-                      {cat}
-                      {catQty > 0 && <span className="acc-badge">{catQty}</span>}
-                    </span>
-                    <span className={`acc-arrow${open ? " open" : ""}`}>▼</span>
+          </nav>
+
+          <div className="mn-wrap">
+            <main>
+              {MENU.map(({ cat, note, items }) => (
+                <section key={cat} id={slug(cat)} data-cat={cat} className="mn-sec">
+                  <h2><MenuIcon cat={cat} size={26} />{cat}</h2>
+                  {note && <div className="mn-note">{note}</div>}
+                  <div className="mn-grid">
+                    {items.map(({ name, price, desc }) => {
+                      const qty = extraItems[name] || 0;
+                      const off = desactivados.has(name);
+                      return (
+                        <article key={name} className={`mn-item${qty ? " sel" : ""}${off ? " off" : ""}`}>
+                          <div className="mn-name">{name}</div>
+                          {desc && <p className="mn-desc">{desc}</p>}
+                          <div className="mn-foot">
+                            <span className="mn-price">{fmt(price)}</span>
+                            {off ? <span className="mn-out">Agotado</span>
+                              : qty ? (
+                                <div className="mn-step">
+                                  <button onClick={() => setQty(name, -1)} aria-label={`Quitar ${name}`}>−</button>
+                                  <span>{qty}</span>
+                                  <button onClick={() => setQty(name, 1)} aria-label={`Agregar ${name}`}>+</button>
+                                </div>
+                              ) : <button className="mn-add" onClick={() => setQty(name, 1)}>Agregar</button>}
+                          </div>
+                        </article>
+                      );
+                    })}
                   </div>
-                  {open && (
-                    <div className="acc-body">
-                      {note && (
-                        <div style={{ background: "#fdf0ff", border: "1.5px solid #d8b4fe", borderRadius: "8px", padding: ".5rem .75rem", marginBottom: ".6rem", fontSize: ".75rem", color: "#6b21a8", fontWeight: 600 }}>
-                          {note}
-                        </div>
-                      )}
-                      <div className="cafgrid">
-                        {items.map(({ name, price, desc }) => {
-                          const qty = extraItems[name] || 0;
-                          const dis = desactivados.has(name);
-                          return (
-                            <div key={name} className={`caf-item${qty > 0 ? " sel" : ""}${dis ? " disabled" : ""}`}>
-                              <span className="caf-name">{name}</span>
-                              {desc && <span className="caf-desc">{desc}</span>}
-                              {dis
-                                ? <span className="no-stock-tag" style={{ alignSelf: "flex-start" }}>Sin stock</span>
-                                : <>
-                                    <span className="caf-price">{fmt(price)}</span>
-                                    <div className="qt-row">
-                                      <button className="qt-btn" onClick={() => decExtra(name)}>−</button>
-                                      <span className="qt-val">{qty}</span>
-                                      <button className="qt-btn" onClick={() => incExtra(name)}>+</button>
-                                    </div>
-                                  </>}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── Right panel ── */}
-        <div className="rp">
-          <div className="rt">
-            <div>
-              <h3>Tu pedido</h3>
-              <div className="sub">{hasExtras ? `${totalQty} producto${totalQty !== 1 ? "s" : ""}` : "Aún vacío"}</div>
-            </div>
+                </section>
+              ))}
+            </main>
+            <aside className="mn-aside">{cart}</aside>
           </div>
 
-          <div className="olist">
-            {!hasExtras ? (
-              <p style={{ color: "var(--muted)", fontSize: ".82rem", textAlign: "center", padding: "2rem 0" }}>
-                Agrega un producto 🌮
-              </p>
-            ) : (
-              <div className="bc">
-                <div className="btags">
-                  {ALL_EXTRAS.filter(({ name }) => (extraItems[name] || 0) > 0).map(({ name }) => (
-                    <span key={name} className="bt caf">{name} ×{extraItems[name]}</span>
-                  ))}
-                </div>
-                <div className="bprice">{fmt(extrasTotal)}</div>
-              </div>
-            )}
-          </div>
-
-          <div className="rf">
-            {extrasTotal > 0 && (
-              <div className="pr">
-                <span>Productos</span>
+          {totalQty > 0 && (
+            <div className="mn-bar">
+              <button onClick={() => setSheet(true)}>
+                <span>Ver pedido · {totalQty} producto{totalQty !== 1 ? "s" : ""}</span>
                 <span>{fmt(extrasTotal)}</span>
-              </div>
-            )}
-            <div className="pr">
-              <span>Domicilio (centro)</span>
-              <span>{fmt(DOM)}</span>
+              </button>
             </div>
-            <div className="pr tot">
-              <span>Total estimado</span>
-              <span>{hasExtras ? fmt(grand) : "—"}</span>
+          )}
+
+          {sheet && (
+            <div className="mn-sheet-bg" onClick={() => setSheet(false)}>
+              <div className="mn-sheet" onClick={(e) => e.stopPropagation()}>{cart}</div>
             </div>
-            <button className="cfbtn" onClick={irAPago}>Confirmar pedido</button>
-          </div>
-        </div>
-      </div>
+          )}
+        </>
       )}
-    </>
+    </div>
   );
 }
