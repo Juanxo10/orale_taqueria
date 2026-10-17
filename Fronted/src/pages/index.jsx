@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import logo from "../assets/Logo_tacos.jpg";
@@ -6,18 +6,72 @@ import heroImg from "../assets/taco4.jpg";
 import img5 from "../assets/taco5.jpg";
 import img1 from "../assets/taco1.jpg";
 import img3 from "../assets/taco3.jpg";
+import img6 from "../assets/taco6.jpg";
+import img7 from "../assets/taco7.jpg";
+import img8 from "../assets/taco8.jpg";
 import experienceImg from "../assets/taco2.jpg";
+import video1 from "../assets/videotaco1.mp4";
+import video2 from "../assets/videotaco2.mp4";
 
 const TICKER = ["Tacos al momento", "Salsas de la casa", "Limón y cilantro", "Tortilla recién hecha", "Nachos con queso", "Órale, pide ya"];
 
-const FAVORITOS = [
-  { img: img1, alt: "Taco de carne desmechada con limón", tag: "Tacos", title: "Tacos de la Casa", text: "Tortilla doblada al comal, carne jugosa, cebolla, cilantro y limón al gusto.", hot: false },
-  { img: heroImg, alt: "Charola de tacos con salsas", tag: "Favorito de la Casa", title: "Charola Órale", text: "La charola completa para compartir, con salsas y limón. Arma la tuya desde el menú.", hot: true },
-  { img: img3, alt: "Nachos con queso derretido y pico de gallo", tag: "Para picar", title: "Nachos Órale", text: "Totopos crujientes con queso, pico de gallo y guacamole. Perfectos para acompañar.", hot: false },
+const ANTOJOS = [
+  { title: "Tacos Cochinita Pibil", tag: "Tacos", text: "Cochinita al pibil con cebolla morada, salsas de la casa y limón.", img: img6, alt: "Tacos de cochinita pibil sobre tabla de madera" },
+  { title: "Nachos Órale", tag: "Para picar", text: "Totopos crujientes con queso, pico de gallo y guacamole.", img: img5, alt: "Nachos con queso derretido y pico de gallo" },
+  { title: "Charola de Tacos", tag: "Para compartir", text: "Varios tacos en una charola, con salsas y limón al lado.", img: heroImg, alt: "Charola de tacos con salsas" },
+  { title: "Directo del comal", tag: "En vivo", text: "Mira cómo los armamos: todo se hace al momento.", img: img7, video: video2, alt: "Preparación de tacos" },
 ];
+
+const PASOS = [
+  { title: "Eliges tus tacos", text: "Escoge tus tacos, tus salsas y los extras que quieras desde el menú.", chips: ["Tacos", "Salsas", "Extras"], img: img3, alt: "Tacos con salsa goteando", bg: "#fe2b24", fg: "#ffffff", accent: "#fbba24" },
+  { title: "Al comal, al momento", text: "Tortilla recién calentada, carne jugosa y todo armado cuando lo pides.", chips: ["Sin congelados", "Bien calientitos"], img: img1, video: video2, alt: "Taco con limón", bg: "#1d1210", fg: "#fbf1e3", accent: "#fe2b24" },
+  { title: "A tu puerta", text: "Lo llevamos en 30–45 minutos. Pagas contraentrega, sin complicaciones.", chips: ["30–45 min", "Domicilio $6.000", "Contraentrega"], img: img8, alt: "Plato de tacos servido", bg: "#fbba24", fg: "#2a1204", accent: "#fe2b24" },
+];
+
+// Video que solo carga y reproduce cuando está visible (videotaco1 pesa ~32 MB).
+function LazyVideo({ src, poster, className }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) el.play().catch(() => {});
+        else el.pause();
+      },
+      { threshold: 0.25 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return <video ref={ref} className={className} src={src} poster={poster} muted loop playsInline preload="none" />;
+}
+
+// Los videos son verticales (720x1280): se muestran completos, sin recorte ni zoom,
+// sobre un fondo difuminado del póster para rellenar el marco horizontal.
+function VerticalVideo({ src, poster }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-black">
+      <img src={poster} alt="" aria-hidden="true" className="absolute inset-0 w-full h-full object-cover scale-125 blur-2xl opacity-60" />
+      <LazyVideo src={src} poster={poster} className="relative z-10 h-full w-auto max-w-full mx-auto object-contain" />
+    </div>
+  );
+}
 
 export default function Index() {
   const navigate = useNavigate();
+  const [active, setActive] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    if (paused) return;
+    const id = setTimeout(() => {
+      setActive((i) => (i + 1) % ANTOJOS.length);
+      setTick((t) => t + 1);
+    }, 5000);
+    return () => clearTimeout(id);
+  }, [active, paused]);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -32,7 +86,7 @@ export default function Index() {
       { threshold: 0.1 }
     );
 
-    const targets = document.querySelectorAll("section > div");
+    const targets = document.querySelectorAll("section:not([data-stack]) > div");
     targets.forEach((el) => {
       el.classList.add("transition-all", "duration-1000", "opacity-0", "translate-y-10");
       observer.observe(el);
@@ -115,133 +169,181 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Esencia */}
-      <section id="philosophy" className="py-16 md:py-section-gap px-gutter bg-surface-container-lowest">
-        <div className="max-w-container-max mx-auto grid md:grid-cols-2 items-center gap-10 md:gap-16">
-          <div className="relative">
-            <div className="aspect-[4/3] sm:aspect-[4/5] rounded-xl overflow-hidden shadow-2xl border border-outline-variant">
-              <img className="w-full h-full object-cover" alt="Nachos con queso, pico de gallo y guacamole" src={img5} />
-            </div>
-            <div className="absolute -bottom-8 -right-8 w-44 h-44 bg-primary rounded-full items-center justify-center text-on-primary hidden md:flex rotate-12 shadow-xl">
-              <span className="material-symbols-outlined text-7xl flame" style={{ fontVariationSettings: "'FILL' 1" }}>
-                local_fire_department
-              </span>
-            </div>
-          </div>
-          <div className="space-y-5 md:space-y-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary-container/15 text-primary rounded-full">
-              <span className="material-symbols-outlined text-sm">restaurant</span>
-              <span className="font-label-md text-label-md">NUESTRA ESENCIA</span>
-            </div>
-            <h2 className="font-headline-md text-[28px] md:text-headline-md text-primary leading-tight">
-              Sabor de taquería, hecho al momento.
+      {/* Elige tu antojo: lista interactiva + media que cambia (video incluido) */}
+      <section id="antojo" className="py-16 md:py-section-gap px-gutter bg-surface-container-lowest">
+        <div className="max-w-container-max mx-auto">
+          <div className="mb-10 md:mb-14 max-w-2xl">
+            <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-container/15 text-primary rounded-full font-label-md text-label-md mb-4">
+              <span className="material-symbols-outlined text-sm">restaurant</span> EL MENÚ DE LA CASA
+            </span>
+            <h2 className="font-headline-md text-[30px] md:text-headline-md text-on-surface leading-tight">
+              ¿Qué se te <span className="keyword">antoja</span> hoy?
             </h2>
-            <p className="font-body-md text-body-md text-on-surface-variant">
-              Cada pedido sale del comal directo a tu mesa: tortilla calientita, carne jugosa, salsas de la casa, limón y cilantro.
-              Sin congelados ni atajos, y con precios siempre claros.
-            </p>
-            <p className="font-body-md text-body-md text-on-surface-variant italic border-l-4 border-primary-container pl-4 md:pl-6">
-              "Un buen taco no se explica: se prueba, se exprime un limón encima y se repite."
-            </p>
-            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 md:gap-4 pt-2 md:pt-4">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">check_circle</span>
-                <span className="font-label-md text-label-md">Tortilla al comal</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">check_circle</span>
-                <span className="font-label-md text-label-md">Entrega en 30–45 min</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">check_circle</span>
-                <span className="font-label-md text-label-md">Pago Contraentrega</span>
-              </div>
+          </div>
+
+          <div className="grid md:grid-cols-[1fr_1.05fr] gap-8 md:gap-14 items-center">
+            <ul className="order-2 md:order-1 space-y-2" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+              {ANTOJOS.map((a, i) => (
+                <li key={a.title}>
+                  <button
+                    onClick={() => setActive(i)}
+                    aria-pressed={active === i}
+                    className={`relative w-full text-left rounded-2xl px-5 py-4 border-2 transition-all duration-300 overflow-hidden ${
+                      active === i ? "bg-surface-container border-primary-container" : "border-transparent hover:bg-surface-container-low"
+                    }`}
+                  >
+                    <span className="flex items-center gap-4">
+                      <span className={`font-display-lg text-2xl md:text-3xl ${active === i ? "text-primary" : "text-outline"}`}>0{i + 1}</span>
+                      <span className="flex-1">
+                        <span className={`block font-headline-sm text-lg md:text-xl ${active === i ? "text-on-surface" : "text-on-surface-variant"}`}>{a.title}</span>
+                        <span className={`block font-body-md text-sm text-on-surface-variant transition-all duration-500 overflow-hidden ${active === i ? "max-h-24 opacity-100 mt-1" : "max-h-0 opacity-0"}`}>
+                          {a.text}
+                        </span>
+                      </span>
+                      <span className={`material-symbols-outlined transition-transform ${active === i ? "text-primary-container rotate-45" : "text-outline"}`}>add</span>
+                    </span>
+                    {active === i && !paused && <span key={tick} className="absolute left-0 bottom-0 h-1 bg-primary progress-bar" />}
+                  </button>
+                </li>
+              ))}
+              <li className="pt-4">
+                <button
+                  className="bg-primary-container text-white px-8 py-4 rounded-full font-label-md text-label-md shadow-[0_5px_0_#8f0f0b] hover:translate-y-[2px] hover:shadow-[0_3px_0_#8f0f0b] transition-all"
+                  onClick={() => navigate("/menu")}
+                >
+                  Ver el menú completo
+                </button>
+              </li>
+            </ul>
+
+            <div className="order-1 md:order-2 relative aspect-[4/5] max-h-[620px] w-full mx-auto rounded-[2rem] overflow-hidden border-4 border-primary shadow-[0_30px_60px_-24px_rgba(254,43,36,0.55)]">
+              {ANTOJOS.map((a, i) => (
+                <div key={a.title} className={`absolute inset-0 transition-opacity duration-700 ${active === i ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
+                  {a.video ? (
+                    <VerticalVideo src={a.video} poster={a.img} />
+                  ) : (
+                    <img className="w-full h-full object-cover" src={a.img} alt={a.alt} loading="lazy" />
+                  )}
+                </div>
+              ))}
+              <span className="absolute top-4 left-4 bg-primary text-on-primary rounded-full px-3 py-1 font-label-md text-label-md">{ANTOJOS[active].tag}</span>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Favoritos */}
-      <section className="py-16 md:py-section-gap px-gutter bg-surface-container">
+      {/* Del comal a tu puerta: paneles que se apilan al hacer scroll */}
+      <section id="proceso" className="py-16 md:py-section-gap px-gutter bg-background">
         <div className="max-w-container-max mx-auto">
-          <div className="text-center mb-10 md:mb-20">
-            <h2 className="font-headline-md text-[28px] md:text-headline-md text-primary mb-4">
-              Los Favoritos de la Casa
-            </h2>
-            <div className="w-24 h-1.5 bg-primary-container mx-auto rounded-full" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-            {FAVORITOS.map((c) => (
-              <div
-                key={c.title}
-                className={`group card-hot rounded-xl overflow-hidden border-2 ${c.hot ? "bg-primary-container text-white border-primary shadow-2xl" : "bg-surface-container-lowest border-outline-variant"}`}
+          <h2 className="font-headline-md text-[30px] md:text-headline-md text-on-surface text-center mb-10 md:mb-16">
+            Del comal a <span className="keyword">tu puerta</span>
+          </h2>
+          <div className="space-y-8 md:space-y-14">
+            {PASOS.map((p, i) => (
+              <article
+                key={p.title}
+                className="grid md:grid-cols-2 gap-0 rounded-[2rem] overflow-hidden border-2 border-outline-variant shadow-2xl md:h-[460px]"
+                style={{ background: p.bg, color: p.fg }}
               >
-                <div className="aspect-[4/3] sm:aspect-[16/10] md:aspect-[4/5] overflow-hidden relative">
-                  <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={c.alt} src={c.img} />
-                  <div className={`absolute top-4 left-4 px-3 py-1 rounded-full font-label-md text-label-md ${c.hot ? "bg-primary text-on-primary" : "bg-black/70 backdrop-blur text-primary"}`}>
-                    {c.tag}
+                <div className={`p-8 md:p-12 flex flex-col justify-center gap-4 ${i % 2 ? "md:order-2" : ""}`}>
+                  <span className="font-display-lg text-6xl md:text-8xl opacity-90" style={{ color: p.accent }}>0{i + 1}</span>
+                  <h3 className="font-headline-md text-[26px] md:text-3xl leading-tight">{p.title}</h3>
+                  <p className="font-body-md text-body-md opacity-90 max-w-md">{p.text}</p>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    {p.chips.map((c) => (
+                      <span key={c} className="px-3 py-1.5 rounded-full text-sm font-label-md" style={{ background: "rgba(0,0,0,0.22)" }}>{c}</span>
+                    ))}
                   </div>
                 </div>
-                <div className="p-6 md:p-8 text-center">
-                  <h3 className="font-headline-sm text-headline-sm mb-2 text-primary">{c.title}</h3>
-                  <p className={`font-body-md text-body-md mb-6 ${c.hot ? "text-white/90" : "text-on-surface-variant"}`}>{c.text}</p>
-                  <button
-                    className={`inline-flex items-center gap-1 font-label-md text-label-md ${c.hot ? "text-white" : "text-primary-container"} group-hover:gap-3 transition-all`}
-                    onClick={() => navigate("/menu")}
-                  >
-                    Pedir ahora <span className="material-symbols-outlined text-base">arrow_forward</span>
-                  </button>
+                <div className={`relative min-h-[320px] md:min-h-0 ${p.video ? "min-h-[460px]" : ""}`}>
+                  {p.video ? (
+                    <VerticalVideo src={p.video} poster={p.img} />
+                  ) : (
+                    <img className="absolute inset-0 w-full h-full object-cover" src={p.img} alt={p.alt} loading="lazy" />
+                  )}
                 </div>
-              </div>
+              </article>
             ))}
           </div>
-          <div className="mt-10 md:mt-16 text-center">
+        </div>
+      </section>
+
+      {/* Mosaico tipo bento con fotos y video */}
+      <section id="mosaico" className="py-16 md:py-section-gap px-gutter bg-surface-container">
+        <div className="max-w-container-max mx-auto">
+          <div className="text-center mb-10 md:mb-14">
+            <h2 className="font-headline-md text-[30px] md:text-headline-md text-primary mb-4">Pura casa, pura sazón</h2>
+            <div className="w-24 h-1.5 bg-primary-container mx-auto rounded-full" />
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 auto-rows-[160px] md:auto-rows-[200px] gap-3 md:gap-5">
+            <figure className="group relative col-span-2 row-span-2 rounded-[2rem] overflow-hidden card-hot border-2 border-transparent">
+              <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src={img6} alt="Tacos cochinita pibil con cebolla morada y salsas" loading="lazy" />
+              <figcaption className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-black/80 to-transparent">
+                <span className="font-display-lg text-2xl md:text-3xl text-primary">Cochinita Pibil</span>
+              </figcaption>
+            </figure>
+            <figure className="group relative row-span-2 rounded-[2rem] overflow-hidden card-hot border-2 border-transparent">
+              <LazyVideo src={video2} poster={img7} className="w-full h-full object-cover" />
+              <span className="absolute top-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur rounded-full px-3 py-1 text-xs font-label-md text-white">
+                <span className="w-2 h-2 rounded-full bg-primary-container pulse-live" /> En vivo
+              </span>
+            </figure>
+            <figure className="group relative rounded-[2rem] overflow-hidden card-hot border-2 border-transparent">
+              <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src={img7} alt="Limón exprimido sobre tacos" loading="lazy" />
+            </figure>
+            <div className="rounded-[2rem] bg-primary text-on-primary p-5 flex flex-col justify-between card-hot border-2 border-transparent">
+              <span className="material-symbols-outlined text-4xl flame" style={{ fontVariationSettings: "'FILL' 1" }}>local_fire_department</span>
+              <div>
+                <p className="font-display-lg text-3xl md:text-4xl leading-none">30–45</p>
+                <p className="font-label-md text-label-md">minutos a tu puerta</p>
+              </div>
+            </div>
+            <figure className="group relative col-span-2 rounded-[2rem] overflow-hidden card-hot border-2 border-transparent">
+              <img className="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-700" src={img8} alt="Tacos dorados servidos en plato azul con limón" loading="lazy" />
+            </figure>
             <button
-              className="inline-flex items-center gap-2 font-label-md text-label-md text-primary border-b-2 border-primary-container pb-1 hover:gap-4 transition-all"
               onClick={() => navigate("/menu")}
+              className="group col-span-2 rounded-[2rem] bg-primary-container text-white p-5 md:p-8 flex flex-col justify-between text-left card-hot border-2 border-transparent"
             >
-              Ver Menú Completo
-              <span className="material-symbols-outlined">arrow_forward</span>
+              <span className="font-display-lg text-2xl md:text-3xl leading-tight">¡Pide ya!</span>
+              <span className="material-symbols-outlined text-3xl self-end group-hover:translate-x-2 transition-transform">arrow_forward</span>
             </button>
           </div>
         </div>
       </section>
 
-      {/* Experiencia */}
-      <section id="experience" className="relative min-h-[520px] md:min-h-[600px] py-16 md:py-24 flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0 bg-scroll md:bg-fixed bg-cover bg-center"
-          role="img"
-          aria-label="Totopo con guacamole sobre fondo rojo"
-          style={{ backgroundImage: `url(${experienceImg})` }}
-        />
-        <div className="absolute inset-0 bg-black/60" />
-        <div className="relative z-10 text-center text-white px-gutter max-w-3xl mx-auto">
-          <h2 className="font-headline-md text-[28px] md:text-headline-md mb-4 md:mb-6 text-primary">
-            Calientitos, a tu Puerta
-          </h2>
-          <p className="font-body-lg text-base md:text-body-lg mb-8 md:mb-10 text-white/90">
-            Sin filas ni complicaciones: pides, nosotros armamos los tacos al momento y tú esperas en casa con la salsa lista.
-          </p>
-          <button
-            className="bg-primary text-on-primary w-full max-w-xs sm:w-auto sm:max-w-none px-10 py-4 rounded-full font-label-md text-label-md shadow-[0_5px_0_#7a4d00] hover:translate-y-[2px] hover:shadow-[0_3px_0_#7a4d00] transition-all"
-            onClick={() => navigate("/menu")}
-          >
-            Pedir Ahora
-          </button>
-          <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8 border-t border-white/20 pt-8 md:pt-10">
-            <div className="flex flex-row sm:flex-col items-center justify-center gap-3 sm:gap-2">
-              <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">schedule</span>
-              <span className="font-label-md text-label-md">Entrega en 30–45 min</span>
+      {/* Cierre: texto + video vertical en su formato */}
+      <section id="experience" className="relative py-16 md:py-24 px-gutter bg-surface-dim overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_50%,rgba(254,43,36,0.35),transparent_60%)]" />
+        <div className="relative z-10 max-w-container-max mx-auto grid md:grid-cols-[1.1fr_0.9fr] items-center gap-10 md:gap-16">
+          <div className="text-center md:text-left">
+            <h2 className="font-headline-md text-[30px] md:text-headline-md mb-4 md:mb-6 text-primary">Calientitos, a tu Puerta</h2>
+            <p className="font-body-lg text-base md:text-body-lg mb-8 md:mb-10 text-on-surface-variant max-w-xl mx-auto md:mx-0">
+              Sin filas ni complicaciones: pides, nosotros armamos los tacos al momento y tú esperas en casa con la salsa lista.
+            </p>
+            <button
+              className="bg-primary text-on-primary w-full max-w-xs sm:w-auto sm:max-w-none px-10 py-4 rounded-full font-label-md text-label-md shadow-[0_5px_0_#7a4d00] hover:translate-y-[2px] hover:shadow-[0_3px_0_#7a4d00] transition-all"
+              onClick={() => navigate("/menu")}
+            >
+              Pedir Ahora
+            </button>
+            <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8 border-t border-outline-variant pt-8 md:pt-10 text-on-surface">
+              <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
+                <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">schedule</span>
+                <span className="font-label-md text-label-md">Entrega en 30–45 min</span>
+              </div>
+              <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
+                <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">moped</span>
+                <span className="font-label-md text-label-md">Domicilio $6.000</span>
+              </div>
+              <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
+                <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">payments</span>
+                <span className="font-label-md text-label-md">Pago Contraentrega</span>
+              </div>
             </div>
-            <div className="flex flex-row sm:flex-col items-center justify-center gap-3 sm:gap-2">
-              <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">moped</span>
-              <span className="font-label-md text-label-md">Domicilio $6.000</span>
-            </div>
-            <div className="flex flex-row sm:flex-col items-center justify-center gap-3 sm:gap-2">
-              <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">payments</span>
-              <span className="font-label-md text-label-md">Pago Contraentrega</span>
-            </div>
+          </div>
+          <div className="mx-auto w-full max-w-[300px] md:max-w-[340px] aspect-[9/16] rounded-[2.5rem] overflow-hidden border-4 border-primary shadow-[0_30px_60px_-20px_rgba(254,43,36,0.6)] float-soft">
+            <LazyVideo src={video1} poster={experienceImg} className="w-full h-full object-cover" />
           </div>
         </div>
       </section>

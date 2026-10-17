@@ -104,6 +104,17 @@ body {
   border-color: #fe2b24;
 }
 
+/* Barra de progreso del selector de antojos (dura lo mismo que el autoavance) */
+.progress-bar {
+  width: 100%;
+  transform-origin: left;
+  animation: progress 5s linear forwards;
+}
+@keyframes progress {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
 @keyframes subtle-zoom {
   from { transform: scale(1.0); }
   to { transform: scale(1.1); }
@@ -141,7 +152,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee, .spin-slow, .float-tilt, .float-soft, .flame, .pulse-live, .draw-line, .rise {
+  .marquee, .progress-bar, .spin-slow, .float-tilt, .float-soft, .flame, .pulse-live, .draw-line, .rise {
     animation: none !important;
     opacity: 1;
     stroke-dashoffset: 0;
