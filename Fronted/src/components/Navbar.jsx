@@ -14,7 +14,7 @@ const POSITION_CLASS = {
   static: "",
 };
 
-export default function Navbar({ active, position = "static", rightSlot, showLinks = true }) {
+export default function Navbar({ active, position = "sticky", rightSlot, showLinks = true }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 

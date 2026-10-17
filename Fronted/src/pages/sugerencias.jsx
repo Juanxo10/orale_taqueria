@@ -40,11 +40,11 @@ export default function Sugerencias() {
   };
 
   return (
-    <div className="bg-background text-on-surface font-body-md overflow-x-hidden min-h-screen flex flex-col">
+    <div className="bg-background text-on-surface font-body-md overflow-x-clip min-h-screen flex flex-col">
       <Navbar active="sugerencias" />
 
       {/* Header */}
-      <header className="bg-surface-dim border-b-4 border-primary-container px-gutter py-16 md:py-20 text-center">
+      <header className="tex-ember border-b-4 border-primary-container px-gutter py-16 md:py-20 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-tertiary-fixed rounded-full mb-5">
           <span className="material-symbols-outlined text-sm">chat_bubble</span>
           <span className="font-label-md text-label-md">TU OPINIÓN IMPORTA</span>
@@ -59,7 +59,7 @@ export default function Sugerencias() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 py-section-gap px-gutter bg-surface-container-lowest">
+      <main className="flex-1 py-section-gap px-gutter tex-warm">
         <div className="max-w-xl mx-auto">
           {state === "ok" ? (
             <div className="bg-surface-container rounded-xl p-10 text-center shadow-[0px_4px_20px_rgba(254,43,36,0.05)]">
@@ -135,7 +135,7 @@ export default function Sugerencias() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-container border-t border-outline-variant">
+      <footer className="tex-warm border-t border-outline-variant">
         <div className="max-w-container-max mx-auto px-gutter py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
             <img alt="Órale Tacos" className="h-12 w-auto object-contain rounded-lg" src={logoDark} />

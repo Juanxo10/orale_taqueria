@@ -10,8 +10,11 @@ import img6 from "../assets/taco6.jpg";
 import img7 from "../assets/taco7.jpg";
 import img8 from "../assets/taco8.jpg";
 import experienceImg from "../assets/taco2.jpg";
-import video1 from "../assets/videotaco1.mp4";
+import tacoSide from "../assets/tacoinicio.png";
 import video2 from "../assets/videotaco2.mp4";
+import video3 from "../assets/videotaco3.mp4";
+import video4 from "../assets/videotaco4.mp4";
+import video5 from "../assets/videotaco5.mp4";
 
 const TICKER = ["Tacos al momento", "Salsas de la casa", "Limón y cilantro", "Tortilla recién hecha", "Nachos con queso", "Órale, pide ya"];
 
@@ -24,9 +27,22 @@ const ANTOJOS = [
 
 const PASOS = [
   { title: "Eliges tus tacos", text: "Escoge tus tacos, tus salsas y los extras que quieras desde el menú.", chips: ["Tacos", "Salsas", "Extras"], img: img3, alt: "Tacos con salsa goteando", bg: "#fe2b24", fg: "#ffffff", accent: "#fbba24" },
-  { title: "Al comal, al momento", text: "Tortilla recién calentada, carne jugosa y todo armado cuando lo pides.", chips: ["Sin congelados", "Bien calientitos"], img: img1, video: video2, alt: "Taco con limón", bg: "#1d1210", fg: "#fbf1e3", accent: "#fe2b24" },
+  { title: "Al comal, al momento", text: "Tortilla recién calentada, carne jugosa y todo armado cuando lo pides.", chips: ["Sin congelados", "Bien calientitos"], img: img1, video: video3, alt: "Taco con limón", bg: "#1d1210", fg: "#fbf1e3", accent: "#fe2b24" },
   { title: "A tu puerta", text: "Lo llevamos en 30–45 minutos. Pagas contraentrega, sin complicaciones.", chips: ["30–45 min", "Domicilio $6.000", "Contraentrega"], img: img8, alt: "Plato de tacos servido", bg: "#fbba24", fg: "#2a1204", accent: "#fe2b24" },
 ];
+
+// Taco decorativo que asoma en diagonal desde un costado (PNG 360x360: no ampliar de ~260px).
+function SideTaco({ className = "", rot = 0, flip = false, delay = 0 }) {
+  return (
+    <img
+      src={tacoSide}
+      alt=""
+      aria-hidden="true"
+      className={`float-diag hidden md:block absolute z-0 pointer-events-none select-none w-44 lg:w-60 drop-shadow-[0_18px_24px_rgba(0,0,0,0.55)] ${className}`}
+      style={{ "--r": `${rot}deg`, "--sx": flip ? -1 : 1, animationDelay: `${delay}s` }}
+    />
+  );
+}
 
 // Video que solo carga y reproduce cuando está visible (videotaco1 pesa ~32 MB).
 function LazyVideo({ src, poster, className }) {
@@ -100,12 +116,13 @@ export default function Index() {
       <Navbar active="inicio" position="fixed" />
 
       {/* Hero */}
-      <header className="relative min-h-[100svh] w-full flex items-center overflow-hidden pt-32 pb-20 md:pt-28 md:pb-16">
-        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_75%_40%,rgba(254,43,36,0.55),transparent_60%),radial-gradient(ellipse_at_10%_90%,rgba(251,186,36,0.14),transparent_50%)]" />
+      <header className="tex-ember min-h-[100svh] w-full flex items-center overflow-hidden pt-32 pb-20 md:pt-28 md:pb-16">
         <svg className="absolute inset-0 w-full h-full z-0 opacity-30 pointer-events-none" aria-hidden="true">
           <path className="draw-line" d="M0 120 H140 Q170 120 170 150 V260" fill="none" stroke="#fbba24" strokeWidth="2" strokeDasharray="6 10" />
         </svg>
 
+        <SideTaco className="-left-24 lg:-left-28 -bottom-6" rot={-22} />
+        <SideTaco className="-right-16 top-28 !w-36 lg:!w-44" rot={24} flip delay={1.2} />
         <div className="relative z-10 max-w-container-max mx-auto w-full px-gutter grid md:grid-cols-2 items-center gap-10 md:gap-6">
           <div className="text-center md:text-left flex flex-col items-center md:items-start">
             <div className="rise inline-flex items-center gap-3 mb-6 px-3 py-2 rounded-full bg-white/5 border border-outline-variant" style={{ animationDelay: "0.1s" }}>
@@ -170,8 +187,9 @@ export default function Index() {
       </div>
 
       {/* Elige tu antojo: lista interactiva + media que cambia (video incluido) */}
-      <section id="antojo" className="py-16 md:py-section-gap px-gutter bg-surface-container-lowest">
-        <div className="max-w-container-max mx-auto">
+      <section id="antojo" className="tex-grid overflow-hidden py-16 md:py-section-gap px-gutter">
+        <SideTaco className="-right-16 lg:-right-20 top-8" rot={20} flip />
+        <div className="relative z-10 max-w-container-max mx-auto">
           <div className="mb-10 md:mb-14 max-w-2xl">
             <span className="inline-flex items-center gap-2 px-4 py-2 bg-primary-container/15 text-primary rounded-full font-label-md text-label-md mb-4">
               <span className="material-symbols-outlined text-sm">restaurant</span> EL MENÚ DE LA CASA
@@ -233,7 +251,7 @@ export default function Index() {
       </section>
 
       {/* Del comal a tu puerta: paneles que se apilan al hacer scroll */}
-      <section id="proceso" className="py-16 md:py-section-gap px-gutter bg-background">
+      <section id="proceso" className="tex-warm py-16 md:py-section-gap px-gutter">
         <div className="max-w-container-max mx-auto">
           <h2 className="font-headline-md text-[30px] md:text-headline-md text-on-surface text-center mb-10 md:mb-16">
             Del comal a <span className="keyword">tu puerta</span>
@@ -269,8 +287,10 @@ export default function Index() {
       </section>
 
       {/* Mosaico tipo bento con fotos y video */}
-      <section id="mosaico" className="py-16 md:py-section-gap px-gutter bg-surface-container">
-        <div className="max-w-container-max mx-auto">
+      <section id="mosaico" className="tex-grid overflow-hidden py-16 md:py-section-gap px-gutter">
+        <SideTaco className="-left-14 top-10 !w-36 lg:!w-48" rot={-16} delay={0.6} />
+        <SideTaco className="-right-14 top-10 !w-36 lg:!w-48" rot={16} flip delay={1.8} />
+        <div className="relative z-10 max-w-container-max mx-auto">
           <div className="text-center mb-10 md:mb-14">
             <h2 className="font-headline-md text-[30px] md:text-headline-md text-primary mb-4">Pura casa, pura sazón</h2>
             <div className="w-24 h-1.5 bg-primary-container mx-auto rounded-full" />
@@ -283,7 +303,7 @@ export default function Index() {
               </figcaption>
             </figure>
             <figure className="group relative row-span-2 rounded-[2rem] overflow-hidden card-hot border-2 border-transparent">
-              <LazyVideo src={video2} poster={img7} className="w-full h-full object-cover" />
+              <LazyVideo src={video4} poster={img7} className="w-full h-full object-cover" />
               <span className="absolute top-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur rounded-full px-3 py-1 text-xs font-label-md text-white">
                 <span className="w-2 h-2 rounded-full bg-primary-container pulse-live" /> En vivo
               </span>
@@ -313,8 +333,7 @@ export default function Index() {
       </section>
 
       {/* Cierre: texto + video vertical en su formato */}
-      <section id="experience" className="relative py-16 md:py-24 px-gutter bg-surface-dim overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_80%_50%,rgba(254,43,36,0.35),transparent_60%)]" />
+      <section id="experience" className="tex-ember py-16 md:py-24 px-gutter overflow-hidden">
         <div className="relative z-10 max-w-container-max mx-auto grid md:grid-cols-[1.1fr_0.9fr] items-center gap-10 md:gap-16">
           <div className="text-center md:text-left">
             <h2 className="font-headline-md text-[30px] md:text-headline-md mb-4 md:mb-6 text-primary">Calientitos, a tu Puerta</h2>
@@ -343,13 +362,13 @@ export default function Index() {
             </div>
           </div>
           <div className="mx-auto w-full max-w-[300px] md:max-w-[340px] aspect-[9/16] rounded-[2.5rem] overflow-hidden border-4 border-primary shadow-[0_30px_60px_-20px_rgba(254,43,36,0.6)] float-soft">
-            <LazyVideo src={video1} poster={experienceImg} className="w-full h-full object-cover" />
+            <LazyVideo src={video5} poster={experienceImg} className="w-full h-full object-cover" />
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-surface-container border-t border-outline-variant">
+      <footer className="tex-warm border-t border-outline-variant">
         <div className="max-w-container-max mx-auto px-gutter py-14 md:py-section-gap grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
           <div>
             <div className="flex items-center mb-5 md:mb-6">

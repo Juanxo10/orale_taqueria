@@ -3,11 +3,11 @@ import logoDark from "../assets/Logo_tacos.jpg";
 
 export default function Ubicacion() {
   return (
-    <div className="bg-background text-on-surface font-body-md overflow-x-hidden min-h-screen flex flex-col">
+    <div className="bg-background text-on-surface font-body-md overflow-x-clip min-h-screen flex flex-col">
       <Navbar active="ubicacion" />
 
       {/* Header */}
-      <header className="bg-surface-dim border-b-4 border-primary-container px-gutter py-16 md:py-20 text-center">
+      <header className="tex-ember border-b-4 border-primary-container px-gutter py-16 md:py-20 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-tertiary-fixed rounded-full mb-5">
           <span className="material-symbols-outlined text-sm">location_on</span>
           <span className="font-label-md text-label-md">VISÍTANOS</span>
@@ -21,7 +21,7 @@ export default function Ubicacion() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 py-section-gap px-gutter bg-surface-container-lowest">
+      <main className="flex-1 py-section-gap px-gutter tex-warm">
         <div className="max-w-container-max mx-auto grid md:grid-cols-2 items-center gap-16">
           <div className="space-y-8">
             <div className="space-y-5">
@@ -72,7 +72,7 @@ export default function Ubicacion() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-surface-container border-t border-outline-variant">
+      <footer className="tex-warm border-t border-outline-variant">
         <div className="max-w-container-max mx-auto px-gutter py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
             <img alt="Órale Tacos" className="h-12 w-auto object-contain rounded-lg" src={logoDark} />
