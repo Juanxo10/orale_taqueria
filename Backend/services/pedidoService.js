@@ -15,7 +15,7 @@ function invalidarCache() {
 }
 
 // ── Crear pedido ─────────────────────────────────────────
-async function crearPedido({ bowls, extraItems, frappesAlmond, cliente, metodo_pago, tipo_entrega = "domicilio" }) {
+async function crearPedido({ bowls, extraItems, cliente, metodo_pago, tipo_entrega = "domicilio" }) {
   if (!METODOS_VALIDOS.includes(metodo_pago)) {
     throw { status: 400, message: "Método de pago no disponible" };
   }
@@ -146,26 +146,7 @@ async function crearPedido({ bowls, extraItems, frappesAlmond, cliente, metodo_p
       extrasData.push({ productoId: prod.id, cantidad: qty });
     }
 
-    // Leche de almendras para frappes (precio desde configuracion)
-    const FRAPPES_SET = new Set([
-      "Frappe de café", "Frappe mocca", "Frappe arequipe", "Frappe baileys",
-      "Frappe té chai", "Caños cristales", "Caños negros", "Macarena",
-    ]);
-    const almondInfo = [];
-    for (const [name, hasAlmond] of Object.entries(frappesAlmond || {})) {
-      if (hasAlmond && FRAPPES_SET.has(name)) {
-        const qty = (extraItems || {})[name] || 0;
-        if (qty > 0) {
-          subtotal += LECHE_ALMENDRAS_PRECIO * qty;
-          almondInfo.push(`${name} x${qty} (leche almendras)`);
-        }
-      }
-    }
-    let notasFinal = notas || null;
-    if (almondInfo.length > 0) {
-      const almondNote = "Leche almendras: " + almondInfo.join(", ");
-      notasFinal = notasFinal ? notasFinal + " | " + almondNote : almondNote;
-    }
+    const notasFinal = notas || null;
 
     const total = subtotal + DOMICILIO;
     const numero_pedido = "P" + Date.now();

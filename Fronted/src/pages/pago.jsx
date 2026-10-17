@@ -3,17 +3,14 @@ import { useNavigate } from "react-router-dom";
 import logo from "../assets/image.png";
 import { API_URL } from "../config";
 import {
-  ALL_EXTRAS, FRAPPES_NAMES, LECHE_ALMENDRAS, CAJA, VASO, DOM, calcBowlPrice,
+  ALL_EXTRAS, DOM,
 } from "../data/menuData";
 
 // Precio de cada adicional derivado de la misma fuente que usa menu.jsx,
 // para que nunca queden desincronizados (bug: productos nuevos cobrándose $0).
 const CAFETERIA_PRECIOS = Object.fromEntries(ALL_EXTRAS.map((it) => [it.name, it.price]));
-const FRAPPES_NOMBRES = FRAPPES_NAMES;
 
 const fmt = (n) => "$" + Number(n).toLocaleString("es-CO");
-
-const protName = (p) => (typeof p === "string" ? p : p?.name ?? "");
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -132,15 +129,10 @@ export default function Pago() {
 
   const bowls = orderData?.bowls || [];
   const extraItems = orderData?.extraItems || {};
-  const frappesAlmond = orderData?.frappesAlmond || {};
 
-  const extrasSubtotal = Object.entries(extraItems).reduce((s, [n, qty]) => {
-    if (!qty) return s;
-    const almondExtra = (FRAPPES_NOMBRES.has(n) && frappesAlmond[n]) ? LECHE_ALMENDRAS * qty : 0;
-    return s + (CAFETERIA_PRECIOS[n] ?? 0) * qty + almondExtra;
-  }, 0);
+  const extrasSubtotal = Object.entries(extraItems).reduce((s, [n, qty]) => s + (CAFETERIA_PRECIOS[n] ?? 0) * (qty || 0), 0);
   const domicilioCosto = tipoEntrega === "recogida" ? 0 : DOM;
-  const grandTotal = bowls.reduce((s, b) => s + calcBowlPrice(b.tops, b.prots, b.bev), 0) + extrasSubtotal + domicilioCosto;
+  const grandTotal = extrasSubtotal + domicilioCosto;
 
   const validateDelivery = () => {
     const e = {};
@@ -205,7 +197,6 @@ export default function Pago() {
     const payload = {
       bowls,
       extraItems,
-      frappesAlmond,
       cliente: {
         nombre: fname.trim(),
         telefono: fphone.trim(),
@@ -277,7 +268,6 @@ export default function Pago() {
     const payload = {
       bowls,
       extraItems,
-      frappesAlmond,
       cliente: {
         nombre: fname.trim(),
         telefono: fphone.trim(),
@@ -377,8 +367,8 @@ export default function Pago() {
         <div className="brand-wrap">
           <img src={logo} alt="Pepas logo" className="brand-logo" />
           <div>
-            <div className="brand-name">pepas coffee</div>
-            <div className="brand-sub">Bowls frescos · Vida saludable</div>
+            <div className="brand-name">Órale Taquería</div>
+            <div className="brand-sub">Tacos · Birria · Tequila</div>
           </div>
         </div>
         <button className="back-link" onClick={() => navigate("/menu")}>← Volver al pedido</button>
@@ -395,37 +385,15 @@ export default function Pago() {
         <div className="summary-card">
           <div className="summary-head">
             <span>Resumen</span>
-            <strong>
-              {bowls.length > 0 && <>{bowls.length} bowl{bowls.length !== 1 ? "s" : ""}{Object.values(extraItems).some(q=>q>0) ? " + adicionales" : ""}</>}
-              {bowls.length === 0 && <>Solo adicionales</>}
-            </strong>
+            <strong>{Object.values(extraItems).reduce((s, q) => s + q, 0)} productos</strong>
           </div>
           <div className="summary-rows">
-            {bowls.map((b, i) => (
-              <div key={i} style={{ marginBottom: ".4rem" }}>
-                <div className="srow">
-                  <span className="sl">Bowl {i + 1} · {b.carb} · {b.prots.map(protName).join(", ")}{b.bev ? " · " + b.bev : ""}</span>
-                  <span className="sv">{fmt(calcBowlPrice(b.tops, b.prots, b.bev))}</span>
-                </div>
-                <div className="srow" style={{ opacity: .7, fontSize: ".75rem", paddingLeft: ".5rem" }}>
-                  <span className="sl">Caja</span>
-                  <span className="sv">+{fmt(CAJA)}</span>
-                </div>
-                {b.bev && (
-                  <div className="srow" style={{ opacity: .7, fontSize: ".75rem", paddingLeft: ".5rem" }}>
-                    <span className="sl">Vaso</span>
-                    <span className="sv">+{fmt(VASO)}</span>
-                  </div>
-                )}
-              </div>
-            ))}
             {Object.keys(extraItems).filter((nombre) => (extraItems[nombre] || 0) > 0).map((nombre) => {
               const qty = extraItems[nombre];
-              const almondExtra = (FRAPPES_NOMBRES.has(nombre) && frappesAlmond[nombre]) ? LECHE_ALMENDRAS * qty : 0;
               return (
                 <div key={nombre} className="srow">
-                  <span className="sl">{nombre} ×{qty}{FRAPPES_NOMBRES.has(nombre) && frappesAlmond[nombre] ? " · leche almendras" : ""}</span>
-                  <span className="sv">{fmt((CAFETERIA_PRECIOS[nombre] ?? 0) * qty + almondExtra)}</span>
+                  <span className="sl">{nombre} ×{qty}</span>
+                  <span className="sv">{fmt((CAFETERIA_PRECIOS[nombre] ?? 0) * qty)}</span>
                 </div>
               );
             })}

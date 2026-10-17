@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
+import { MENU } from "../data/menuData";
 
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 
@@ -493,31 +494,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 }
 `;
 
-const CARBOS_INV = ["Arroz integral", "Papa criolla", "Quinoa"];
-const TOPPINGS_INV = [
-  "Aguacate", "Champiñones", "Cherry", "Maíz", "Zanahoria", "Pepino",
-  "Guacamole", "Repollo morado", "Piña asada", "Mango", "Pico de gallo",
-  "Tomate cherry", "Nueces", "Nachos", "Brócoli", "Queso",
-];
-const PROTEINAS_INV = ["Pollo", "Atún", "Carne molida", "Falafel", "Huevo", "Lomo de res", "Cerdo"];
-const BEBIDAS_INV = ["Limonada", "Agua y limón"];
-const CAFETERIA_INV = [
-  { cat: "Brunch", items: ["Pizzeta pesto", "Pizzeta carne", "Picada especial", "Sopa de tomate"] },
-  { cat: "Emparedados", items: ["Emparedado de lomo", "Choripan", "Emparedado integral", "Emparedado de cerdo", "Emparedado de huevo", "Emparedado de salami"] },
-  { cat: "Desayunos", items: ["Criollito", "Hayaca", "Wraps de espinaca", "Wraps de cerdo", "Desayuno Llanero"] },
-  { cat: "Omelet", items: ["Omelet Opción 1", "Omelet Opción 2", "Omelet Opción 3"] },
-  { cat: "Montaditos", items: ["Montadito de huevo", "Montadito napolitano", "Montadito de carne"] },
-  { cat: "Bowls y Fruta", items: ["Bowl de yogurt", "Mini bowl de yogurt", "Bowl de avena", "Bowl de açaí", "Cuchareable de açaí", "Fruta fresca"] },
-  { cat: "Bebidas cafetería", items: ["Soda Hatsu", "Colombiano", "Capuchino"] },
-  { cat: "Combos", items: ["Hayaca + Chocolate", "Hayaca + Capuchino", "Hayaca + Aguapanela", "Hayaca + Colombiano", "Combo chocolate", "Combo aguapanela", "Croissant jamón y queso + capuchino", "Croissant arequipe + capuchino"] },
-];
-const INVENTARIO_GRUPOS = [
-  { cat: "Carbohidratos", items: CARBOS_INV },
-  { cat: "Toppings", items: TOPPINGS_INV },
-  { cat: "Proteínas", items: PROTEINAS_INV },
-  { cat: "Bebidas bowl", items: BEBIDAS_INV },
-  ...CAFETERIA_INV,
-];
+const INVENTARIO_GRUPOS = MENU.map(({ cat, items }) => ({ cat, items: items.map((i) => i.name) }));
 
 const FILTERS = [
   { key: "todos", label: "Todos" },

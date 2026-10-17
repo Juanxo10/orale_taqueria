@@ -1,178 +1,68 @@
-// Fuente única de verdad para productos y precios del menú.
-// Usado tanto por menu.jsx (armar pedido) como por pago.jsx (calcular total a cobrar).
-// Debe reflejar exactamente lo que existe en la tabla `productos` de la base de datos.
+// Fuente única de verdad para productos y precios del menú (Orale Taquería, COP).
+// Usado por menu.jsx (armar pedido), pago.jsx (total a cobrar) y admin.jsx (inventario).
+// Debe reflejar exactamente lo que existe en la tabla `productos` (Backend/db/seed.sql,
+// que se regenera con `node Backend/scripts/genSeed.mjs`).
 
-export const CARBOS = ["Arroz integral", "Papa criolla", "Quinoa"];
-
-export const TOPPINGS = [
-  "Aguacate", "Champiñones", "Cherry", "Maíz", "Zanahoria", "Pepino",
-  "Guacamole", "Repollo morado", "Piña asada", "Mango", "Pico de gallo",
-  "Nueces", "Nachos", "Brócoli", "Queso",
-];
-
-export const PROTEINAS = [
-  { name: "Pollo",       price: 8500 },
-  { name: "Atún",        price: 8500 },
-  { name: "Carne molida", price: 6500 },
-  { name: "Falafel",     price: 5000 },
-  { name: "Huevo",       price: 4000 },
-  { name: "Lomo de res", price: 10000 },
-  { name: "Cerdo",       price: 8500 },
-];
-
-export const BEBIDAS = ["Limonada", "Agua y limón"];
-
-export const BOWL_BASE = 12000;
-export const TOPPING_EXTRA = 3000;
-export const TOPPINGS_GRATIS = 4;
-export const CAJA = 1000;
-export const VASO = 1000;
 export const DOM = 6000;
-export const LECHE_ALMENDRAS = 2500;
 
-export const FRAPPES_NAMES = new Set([
-  "Frappe de café", "Frappe mocca", "Frappe arequipe", "Frappe baileys",
-  "Frappe té chai", "Caños cristales", "Caños negros", "Macarena",
-]);
-
-export const calcBowlPrice = (tops = [], prots = [], bev = null) => {
-  const toppingsCost = Math.max(0, tops.length - TOPPINGS_GRATIS) * TOPPING_EXTRA;
-  const protsCost = prots.reduce((s, p) => {
-    const name = typeof p === "string" ? p : p?.name;
-    const prot = PROTEINAS.find((x) => x.name === name);
-    return s + (prot?.price ?? 0);
-  }, 0);
-  return BOWL_BASE + toppingsCost + protsCost + CAJA + (bev ? VASO : 0);
-};
-
-export const CAFETERIA = [
-  { cat: "Brunch", items: [
-    { name: "Pizzeta pesto", price: 31000 },
-    { name: "Pizzeta carne", price: 31000 },
-    { name: "Picada especial", price: 52200 },
-    { name: "Sopa de tomate", price: 24000 },
-    { name: "Bowl salado", price: 24000 },
+export const MENU = [
+  { cat: "Entradas", items: [
+    { name: "Nachada", price: 30000, desc: "¡Chulada! Nachos bien crujientes con puerco deshebrado, bañados en frijoles refritos y rematados con pico de gallo fresco, guacamole cremoso, piña dulce, queso rallado y nuestras salsas de la casa, pa' darle el sabor chingón." },
+    { name: "Las Tostaditas", price: 18000, desc: "¡A huevo, qué crujiente! Cuatro tortillas de maíz doradas, cubiertas con frijol refrito, guacamole y pico de gallo fresco. Una entrada ligera y perfecta para abrir el apetito." },
+    { name: "Totopos Chingones", price: 16000, desc: "¡Éntrale sin miedo! Totopos de maíz dorados y crujientes, acompañados de guacamole, pico de gallo y salsa de la casa. Una entrada para compartir al puro estilo Órale." },
   ]},
-  { cat: "Emparedados", items: [
-    { name: "Emparedado de lomo", price: 25000 },
-    { name: "Choripan", price: 20500 },
-    { name: "Emparedado integral", price: 26500 },
-    { name: "Emparedado de cerdo", price: 24000 },
-    { name: "Emparedado de huevo", price: 21000 },
-    { name: "Emparedado de salami", price: 21000 },
-    { name: "Croburger", price: 26000 },
+  { cat: "Tacos", items: [
+    { name: "Tacos Carnitas", price: 24000, desc: "¡A huevo! Tacos de carnitas hechas con carne de cerdo cocida en su propia grasa y espolvoreada con totopos crujientes triturados, servidos en tortillas de maíz y acompañadas de nuestra salsa Veracruz, cebolla y cilantro. Un clásico mexicano." },
+    { name: "Tacos de Birria", price: 26000, desc: "¡Órale! Tacos bien cargados de birria de res jugosa y sazonada, dorados con queso hasta quedar brutales. Van con cebolla, cilantro y su caldito aparte. Un taco que nunca falla." },
+    { name: "Tacos Rancheros", price: 24000, desc: "¡Qué chido! Carne molida de res mezclada con chorizo criollo, cocinada con cebolla y especias al estilo tradicional. Servidos en tortillas suaves de maíz, con un sabor ranchero claro y sin rodeos." },
+    { name: "Tacos al Pastor", price: 24000, desc: "¡De pelos! Jugoso puerco al pastor, bien marinado en especias, servido en tortillas de maíz con piña caramelizada, cebolla y cilantro. Un clásico taquero." },
+    { name: "Tacos de Cochinita Pibil", price: 25000, desc: "¡Porky! Tacos de cochinita pibil, con carne de cerdo desmenuzada y marinada en achiote y jugo cítrico, servida con cebolla morada, lágrimas de limón y cilantro. Un sabor de Yucatán." },
+    { name: "La Hijuebirria", price: 36000, desc: "¡No te hagas, traes hambre! Seis tacos de birria bien servidos, doraditos con queso, cebolla y cilantro, acompañados de su consomé. Una orden grande, jugosa y sin miedo pa' los que vienen a darle con todo." },
+    { name: "Taquiza Órale", price: 35000, desc: "¿No sabes qué elegir? Llévate los tres: pastor, birria y carnitas. Seis taquitos bien servidos, llenos de sabor y tradición, ideales para compartir... o para no compartir." },
   ]},
-  { cat: "Desayunos", items: [
-    { name: "Criollito", price: 22800 },
-    { name: "Hayaca tradicional", price: 17500 },
-    { name: "Hayaca picante", price: 17500 },
-    { name: "Wraps de espinaca", price: 17300 },
-    { name: "Wraps de cerdo", price: 27500 },
-    { name: "Desayuno Llanero", price: 14800 },
+  { cat: "Bebidas de la casa", items: [
+    { name: "Flor de Jamaica", price: 7000 },
+    { name: "Tamarindo", price: 7000 },
+    { name: "Agua de Horchata", price: 8000 },
   ]},
-  { cat: "Omelet", items: [
-    { name: "Omelet Opción 1", price: 18800, desc: "Huevos, cebolla caramelizada, pimentón, champiñones, jamón y queso mozzarella" },
-    { name: "Omelet Opción 2", price: 18800, desc: "Huevos, pasta de tomate, lomo de res molido y queso mozzarella" },
-    { name: "Omelet Opción 3", price: 18800, desc: "Huevos, salsa pesto, tomate y queso mozzarella" },
+  { cat: "Sodas artesanales", items: [
+    { name: "Frutos Rojos", price: 16000 },
+    { name: "Frutos Amarillos", price: 16000 },
+    { name: "Sandía Limón", price: 16000 },
   ]},
-  { cat: "Montaditos", items: [
-    { name: "Montadito de huevo", price: 12500 },
-    { name: "Montadito napolitano", price: 17200 },
-    { name: "Montadito de carne", price: 15000 },
+  { cat: "Otras bebidas", items: [
+    { name: "Gaseosa", price: 5000 },
+    { name: "Cervezas", price: 5000 },
+    { name: "Estella", price: 6000 },
+    { name: "Botella de Tequila", price: 180000 },
   ]},
-  { cat: "Bowls y Fruta", items: [
-    { name: "Bowl de yogurt", price: 23000 },
-    { name: "Mini bowl de yogurt", price: 16500 },
-    { name: "Bowl de avena", price: 16000 },
-    { name: "Bowl de açaí", price: 23000 },
-    { name: "Cuchareable de açaí", price: 16000 },
-    { name: "Fruta fresca", price: 14200 },
+  { cat: "Cocteles", items: [
+    { name: "Margarita", price: 22000, desc: "¡Arriba, abajo, al centro y pa' dentro! El clásico mexicano: tequila, triple sec y limón, servido bien frío con su característico borde de sal. Ácido, fresco y con el tequila como protagonista." },
+    { name: "Paloma", price: 23000, desc: "¡Qué bonita la condenada! Tequila, toronja y limón en una combinación ligera, cítrica y refrescante, terminada con soda y servida bien fría. ¡México en cada trago!" },
+    { name: "Cantarito", price: 25000, desc: "¡Échale tequila! Tequila acompañado de cítricos frescos y soda de toronja, servido al auténtico estilo mexicano. ¡Refrescante, cítrico y hecho para alargar la fiesta!" },
+    { name: "Sunrise", price: 22000, desc: "¡Qué chulada! Un cóctel fresco, frutal y vibrante, con tequila, notas cítricas y ese degradado de colores que recuerda un amanecer. Dulce, refrescante y peligrosamente fácil de disfrutar." },
+    { name: "El Caporal", price: 27000, desc: "¡Este sí trae espuelas! Tequila y flor de Jamaica se encuentran en un cóctel intenso y refrescante, con el equilibrio perfecto entre carácter y frescura. ¡México en el Llano, servido en un solo trago!" },
+    { name: "Shot de Tequila", price: 15000 },
+    { name: "Tinto Mexicano", price: 3000 },
   ]},
-  { cat: "Bebidas", items: [
-    { name: "Soda Hatsu", price: 8000, desc: "Frambuesa, limón-hierbabuena, sandía, uva blanca" },
-    { name: "Colombiano", price: 5900, desc: "Café tipo americano" },
-    { name: "Acacireño", price: 6600, desc: "" },
-    { name: "Capuchino", price: 8200, desc: "Café y leche deslactosada" },
+  { cat: "Quesadillas", items: [
+    { name: "Quesadilla al Estilo Michoacán", price: 20000, desc: "¡Puro Michoacán! Auténtica quesadilla rellena de carnitas hechas con puerco cocido en su propia grasa, servida en tortilla de trigo con queso fundido, cebolla y cilantro, acompañada de sour cream para rematar el antojo." },
+    { name: "Gringa al Pastor", price: 20000, desc: "¡Ándale! Puerco al pastor, bien marinado en especias, servido en tortilla de trigo con queso fundido, piña caramelizada, cebolla y cilantro fresco. Una gringa que reúne todo el sabor del pastor en una presentación más ligera." },
+    { name: "Quesabirria Órale", price: 24000, desc: "¡Madre de quesabirria! Tortillas de trigo crujientes, rellenas de queso fundido y birria jugosa. Servidas con cebolla y cilantro, acompañadas de salsa chipotle y caldo de birria para disfrutar al estilo tradicional." },
   ]},
-  { cat: "Batidos", items: [
-    { name: "Batido Guayuriba", price: 12500, desc: "Frutos amarillos: Mango, maracuyá, piña y naranja" },
-    { name: "Batido Corocora", price: 12500, desc: "Frutos rojos: Fresa, zanahoria, papaya y uchuva" },
-    { name: "Batido Sardinata", price: 12500, desc: "Frutos verdes: Apio, espinaca, pepino, manzana verde" },
-    { name: "Batido Açaí", price: 14000 },
+  { cat: "Pizzas", note: "Todas nuestras pizzas nacen de nuestra masa artesanal, preparada en casa.", items: [
+    { name: "Pizzeta de Cochinita Pibil", price: 36000, desc: "Salsa mexicana, cochinita pibil jugosa y abundante queso fundido, terminada con cebolla morada y un toque fresco de cilantro. ¡Yucatán se vino de fiesta pa' Órale!" },
+    { name: "Pizzeta de Carnitas", price: 36000, desc: "Salsa mexicana, carnitas de cerdo jugosas y un montón de queso fundido, rematada con cebolla y cilantro fresco. ¡Una marranada bien hecha y orgullosamente Órale!" },
+    { name: "Pizzeta al Pastor", price: 36000, desc: "Salsa mexicana, puerco al pastor bien sazonado y abundante queso fundido, rematada con piña caramelizada, cebolla y cilantro. Todo el sabor del taco al pastor, ahora en pizza." },
+    { name: "Pizzeta de Birria", price: 36000, desc: "Salsa mexicana, jugosa birria y abundante queso fundido, terminada con pico de gallo fresco. Una combinación bien mexicana y al puro estilo Órale." },
   ]},
-  { cat: "Frappes", note: "Si deseas tu frappe en leche de almendras tiene un costo adicional de $2.500", items: [
-    { name: "Frappe de café", price: 18000, desc: "Café, leche en polvo y eritritol" },
-    { name: "Frappe mocca", price: 18000, desc: "Café, chocolate, leche en polvo y eritritol" },
-    { name: "Frappe arequipe", price: 18000, desc: "Café, arequipe, leche en polvo y eritritol" },
-    { name: "Frappe baileys", price: 22300, desc: "Café, licor baileys, leche en polvo y eritritol" },
-    { name: "Frappe té chai", price: 18000, desc: "Té chai, leche en polvo y eritritol" },
-    { name: "Caños cristales", price: 18000, desc: "Té flor azul, leche en polvo, vainilla y eritritol" },
-    { name: "Caños negros", price: 18000, desc: "Carbón activado, limón, naranja y hierbabuena" },
-    { name: "Macarena", price: 18000, desc: "Té rosado con proteínas, leche en polvo y eritritol" },
-  ]},
-  { cat: "Combos", items: [
-    { name: "Hayaca + Chocolate", price: 24000 },
-    { name: "Hayaca + Capuchino", price: 24000 },
-    { name: "Hayaca + Aguapanela", price: 24000 },
-    { name: "Hayaca + Colombiano", price: 24000 },
-    { name: "Hayaca + bebida", price: 24000 },
-    { name: "Combo chocolate", price: 14800 },
-    { name: "Combo aguapanela", price: 12500 },
-    { name: "Croissant jamón y queso + capuchino", price: 17500 },
-    { name: "Croissant arequipe + capuchino", price: 15000 },
-  ]},
-  { cat: "Café", items: [
-    { name: "Espresso", price: 6300 },
-    { name: "Espresso doble", price: 7700 },
-    { name: "CapuChai", price: 12500 },
-    { name: "Capuchino saborizado", price: 11700 },
-    { name: "Mocaccino", price: 11800 },
-    { name: "Capuchino Baileys", price: 16200 },
-    { name: "Latte", price: 9700 },
-    { name: "Café Irlandés", price: 19400 },
-    { name: "Carajillo", price: 11400 },
-  ]},
-  { cat: "Bebidas calientes sin café", items: [
-    { name: "Chocolate llanero", price: 11400 },
-    { name: "Chúcula", price: 11400 },
-    { name: "Infusiones en tisana", price: 6800 },
-    { name: "Infusión de la casa", price: 9000 },
-    { name: "Aguapanela", price: 7000 },
-    { name: "Té carbón activado", price: 11400 },
-    { name: "Té azul relajante", price: 11400 },
-    { name: "Té matcha", price: 11400 },
-    { name: "Té chai", price: 11400 },
-    { name: "Té leche dorada", price: 11400 },
-  ]},
-  { cat: "Bebidas frías con café", items: [
-    { name: "Café acacireño frío", price: 10000 },
-    { name: "Vencejo llanero", price: 12500 },
-    { name: "Latte frío", price: 11000 },
-    { name: "Latte frío Baileys", price: 17800 },
-    { name: "Affogato llanero", price: 16500 },
-    { name: "Limonada de café", price: 12500 },
-  ]},
-  { cat: "Bebidas frías sin café", items: [
-    { name: "Alborada llanera", price: 12500 },
-    { name: "Vespertina llanera", price: 12500 },
-    { name: "Puesta del sol", price: 13600 },
-    { name: "Sol naciente", price: 14500 },
-    { name: "Cuarzo", price: 12500 },
-    { name: "Flor de jamaica", price: 9700 },
-    { name: "Aguapanela fría", price: 7000 },
-  ]},
-  { cat: "Hojaldres", items: [
-    { name: "Croissant de jamón y queso", price: 12500 },
-    { name: "Croissant de arequipe", price: 9000 },
-    { name: "Croissant de paté de pollo", price: 12500 },
-  ]},
-  { cat: "Vinos y cócteles", items: [
-    { name: "Espresso Martini", price: 22000 },
-    { name: "Campari Spritz", price: 24000 },
-    { name: "Mexican Mule", price: 25000 },
-    { name: "Vino de verano", price: 16000 },
-    { name: "Copa de vino", price: 12500 },
+  { cat: "Exclusivos del restaurante", items: [
+    { name: "Ramen de Birria", price: 25000, desc: "¡Umm! El sabor intenso de nuestra birria en un delicioso caldo con fideos, queso, cebolla y cilantro. Acompañado de totopos crujientes. ¡La fusión que no sabías que necesitabas!" },
+    { name: "Plátano Chingón", price: 24000, desc: "¡Puro pinche antojo! Plátano asado, cargado de nuestra jugosa birria, abundante queso, sour cream y salsa cheddar, terminado con pico de gallo fresco. ¡Dulce, salado y bien mexicano!" },
+    { name: "La Mestiza", price: 32000, desc: "¡No mames, qué antojo! Papas a la francesa bien crujientes, cargadas de birria jugosa, chorizo, plátano maduro y mucho queso fundido, rematadas con pico de gallo fresco, guacamole y nuestras salsas de la casa. ¡Un desmadre de sabores al puro estilo Órale!" },
+    { name: "La Mera Burger", price: 32000, desc: "¡No manches! Pan artesanal cargado de nuestra jugosa birria, abundante queso, vegetales frescos y el toque especial de nuestra salsa mexicana de la casa. Acompañada de totopos crujientes. ¡Está de poca madre!" },
+    { name: "Burrito El Patrón", price: 29000, desc: "¡Esto es un desmadre! Tortilla de harina bien cargada de carne y chorizo criollo, frijol refrito, abundante queso, cebolla salteada, pico de gallo y guacamole. Acompañado de nuestra salsa chipotle. ¡Puro sabor mexicano en cada mordida!" },
   ]},
 ];
 
-export const ALL_EXTRAS = CAFETERIA.flatMap((c) => c.items);
+export const ALL_EXTRAS = MENU.flatMap((c) => c.items);

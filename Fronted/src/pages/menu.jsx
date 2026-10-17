@@ -2,10 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { API_URL } from "../config";
-import {
-  CARBOS, TOPPINGS, PROTEINAS, BEBIDAS, CAFETERIA, ALL_EXTRAS,
-  FRAPPES_NAMES, calcBowlPrice, DOM, LECHE_ALMENDRAS,
-} from "../data/menuData";
+import { MENU, ALL_EXTRAS, DOM } from "../data/menuData";
+
 
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 
@@ -114,23 +112,13 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .mode-btn.active{background:var(--g800);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15);}
 `;
 
+
 export default function Menu() {
   const navigate = useNavigate();
   const [tiendaAbierta, setTiendaAbierta] = useState(null);
   const [desactivados, setDesactivados] = useState(new Set());
-  const [bowls, setBowls] = useState([]);
-  const [bid, setBid] = useState(0);
-  const [carb, setCarb] = useState("");
-  const [toppings, setToppings] = useState([]);
-  const [proteins, setProteins] = useState([]);
-  const [bev, setBev] = useState("");
   const [extraItems, setExtraItems] = useState({});
   const [openCats, setOpenCats] = useState({});
-  const [frappesAlmond, setFrappesAlmond] = useState({});
-
-  const [lechuga, setLechuga] = useState(true);
-  const [vinagreta, setVinagreta] = useState(true);
-  const [mode, setMode] = useState("bowl");
 
   useEffect(() => {
     fetch(`${API_URL}/api/tienda/estado`)
@@ -145,79 +133,23 @@ export default function Menu() {
 
   const toggleCat = (cat) => setOpenCats(prev => ({ ...prev, [cat]: !prev[cat] }));
 
-  // Precio visual del bowl en construcción
-  const previewPrice = calcBowlPrice(toppings, proteins, bev);
-
-  // Totales visuales
-  const bowlsTotal = bowls.reduce((s, b) => s + calcBowlPrice(b.tops, b.prots, b.bev), 0);
-  const extrasTotal = ALL_EXTRAS.reduce((s, { name, price }) => {
-    const qty = extraItems[name] || 0;
-    const almondCost = (FRAPPES_NAMES.has(name) && frappesAlmond[name]) ? LECHE_ALMENDRAS * qty : 0;
-    return s + qty * price + almondCost;
-  }, 0);
-  const grand = bowlsTotal + extrasTotal + DOM;
-
-  const toggleTopping = (val) => {
-    setToppings((prev) => {
-      const count = prev.filter((t) => t === val).length;
-      if (count === 0) return [...prev, val];
-      if (count === 1) return [...prev, val];
-      if (count === 2) return [...prev, val];
-      return prev;
-    });
-  };
-
-  const removeTopping = (val) => setToppings((prev) => prev.filter((t) => t !== val));
-
-  const toggleProtein = (name) => {
-    setProteins((prev) => {
-      const count = prev.filter((x) => x === name).length;
-      if (count === 0) return [...prev, name];
-      if (count === 1) return [...prev, name];
-      if (count === 2) return [...prev, name];
-      return prev;
-    });
-  };
-
-  const removeProtein = (name) => setProteins((prev) => prev.filter((x) => x !== name));
+  const extrasTotal = ALL_EXTRAS.reduce((s, { name, price }) => s + (extraItems[name] || 0) * price, 0);
+  const totalQty = Object.values(extraItems).reduce((s, q) => s + q, 0);
+  const hasExtras = totalQty > 0;
+  const grand = extrasTotal + DOM;
 
   const incExtra = (name) => setExtraItems((prev) => ({ ...prev, [name]: (prev[name] || 0) + 1 }));
   const decExtra = (name) => {
     setExtraItems((prev) => {
       const q = (prev[name] || 0) - 1;
-      if (q <= 0) {
-        if (FRAPPES_NAMES.has(name)) setFrappesAlmond(fa => { const n = { ...fa }; delete n[name]; return n; });
-        const n = { ...prev }; delete n[name]; return n;
-      }
+      if (q <= 0) { const n = { ...prev }; delete n[name]; return n; }
       return { ...prev, [name]: q };
     });
   };
 
-  const addBowl = () => {
-    if (!carb) { alert("Elige un carbohidrato."); return; }
-    if (!toppings.length) { alert("Elige al menos 1 topping."); return; }
-    if (!proteins.length) { alert("Elige al menos una proteina."); return; }
-    const newId = bid + 1;
-    setBid(newId);
-    setBowls((prev) => [
-      ...prev,
-      { id: newId, carb, tops: [...toppings], prots: [...proteins], bev: bev || null, lechuga, vinagreta },
-    ]);
-    setCarb("");
-    setToppings([]);
-    setProteins([]);
-    setBev("");
-  };
-
-  const removeBowl = (id) => setBowls((prev) => prev.filter((b) => b.id !== id));
-
-  const n = bowls.length;
-
-  const hasExtras = Object.values(extraItems).some((q) => q > 0);
-
   const irAPago = () => {
-    if (!n && !hasExtras) { alert("Agrega al menos un bowl o un producto adicional."); return; }
-    try { localStorage.setItem("pepas_order", JSON.stringify({ bowls, extraItems, frappesAlmond })); } catch (_) {}
+    if (!hasExtras) { alert("Agrega al menos un producto."); return; }
+    try { localStorage.setItem("pepas_order", JSON.stringify({ bowls: [], extraItems })); } catch (_) {}
     navigate("/pago");
   };
 
@@ -232,7 +164,7 @@ export default function Menu() {
         rightSlot={
           <div className="bowl-badge">
             <span className="dot"></span>
-            <span id="bowl-count">{n} bowl{n !== 1 ? "s" : ""}</span>
+            <span id="bowl-count">{totalQty} producto{totalQty !== 1 ? "s" : ""}</span>
           </div>
         }
       />
@@ -250,7 +182,7 @@ export default function Menu() {
           <div className="closed-icon"></div>
           <h2 className="closed-title">No estamos recibiendo pedidos</h2>
           <p className="closed-sub">
-            En este momento la tienda está cerrada. Vuelve más tarde durante nuestro horario de servicio para armar tu bowl.
+            En este momento la tienda está cerrada. Vuelve más tarde durante nuestro horario de servicio para hacer tu pedido.
           </p>
           <button className="home-btn" style={{ fontSize: "1rem", padding: ".75rem 1.6rem", borderRadius: "12px", background: "var(--g800)", color: "#fff", border: "none" }} onClick={() => navigate("/")}>
             ← Volver al inicio
@@ -262,145 +194,14 @@ export default function Menu() {
       <div className="layout">
         {/* ── Left panel ── */}
         <div className="left-panel">
-
-          <div className="mode-selector">
-            <button className={`mode-btn${mode === "bowl" ? " active" : ""}`} onClick={() => setMode("bowl")}>Armar bowl</button>
-            <button className={`mode-btn${mode === "extras" ? " active" : ""}`} onClick={() => setMode("extras")}>Solo adicionales</button>
-          </div>
-
-          {mode === "bowl" && <span className="sec-label">Incluye siempre</span>}
-          {mode === "bowl" && (
-          <div className="always-row">
-            <div className={`tag-ck${lechuga ? "" : " off"}`} onClick={() => setLechuga((v) => !v)}>
-              <span className="chk">{lechuga ? "✓" : ""}</span> Lechuga
-            </div>
-            <div className={`tag-ck${vinagreta ? "" : " off"}`} onClick={() => setVinagreta((v) => !v)}>
-              <span className="chk">{vinagreta ? "✓" : ""}</span> Vinagreta
-            </div>
-          </div>
-          )}
-
-          {/* 1 · Carbohidrato */}
-          {mode === "bowl" && <div className="sec-card">
-            <div className="sec-head">
-              <div className="sec-num">1</div>
-              <div>
-                <div className="sec-title">Carbohidrato</div>
-                <div className="sec-hint">Elige una opción</div>
-              </div>
-            </div>
-            <div className="pill-grid">
-              {CARBOS.map((c) => {
-                const dis = desactivados.has(c);
-                return (
-                  <label key={c} className={`pill${carb === c ? " sel" : ""}${dis ? " disabled" : ""}`} onClick={() => !dis && setCarb(c)}>
-                    <span className="pk">{carb === c ? "✓" : ""}</span>
-                    <span>{c}</span>
-                    {dis && <span className="no-stock-tag">Sin stock</span>}
-                  </label>
-                );
-              })}
-            </div>
-          </div>}
-
-          {mode === "bowl" && <div className="sec-card">
-            <div className="sec-head">
-              <div className="sec-num">2</div>
-              <div>
-                <div className="sec-title">
-                  Toppings{" "}
-                  <span className={`cp${toppings.length > 4 ? " full" : ""}`}>
-                    {toppings.length} {toppings.length > 4 ? `(+${toppings.length - 4} extra)` : "/4"}
-                  </span>
-                </div>
-                <div className="sec-hint">4 incluidos · extras $3.000 · toca 2 o 3 veces para doble o triple</div>
-              </div>
-            </div>
-            <div className="pill-grid">
-              {TOPPINGS.map((t) => {
-                const count = toppings.filter((x) => x === t).length;
-                const sel = count > 0;
-                const dis = desactivados.has(t);
-                return (
-                  <label
-                    key={t}
-                    className={`pill${sel ? " sel" : ""}${dis ? " disabled" : ""}`}
-                    onClick={() => !dis && toggleTopping(t)}
-                  >
-                    <span className="pk">{count >= 2 ? count : (sel ? "✓" : "")}</span>
-                    <span>{t}</span>
-                    {count === 2 && <span style={{ fontSize: ".6rem", fontWeight: 700, background: "var(--gold)", color: "var(--g900)", borderRadius: "999px", padding: ".1rem .4rem", marginLeft: ".2rem" }}>×2</span>}
-                    {count === 3 && <span style={{ fontSize: ".6rem", fontWeight: 700, background: "#f97316", color: "#fff", borderRadius: "999px", padding: ".1rem .4rem", marginLeft: ".2rem" }}>×3</span>}
-                    {dis && <span className="no-stock-tag">Sin stock</span>}
-                    {sel && !dis && (
-                      <span className="pill-remove" onClick={(e) => { e.stopPropagation(); removeTopping(t); }} title="Quitar">✕</span>
-                    )}
-                  </label>
-                );
-              })}
-            </div>
-          </div>}
-
-          {mode === "bowl" && <div className="sec-card">
-            <div className="sec-head">
-              <div className="sec-num">3</div>
-              <div>
-                <div className="sec-title">Proteina</div>
-                <div className="sec-hint">Una o más · toca 2 o 3 veces para doble o triple porción</div>
-              </div>
-            </div>
-            <div className="pgrid">
-              {PROTEINAS.map(({ name, price }) => {
-                const count = proteins.filter((x) => x === name).length;
-                const sel = count > 0;
-                const dis = desactivados.has(name);
-                return (
-                  <div key={name} className={`pc${sel ? " sel" : ""}${dis ? " disabled" : ""}`} onClick={() => !dis && toggleProtein(name)}>
-                    {sel && !dis && (
-                      <button className="pc-remove" onClick={(e) => { e.stopPropagation(); removeProtein(name); }} title="Quitar">✕</button>
-                    )}
-                    <span className="pn">{name}{count === 2 ? " ×2" : count === 3 ? " ×3" : ""}</span>
-                    {dis
-                      ? <span className="no-stock-tag" style={{ marginTop: ".2rem", alignSelf: "flex-start" }}>Sin stock</span>
-                      : <span className="pp">{fmt(price * (count || 1))}</span>}
-                  </div>
-                );
-              })}
-            </div>
-          </div>}
-
-          {mode === "bowl" && <div className="sec-card">
-            <div className="sec-head">
-              <div className="sec-num">4</div>
-              <div>
-                <div className="sec-title">Bebida</div>
-                <div className="sec-hint">Opcional · +$1.000 por vaso</div>
-              </div>
-            </div>
-            <div className="pill-grid">
-              {[...BEBIDAS, ""].map((b, i) => {
-                const dis = b !== "" && desactivados.has(b);
-                return (
-                  <label key={i} className={`pill${bev === b ? " sel" : ""}${dis ? " disabled" : ""}`} onClick={() => !dis && setBev(b)}>
-                    <span className="pk">{bev === b ? "✓" : ""}</span>
-                    <span>{b || "Sin bebida"}</span>
-                    {dis && <span className="no-stock-tag">Sin stock</span>}
-                  </label>
-                );
-              })}
-            </div>
-          </div>}
-
-          {/* 5 · Productos adicionales */}
           <div className="sec-card">
             <div className="sec-head">
-              <div className="sec-num">5</div>
               <div>
-                <div className="sec-title">Productos adicionales</div>
-                <div className="sec-hint">Opcional · Toca una categoría para desplegar</div>
+                <div className="sec-title">Menú Órale</div>
+                <div className="sec-hint">Toca una categoría para desplegar</div>
               </div>
             </div>
-            {CAFETERIA.map(({ cat, items, note }) => {
+            {MENU.map(({ cat, items, note }) => {
               const open = !!openCats[cat];
               const catQty = items.reduce((s, it) => s + (extraItems[it.name] || 0), 0);
               return (
@@ -416,7 +217,7 @@ export default function Menu() {
                     <div className="acc-body">
                       {note && (
                         <div style={{ background: "#fdf0ff", border: "1.5px solid #d8b4fe", borderRadius: "8px", padding: ".5rem .75rem", marginBottom: ".6rem", fontSize: ".75rem", color: "#6b21a8", fontWeight: 600 }}>
-                          ⚠️ {note}
+                          {note}
                         </div>
                       )}
                       <div className="cafgrid">
@@ -430,23 +231,12 @@ export default function Menu() {
                               {dis
                                 ? <span className="no-stock-tag" style={{ alignSelf: "flex-start" }}>Sin stock</span>
                                 : <>
-                                    <span className="caf-price">{fmt(price)}{FRAPPES_NAMES.has(name) && frappesAlmond[name] ? " +$2.500" : ""}</span>
+                                    <span className="caf-price">{fmt(price)}</span>
                                     <div className="qt-row">
                                       <button className="qt-btn" onClick={() => decExtra(name)}>−</button>
                                       <span className="qt-val">{qty}</span>
                                       <button className="qt-btn" onClick={() => incExtra(name)}>+</button>
                                     </div>
-                                    {FRAPPES_NAMES.has(name) && qty > 0 && (
-                                      <label
-                                        style={{ display: "flex", alignItems: "center", gap: ".35rem", cursor: "pointer", marginTop: ".4rem", fontSize: ".7rem", fontWeight: 600, color: "#6b21a8", userSelect: "none" }}
-                                        onClick={(e) => { e.stopPropagation(); setFrappesAlmond(prev => ({ ...prev, [name]: !prev[name] })); }}
-                                      >
-                                        <span style={{ width: "14px", height: "14px", borderRadius: "3px", border: "1.5px solid #6b21a8", display: "flex", alignItems: "center", justifyContent: "center", background: frappesAlmond[name] ? "#6b21a8" : "transparent", color: "#fff", fontSize: ".6rem", flexShrink: 0 }}>
-                                          {frappesAlmond[name] ? "✓" : ""}
-                                        </span>
-                                        Leche almendras +$2.500
-                                      </label>
-                                    )}
                                   </>}
                             </div>
                           );
@@ -458,15 +248,6 @@ export default function Menu() {
               );
             })}
           </div>
-
-          {mode === "bowl" && (
-          <div className="add-wrap">
-            <button className="add-btn" onClick={addBowl}>
-              <span className="plus-ic">+</span> Agregar bowl
-              {proteins.length > 0 && <span style={{ marginLeft: ".5rem", fontSize: ".82rem", opacity: .85 }}>· {fmt(previewPrice)}</span>}
-            </button>
-          </div>
-          )}
         </div>
 
         {/* ── Right panel ── */}
@@ -474,48 +255,20 @@ export default function Menu() {
           <div className="rt">
             <div>
               <h3>Tu pedido</h3>
-              <div className="sub">
-                {n > 0 && <>{n} bowl{n !== 1 ? "s" : ""}{hasExtras ? " + adicionales" : ""}</>}
-                {n === 0 && hasExtras && <>Solo productos adicionales</>}
-                {n === 0 && !hasExtras && <>Aún vacío</>}
-              </div>
+              <div className="sub">{hasExtras ? `${totalQty} producto${totalQty !== 1 ? "s" : ""}` : "Aún vacío"}</div>
             </div>
-            <span style={{ color: "var(--muted)", cursor: "pointer", fontSize: "1.1rem" }}>···</span>
           </div>
 
           <div className="olist">
-            {!n && !hasExtras ? (
+            {!hasExtras ? (
               <p style={{ color: "var(--muted)", fontSize: ".82rem", textAlign: "center", padding: "2rem 0" }}>
-                Agrega un bowl o un producto adicional 🥗
+                Agrega un producto 🌮
               </p>
-            ) : n > 0 ? (
-              <>
-                {bowls.map((b, i) => (
-                  <div key={b.id} className="bc">
-                    <span className="bn">Bowl {i + 1}</span>
-                    <button className="bclose" onClick={() => removeBowl(b.id)}>✕</button>
-                    <div className="bcarb">{b.carb}</div>
-                    <div className="btags">
-                      {(() => { const m = {}; b.tops.forEach(t => m[t] = (m[t]||0)+1); return Object.entries(m).map(([t,c]) => <span key={t} className="bt">{t}{c>1?" ×2":""}</span>); })()}
-                      {(() => { const m = {}; b.prots.forEach(p => m[p] = (m[p]||0)+1); return Object.entries(m).map(([p,c]) => <span key={p} className="bt p">{p}{c>1?" ×2":""}</span>); })()}
-                      {b.bev && <span className="bt b">{b.bev}</span>}
-                    </div>
-                    <div style={{ fontSize: ".7rem", color: "var(--muted)", marginBottom: ".3rem" }}>Caja +$1.000{b.bev ? " · Vaso +$1.000" : ""}</div>
-                    <div className="bprice">{fmt(calcBowlPrice(b.tops, b.prots, b.bev))}</div>
-                  </div>
-                ))}
-                <button className="cbtn" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-                  + Crear otro bowl
-                </button>
-              </>
-            ) : null}
-            {Object.keys(extraItems).some((k) => extraItems[k] > 0) && (
+            ) : (
               <div className="bc">
-                <span className="bn" style={{ background: "#6b21a8" }}>Adicionales</span>
-                <div className="bcarb" style={{ marginTop: ".3rem" }}>Productos adicionales</div>
                 <div className="btags">
                   {ALL_EXTRAS.filter(({ name }) => (extraItems[name] || 0) > 0).map(({ name }) => (
-                    <span key={name} className="bt caf">{name} ×{extraItems[name]}{FRAPPES_NAMES.has(name) && frappesAlmond[name] ? " · almendras" : ""}</span>
+                    <span key={name} className="bt caf">{name} ×{extraItems[name]}</span>
                   ))}
                 </div>
                 <div className="bprice">{fmt(extrasTotal)}</div>
@@ -524,12 +277,6 @@ export default function Menu() {
           </div>
 
           <div className="rf">
-            {n > 0 && (
-              <div className="pr">
-                <span>{n} bowl{n !== 1 ? "s" : ""}</span>
-                <span>{fmt(bowlsTotal)}</span>
-              </div>
-            )}
             {extrasTotal > 0 && (
               <div className="pr">
                 <span>Productos</span>
@@ -542,11 +289,8 @@ export default function Menu() {
             </div>
             <div className="pr tot">
               <span>Total estimado</span>
-              <span>{(n || hasExtras) ? fmt(grand) : "—"}</span>
+              <span>{hasExtras ? fmt(grand) : "—"}</span>
             </div>
-            <button className="abowl-btn" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-              + Agregar bowl
-            </button>
             <button className="cfbtn" onClick={irAPago}>Confirmar pedido</button>
           </div>
         </div>
