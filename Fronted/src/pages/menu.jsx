@@ -17,15 +17,17 @@ const CSS = `
 .mn-hero h1{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:800;line-height:1.1;}
 .mn-hero h1 span{color:var(--yel);}
 .mn-hero p{color:var(--mut);margin-top:.4rem;font-size:.95rem;}
-.mn-tabs{position:sticky;top:var(--nav-h,72px);z-index:30;background:rgba(20,12,10,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+.mn-tabs{position:sticky;top:0;z-index:60;background:rgba(20,12,10,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
 .mn-tabs-in{max-width:1200px;margin:0 auto;padding:.7rem 1.25rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;}
 .mn-tabs-in::-webkit-scrollbar{display:none;}
+@media(min-width:960px){.mn-tabs-in{flex-wrap:wrap;overflow:visible;}}
 .mn-tab{display:flex;align-items:center;gap:.45rem;flex-shrink:0;border:1.5px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;padding:.45rem .95rem;font:600 .85rem 'Plus Jakarta Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s;}
 .mn-tab:hover{color:var(--txt);border-color:var(--mut);}
 .mn-tab.on{background:var(--yel);border-color:var(--yel);color:#2a1204;}
-.mn-wrap{max-width:1200px;margin:0 auto;padding:1rem 1.25rem 7rem;display:grid;grid-template-columns:1fr;gap:2rem;}
-@media(min-width:960px){.mn-wrap{grid-template-columns:1fr 340px;padding-bottom:3rem;}}
-.mn-sec{scroll-margin-top:calc(var(--nav-h,72px) + 70px);margin-bottom:2.2rem;}
+.mn-wrap{max-width:1200px;margin:0 auto;padding:1rem 1.25rem 7rem;display:grid;grid-template-columns:minmax(0,1fr);gap:2rem;}
+@media(min-width:960px){.mn-wrap{grid-template-columns:minmax(0,1fr) 340px;padding-bottom:3rem;}}
+.mn-sec{scroll-margin-top:80px;margin-bottom:2.2rem;}
+@media(min-width:960px){.mn-sec{scroll-margin-top:130px;}}
 .mn-sec h2{font-size:1.35rem;font-weight:800;display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem;color:var(--txt);}
 .mn-sec h2 svg{color:var(--yel);}
 .mn-note{color:var(--yel);font-size:.82rem;font-weight:600;margin-bottom:.8rem;}
@@ -46,7 +48,7 @@ const CSS = `
 .mn-out{font-size:.72rem;font-weight:700;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.3rem .7rem;}
 .mn-cart{background:var(--card);border:1.5px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;}
 .mn-aside{display:none;}
-@media(min-width:960px){.mn-aside{display:block;position:sticky;top:calc(var(--nav-h,72px) + 70px);align-self:start;}}
+@media(min-width:960px){.mn-aside{display:block;position:sticky;top:130px;align-self:start;}}
 .mn-cart h3{font-size:1.05rem;font-weight:800;padding:1rem 1.2rem;border-bottom:1px solid var(--line);}
 .mn-lines{padding:.5rem 1.2rem;max-height:46vh;overflow-y:auto;}
 .mn-empty{color:var(--mut);font-size:.88rem;text-align:center;padding:1.8rem 0;}
@@ -82,7 +84,6 @@ export default function Menu() {
   const [activeCat, setActiveCat] = useState(null);
   const [sheet, setSheet] = useState(false);
   const clickLock = useRef(false);
-  const rootRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/tienda/estado`)
@@ -96,22 +97,17 @@ export default function Menu() {
   }, []);
 
   // Resalta la categoría visible al hacer scroll; sin selección al inicio.
-  // La altura del navbar cambia por breakpoint, así que se mide y se expone como --nav-h.
+  // La barra de categorías se pega arriba del todo (el navbar rojo no es sticky: .glass-nav fuerza position:relative).
   useEffect(() => {
     if (tiendaAbierta !== true) return;
-    const nav = document.querySelector("nav");
-    const setH = () => rootRef.current?.style.setProperty("--nav-h", (nav?.offsetHeight ?? 72) + "px");
-    setH();
-    window.addEventListener("resize", setH);
-    const navH = nav?.offsetHeight ?? 72;
     const io = new IntersectionObserver((entries) => {
       if (clickLock.current) return;
       if (window.scrollY < 120) { setActiveCat(null); return; }
       const vis = entries.filter((e) => e.isIntersecting).sort((x, y) => x.boundingClientRect.top - y.boundingClientRect.top)[0];
       if (vis) setActiveCat(vis.target.dataset.cat);
-    }, { rootMargin: `-${navH + 70}px 0px -60% 0px` });
+    }, { rootMargin: "-80px 0px -60% 0px" });
     document.querySelectorAll(".mn-sec").forEach((el) => io.observe(el));
-    return () => { io.disconnect(); window.removeEventListener("resize", setH); };
+    return () => io.disconnect();
   }, [tiendaAbierta]);
 
   const goCat = (cat) => {
@@ -170,7 +166,7 @@ export default function Menu() {
   );
 
   return (
-    <div className="mn" ref={rootRef}>
+    <div className="mn">
       <style>{CSS}</style>
       <Navbar active="menu" position="sticky" showLinks={false} />
 
