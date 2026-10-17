@@ -8,28 +8,17 @@ import { MENU, ALL_EXTRAS, DOM } from "../data/menuData";
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 const slug = (s) => "cat-" + s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
-// Lluvia de tacos del menú (semilla fija: no cambia por render)
-const RAIN = (() => {
-  let seed = 11;
-  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
-  return Array.from({ length: 24 }, () => ({
-    left: rnd() * 96, size: 34 + rnd() * 40,
-    dur: 14 + rnd() * 16, delay: -rnd() * 30, sway: 14 + rnd() * 26, swayDur: 3 + rnd() * 3, spin: (rnd() < 0.5 ? -1 : 1) * (15 + rnd() * 40),
-  }));
-})();
-
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root{--red:#fe2b24;--red-d:#c81812;--yel:#fbba24;--bg:#140c0a;--card:#261715;--card2:#301c19;--line:#4a302b;--txt:#fbf1e3;--mut:#d9c3b0;}
 .mn{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
 .mn *{box-sizing:border-box;}
 .mn-body{position:relative;}
-.mn-rain{position:sticky;top:0;height:100vh;margin-bottom:-100vh;overflow:hidden;pointer-events:none;z-index:0;}
-.mn-drop{position:absolute;top:0;line-height:1;will-change:transform;animation:mn-fall linear infinite;}
-.mn-sway{animation:mn-sway ease-in-out infinite alternate;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55));}
-@keyframes mn-fall{from{transform:translate3d(0,-20vh,0);}to{transform:translate3d(0,115vh,0);}}
-@keyframes mn-sway{from{transform:translateX(calc(var(--sway) * -1)) rotate(calc(var(--spin) * -1));}to{transform:translateX(var(--sway)) rotate(var(--spin));}}
-@media(prefers-reduced-motion:reduce){.mn-drop,.mn-sway{animation:none;}.mn-drop{top:calc(var(--i) * 3.5%);}}
+.mn-glow{position:sticky;top:0;height:100vh;margin-bottom:-100vh;overflow:hidden;pointer-events:none;z-index:0;background:radial-gradient(520px circle at var(--mx,50%) var(--my,30%),rgba(254,43,36,.18),transparent 65%);}
+.mn-bw{position:absolute;transform:translate3d(calc(var(--px,0) * var(--k) * 1px),calc(var(--py,0) * var(--k) * 1px),0);transition:transform .6s ease-out;}
+.mn-blob{width:100%;height:100%;border-radius:50%;filter:blur(90px);animation:mn-drift ease-in-out infinite alternate;}
+@keyframes mn-drift{0%{transform:translate(0,0) scale(1);}50%{transform:translate(8vw,6vh) scale(1.2);}100%{transform:translate(-6vw,12vh) scale(.9);}}
+@media(prefers-reduced-motion:reduce){.mn-blob{animation:none;}.mn-bw{transition:none;}}
 .mn-hero,.mn-wrap,.mn-closed{position:relative;z-index:1;}
 .mn-hero{max-width:1200px;margin:0 auto;padding:2rem 1.25rem 1.2rem;}
 .mn-hero h1{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:800;line-height:1.1;}
@@ -37,12 +26,13 @@ const CSS = `
 .mn-eyebrow{display:block;color:var(--yel);font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.5rem;}
 .mn-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;}
 .mn-chips span{border:1.5px solid var(--line);border-radius:999px;padding:.3rem .8rem;font-size:.8rem;font-weight:600;color:var(--mut);}
-.mn-tabs{position:sticky;top:0;z-index:60;background:rgba(20,12,10,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+.mn-tabs{position:sticky;top:0;z-index:60;background:transparent;border-bottom:1px solid transparent;transition:background .25s,border-color .25s;}
+.mn-tabs.stuck{background:rgba(20,12,10,.55);backdrop-filter:blur(12px);border-bottom-color:var(--line);}
 .mn-tabs-in{max-width:1200px;margin:0 auto;padding:.7rem 1.25rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;}
 .mn-tabs-in::-webkit-scrollbar{display:none;}
 @media(min-width:960px){.mn-tabs-in{flex-wrap:wrap;overflow:visible;}}
-.mn-tab{display:flex;align-items:center;gap:.45rem;flex-shrink:0;border:1.5px solid var(--line);background:transparent;color:var(--mut);border-radius:999px;padding:.45rem .95rem;font:600 .85rem 'Plus Jakarta Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s;}
-.mn-tab:hover{color:var(--txt);border-color:var(--mut);}
+.mn-tab{display:flex;align-items:center;gap:.45rem;flex-shrink:0;border:1.5px solid rgba(251,241,227,.22);background:rgba(20,12,10,.38);color:var(--txt);border-radius:999px;padding:.45rem .95rem;font:600 .85rem 'Plus Jakarta Sans',sans-serif;cursor:pointer;white-space:nowrap;transition:all .15s;}
+.mn-tab:hover{border-color:var(--yel);}
 .mn-tab.on{background:var(--yel);border-color:var(--yel);color:#2a1204;}
 .mn-wrap{max-width:1200px;margin:0 auto;padding:1rem 1.25rem 7rem;display:grid;grid-template-columns:minmax(0,1fr);gap:2rem;}
 @media(min-width:960px){.mn-wrap{grid-template-columns:minmax(0,1fr) 340px;padding-bottom:3rem;}}
@@ -85,7 +75,7 @@ const CSS = `
 .mn-go:disabled{background:var(--line);color:var(--mut);cursor:not-allowed;}
 .mn-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:.75rem 1rem calc(.75rem + env(safe-area-inset-bottom));background:linear-gradient(transparent,var(--bg) 35%);}
 @media(min-width:960px){.mn-bar{display:none;}}
-.mn-bar button{width:100%;background:var(--red);color:#fff;border:none;border-radius:14px;padding:.95rem 1.1rem;font:800 .95rem 'Plus Jakarta Sans',sans-serif;display:flex;justify-content:space-between;align-items:center;cursor:pointer;box-shadow:0 6px 24px rgba(254,43,36,.45);}
+.mn-bar button{width:100%;background:var(--red);color:#fff;border:none;border-radius:14px;padding:.95rem 1.1rem;font:800 .95rem 'Plus Jakarta Sans',sans-serif;display:flex;justify-content:space-between;align-items:center;cursor:pointer;box-shadow:0 6px 24px rgba(254,43,36,.28);}
 .mn-sheet-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:50;display:flex;align-items:flex-end;}
 .mn-sheet{width:100%;max-height:85vh;overflow-y:auto;border-radius:20px 20px 0 0;}
 .mn-sheet .mn-cart{border-radius:20px 20px 0 0;border-bottom:none;}
@@ -104,6 +94,9 @@ export default function Menu() {
   const [activeCat, setActiveCat] = useState(null);
   const [sheet, setSheet] = useState(false);
   const clickLock = useRef(false);
+  const glowRef = useRef(null);
+  const waveRef = useRef(null);
+  const tabsRef = useRef(null);
 
   useEffect(() => {
     fetch(`${API_URL}/api/tienda/estado`)
@@ -128,6 +121,67 @@ export default function Menu() {
     }, { rootMargin: "-80px 0px -60% 0px" });
     document.querySelectorAll(".mn-sec").forEach((el) => io.observe(el));
     return () => io.disconnect();
+  }, [tiendaAbierta]);
+
+  // Resplandor que sigue al puntero + ondas de agua (canvas) que nacen al moverlo. Sin re-render.
+  useEffect(() => {
+    const el = glowRef.current, cv = waveRef.current;
+    if (tiendaAbierta !== true || !el || !cv || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const ctx = cv.getContext("2d");
+    const fit = () => { const d = devicePixelRatio || 1; cv.width = innerWidth * d; cv.height = innerHeight * d; ctx.setTransform(d, 0, 0, d, 0, 0); };
+    fit();
+    let tx = innerWidth / 2, ty = innerHeight / 3, x = tx, y = ty, lx = -999, ly = -999, raf;
+    const waves = [];
+    const emit = (px, py, big) => { waves.push({ x: px, y: py, r: 0, max: big ? 190 : 110 + Math.random() * 40, speed: big ? 1.6 : 1.1 }); if (waves.length > 8) waves.shift(); };
+    const move = (e) => {
+      tx = e.clientX; ty = e.clientY;
+      if (Math.hypot(tx - lx, ty - ly) > 110) { lx = tx; ly = ty; emit(tx, ty - el.getBoundingClientRect().top, false); }
+    };
+    const down = (e) => emit(e.clientX, e.clientY - el.getBoundingClientRect().top, true);
+    const tick = () => {
+      x += (tx - x) * 0.08; y += (ty - y) * 0.08;
+      el.style.setProperty("--mx", x + "px");
+      el.style.setProperty("--my", y - el.getBoundingClientRect().top + "px");
+      el.style.setProperty("--px", (x / innerWidth - 0.5).toFixed(3));
+      el.style.setProperty("--py", (y / innerHeight - 0.5).toFixed(3));
+      ctx.clearRect(0, 0, innerWidth, innerHeight);
+      ctx.globalCompositeOperation = "lighter";
+      for (let i = waves.length - 1; i >= 0; i--) {
+        const w = waves[i];
+        w.r += w.speed;
+        const life = 1 - w.r / w.max;
+        if (life <= 0) { waves.splice(i, 1); continue; }
+        for (let k = 0; k < 1; k++) {
+          const rr = w.r - k * 16;
+          if (rr <= 0) continue;
+          ctx.beginPath();
+          ctx.arc(w.x, w.y, rr, 0, 6.2832);
+          ctx.strokeStyle = `rgba(255,${110 + k * 40},${90 + k * 30},${life * 0.2})`;
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
+        const g = ctx.createRadialGradient(w.x, w.y, 0, w.x, w.y, w.r);
+        g.addColorStop(0, "rgba(254,43,36,0)"); g.addColorStop(0.85, `rgba(254,43,36,${life * 0.05})`); g.addColorStop(1, "rgba(254,43,36,0)");
+        ctx.fillStyle = g;
+        ctx.fillRect(w.x - w.r, w.y - w.r, w.r * 2, w.r * 2);
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    addEventListener("pointermove", move);
+    addEventListener("pointerdown", down);
+    addEventListener("resize", fit);
+    tick();
+    return () => { removeEventListener("pointermove", move); removeEventListener("pointerdown", down); removeEventListener("resize", fit); cancelAnimationFrame(raf); };
+  }, [tiendaAbierta]);
+
+  // Marca la barra de categorías cuando queda pegada arriba (fondo translúcido solo entonces)
+  useEffect(() => {
+    const el = tabsRef.current;
+    if (tiendaAbierta !== true || !el) return;
+    const on = () => el.classList.toggle("stuck", el.getBoundingClientRect().top <= 0);
+    on();
+    addEventListener("scroll", on, { passive: true });
+    return () => removeEventListener("scroll", on);
   }, [tiendaAbierta]);
 
   const goCat = (cat) => {
@@ -205,23 +259,20 @@ export default function Menu() {
 
       {tiendaAbierta === true && (
         <>
-          <header className="mn-hero">
+          <div className="mn-body">
+            <div className="mn-glow" ref={glowRef} aria-hidden="true">
+              <canvas ref={waveRef} style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }} />
+              <div className="mn-bw" style={{ "--k": 120, left: "-10%", top: "-5%", width: 560, height: 560 }}><div className="mn-blob" style={{ background: "rgba(254,43,36,.45)", animationDuration: "14s" }} /></div>
+              <div className="mn-bw" style={{ "--k": -90, right: "-12%", top: "25%", width: 640, height: 640 }}><div className="mn-blob" style={{ background: "rgba(200,24,18,.3)", animationDuration: "19s" }} /></div>
+              <div className="mn-bw" style={{ "--k": 70, left: "25%", bottom: "-18%", width: 520, height: 520 }}><div className="mn-blob" style={{ background: "rgba(251,186,36,.09)", animationDuration: "23s" }} /></div>
+            </div>
+                      <header className="mn-hero">
             <span className="mn-eyebrow">Elige lo que se te antoje, compa</span>
             <h1>Nuestro <span>menú</span></h1>
             <div className="mn-chips"><span>Te lo llevamos</span><span>o lo recoges en tienda</span></div>
           </header>
 
-          <div className="mn-body">
-            <div className="mn-rain" aria-hidden="true">
-              {RAIN.map((d, i) => (
-                <span key={i} className="mn-drop" style={{ left: `${d.left}%`, fontSize: d.size, animationDuration: `${d.dur}s`, animationDelay: `${d.delay}s`, "--i": i }}>
-                  <span className="mn-sway" style={{ display: "block", animationDuration: `${d.swayDur}s`, "--sway": `${d.sway}px`, "--spin": `${d.spin}deg` }}>
-                    🌮
-                  </span>
-                </span>
-              ))}
-            </div>
-          <nav className="mn-tabs" aria-label="Categorías">
+            <nav className="mn-tabs" ref={tabsRef} aria-label="Categorías">
             <div className="mn-tabs-in">
               {MENU.map(({ cat }) => (
                 <button key={cat} className={`mn-tab${activeCat === cat ? " on" : ""}`} onClick={() => goCat(cat)}>
