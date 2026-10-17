@@ -174,3 +174,5 @@ INSERT INTO productos (nombre, tipo, precio) VALUES
   ('Croburger',            'extra', 26000),
   ('Hayaca tradicional',   'extra', 17500),
   ('Hayaca picante',       'extra', 17500);
+
+UPDATE productos SET activo = false WHERE nombre = 'Hayaca';
