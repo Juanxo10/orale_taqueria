@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
-import logoDark from "../assets/log.png";
+import logoDark from "../assets/Logo_tacos.jpg";
 import { API_URL } from "../config";
 
 export default function Sugerencias() {
@@ -44,16 +44,16 @@ export default function Sugerencias() {
       <Navbar active="sugerencias" />
 
       {/* Header */}
-      <header className="bg-primary px-gutter py-16 md:py-20 text-center">
+      <header className="bg-surface-dim border-b-4 border-primary-container px-gutter py-16 md:py-20 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-tertiary-fixed rounded-full mb-5">
           <span className="material-symbols-outlined text-sm">chat_bubble</span>
           <span className="font-label-md text-label-md">TU OPINIÓN IMPORTA</span>
         </div>
-        <h1 className="font-headline-md text-headline-md md:text-display-lg-mobile text-white leading-tight">
+        <h1 className="font-headline-md text-headline-md md:text-display-lg-mobile text-primary leading-tight">
           Cuéntanos tu Opinión
         </h1>
         <p className="font-body-md text-body-md text-white/70 mt-4 max-w-xl mx-auto">
-          Tu sugerencia nos ayuda a mejorar cada bowl y cada entrega. Cuéntanos qué te gustó, qué cambiarías o
+          Tu sugerencia nos ayuda a mejorar cada taco y cada entrega. Cuéntanos qué te gustó, qué cambiarías o
           qué quieres ver en el menú.
         </p>
       </header>
@@ -62,7 +62,7 @@ export default function Sugerencias() {
       <main className="flex-1 py-section-gap px-gutter bg-surface-container-lowest">
         <div className="max-w-xl mx-auto">
           {state === "ok" ? (
-            <div className="bg-surface-container rounded-xl p-10 text-center shadow-[0px_4px_20px_rgba(45,74,47,0.05)]">
+            <div className="bg-surface-container rounded-xl p-10 text-center shadow-[0px_4px_20px_rgba(254,43,36,0.05)]">
               <div className="w-16 h-16 rounded-full bg-primary-container/10 text-primary-container flex items-center justify-center mx-auto mb-5">
                 <span className="material-symbols-outlined text-3xl">check_circle</span>
               </div>
@@ -71,7 +71,7 @@ export default function Sugerencias() {
                 Ya la recibimos y la vamos a tener en cuenta para seguir mejorando.
               </p>
               <button
-                className="bg-primary-container text-white px-8 py-3 rounded-full font-label-md text-label-md hover:bg-primary transition-all duration-300"
+                className="bg-primary-container text-white px-8 py-3 rounded-full font-label-md text-label-md hover:bg-brand-dark transition-all duration-300"
                 onClick={() => setState("idle")}
               >
                 Enviar otra sugerencia
@@ -80,7 +80,7 @@ export default function Sugerencias() {
           ) : (
             <form
               onSubmit={enviar}
-              className="bg-surface-container rounded-xl p-8 md:p-10 space-y-6 shadow-[0px_4px_20px_rgba(45,74,47,0.05)]"
+              className="bg-surface-container rounded-xl p-8 md:p-10 space-y-6 shadow-[0px_4px_20px_rgba(254,43,36,0.05)]"
             >
               <div className="space-y-2">
                 <label htmlFor="sug-nombre" className="font-label-md text-label-md text-primary">
@@ -125,7 +125,7 @@ export default function Sugerencias() {
               <button
                 type="submit"
                 disabled={state === "loading"}
-                className="w-full inline-flex items-center justify-center gap-2 bg-primary-container text-white px-8 py-4 rounded-full font-label-md text-label-md hover:bg-primary transition-all duration-300 disabled:opacity-60"
+                className="w-full inline-flex items-center justify-center gap-2 bg-primary-container text-white px-8 py-4 rounded-full font-label-md text-label-md hover:bg-brand-dark transition-all duration-300 disabled:opacity-60"
               >
                 {state === "loading" ? "Enviando…" : "Enviar Sugerencia"}
               </button>
@@ -138,9 +138,9 @@ export default function Sugerencias() {
       <footer className="bg-surface-container border-t border-outline-variant">
         <div className="max-w-container-max mx-auto px-gutter py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
-            <img alt="Pepas Coffee" className="h-10 w-auto object-contain" src={logoDark} />
+            <img alt="Órale Tacos" className="h-12 w-auto object-contain rounded-lg" src={logoDark} />
             <span className="font-label-md text-label-md text-on-surface-variant">
-              © {new Date().getFullYear()} Pepas Coffee
+              © {new Date().getFullYear()} Órale Tacos
             </span>
           </div>
           <a
@@ -148,7 +148,7 @@ export default function Sugerencias() {
             href="https://www.instagram.com/pepascoffee/"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Instagram de Pepas Coffee"
+            aria-label="Instagram de Órale Tacos"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <rect x="2" y="2" width="20" height="20" rx="5" />

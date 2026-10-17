@@ -6,21 +6,21 @@ const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;}
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a2e1b 0%,#2D4A2F 50%,#3a5e3c 100%);padding:1.5rem;}
+.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1c1210 0%,#fe2b24 50%,#c81812 100%);padding:1.5rem;}
 .login-card{background:#fff;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
 .login-logo{text-align:center;margin-bottom:2rem;}
-.login-logo h1{font-size:2rem;font-weight:800;color:#1a2e1b;letter-spacing:-1px;}
-.login-logo p{font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#6b7a6b;margin-top:.25rem;}
-.login-badge{display:inline-block;background:#c8a84b;color:#1a2e1b;border-radius:999px;font-size:.65rem;font-weight:700;padding:.2rem .7rem;margin-top:.5rem;}
+.login-logo h1{font-size:2rem;font-weight:800;color:#1c1210;letter-spacing:-1px;}
+.login-logo p{font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#7a6a60;margin-top:.25rem;}
+.login-badge{display:inline-block;background:#fbba24;color:#1c1210;border-radius:999px;font-size:.65rem;font-weight:700;padding:.2rem .7rem;margin-top:.5rem;}
 .form-group{margin-bottom:1.25rem;}
-.form-group label{display:block;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#6b7a6b;margin-bottom:.4rem;}
-.form-group input{width:100%;border:1.5px solid #e2ddd6;border-radius:10px;padding:.7rem 1rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;color:#1a2e1b;outline:none;transition:border-color .15s;background:#f5f3ef;}
-.form-group input:focus{border-color:#4A7C59;background:#fff;}
-.login-btn{width:100%;border:none;border-radius:10px;padding:.75rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;background:#2D4A2F;color:#fff;margin-top:.5rem;}
-.login-btn:hover{background:#3a5e3c;}
+.form-group label{display:block;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7a6a60;margin-bottom:.4rem;}
+.form-group input{width:100%;border:1.5px solid #ecdcc6;border-radius:10px;padding:.7rem 1rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;color:#1c1210;outline:none;transition:border-color .15s;background:#f8f0e4;}
+.form-group input:focus{border-color:#e0241d;background:#fff;}
+.login-btn{width:100%;border:none;border-radius:10px;padding:.75rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;background:#fe2b24;color:#fff;margin-top:.5rem;}
+.login-btn:hover{background:#c81812;}
 .login-btn:disabled{opacity:.6;cursor:not-allowed;}
 .login-error{background:#fee2e2;color:#991b1b;border-radius:8px;padding:.55rem .8rem;font-size:.78rem;font-weight:600;margin-bottom:1rem;text-align:center;}
-.login-footer{text-align:center;margin-top:1.5rem;font-size:.72rem;color:#6b7a6b;}
+.login-footer{text-align:center;margin-top:1.5rem;font-size:.72rem;color:#7a6a60;}
 @media(max-width:480px){
   .login-card{padding:2rem 1.5rem;border-radius:16px;}
   .login-logo h1{font-size:1.6rem;}

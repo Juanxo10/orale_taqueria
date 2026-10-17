@@ -4,16 +4,16 @@ import { API_URL } from "../config";
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-:root{--g900:#1a2e1b;--g800:#2D4A2F;--g700:#3a5e3c;--g600:#4A7C59;--g400:#7ab87a;--g200:#d4ead4;--g100:#edf7ed;--gold:#c8a84b;--cream:#f5f3ef;--border:#e2ddd6;--text:#1a2e1b;--muted:#6b7a6b;--white:#fff;}
+:root{--g900:#1c1210;--g800:#fe2b24;--g700:#c81812;--g600:#e0241d;--g400:#fbba24;--g200:#f6d9b5;--g100:#fff1de;--gold:#fbba24;--cream:#f8f0e4;--border:#ecdcc6;--text:#1c1210;--muted:#7a6a60;--white:#fff;}
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(circle at top,#f9f5ea 0,#f5f3ef 42%,#edf7ed 100%);color:var(--text);min-height:100vh;}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(circle at top,#f9f5ea 0,#f8f0e4 42%,#fff1de 100%);color:var(--text);min-height:100vh;}
 .topnav{background:var(--g800);display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.5rem;position:sticky;top:0;z-index:50;}
 .brand-name{font-size:1.35rem;font-weight:800;color:#fff;letter-spacing:-.5px;}
 .brand-sub{font-size:.6rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--g400);margin-top:.1rem;}
 .back-link{display:flex;align-items:center;gap:.4rem;background:rgba(255,255,255,.1);color:#fff;border:none;border-radius:8px;padding:.4rem .9rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.8rem;font-weight:600;cursor:pointer;transition:background .15s;}
 .back-link:hover{background:rgba(255,255,255,.18);}
 .wrap{max-width:860px;margin:0 auto;padding:2rem 1.2rem 5rem;}
-.hero{background:linear-gradient(135deg,var(--white),#f6fbf6);border:1px solid var(--border);border-radius:24px;padding:1.8rem;box-shadow:0 20px 50px rgba(26,46,27,.08);margin-bottom:1.4rem;overflow:hidden;position:relative;}
+.hero{background:linear-gradient(135deg,var(--white),#fff8ee);border:1px solid var(--border);border-radius:24px;padding:1.8rem;box-shadow:0 20px 50px rgba(26,46,27,.08);margin-bottom:1.4rem;overflow:hidden;position:relative;}
 .hero::after{content:"";position:absolute;inset:auto -40px -55px auto;width:180px;height:180px;background:radial-gradient(circle,var(--g200),transparent 70%);opacity:.9;pointer-events:none;}
 .eyebrow{font-size:.68rem;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--g600);margin-bottom:.75rem;}
 .hero h1{font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.05;font-weight:800;max-width:10ch;margin-bottom:.55rem;}
@@ -23,7 +23,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(circl
 .amount-card{background:var(--g800);color:#fff;border-radius:18px;padding:1.2rem 1.25rem;position:relative;z-index:1;}
 .amount-card span{display:block;font-size:.68rem;text-transform:uppercase;letter-spacing:.16em;color:var(--g400);margin-bottom:.45rem;}
 .amount-card strong{display:block;font-size:2rem;font-weight:800;letter-spacing:-.03em;}
-.amount-card small{display:block;margin-top:.45rem;color:#d8e6d8;font-size:.78rem;line-height:1.5;}
+.amount-card small{display:block;margin-top:.45rem;color:#f1dcc0;font-size:.78rem;line-height:1.5;}
 .layout{display:grid;grid-template-columns:1.2fr .8fr;gap:1rem;}
 .card{background:#fff;border:1px solid var(--border);border-radius:18px;padding:1.2rem 1.25rem;box-shadow:0 10px 26px rgba(26,46,27,.05);}
 .section-title{font-size:.78rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;display:block;}

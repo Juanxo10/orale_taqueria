@@ -1,5 +1,5 @@
 import Navbar from "../components/Navbar";
-import logoDark from "../assets/log.png";
+import logoDark from "../assets/Logo_tacos.jpg";
 
 export default function Ubicacion() {
   return (
@@ -7,12 +7,12 @@ export default function Ubicacion() {
       <Navbar active="ubicacion" />
 
       {/* Header */}
-      <header className="bg-primary px-gutter py-16 md:py-20 text-center">
+      <header className="bg-surface-dim border-b-4 border-primary-container px-gutter py-16 md:py-20 text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 text-tertiary-fixed rounded-full mb-5">
           <span className="material-symbols-outlined text-sm">location_on</span>
           <span className="font-label-md text-label-md">VISÍTANOS</span>
         </div>
-        <h1 className="font-headline-md text-headline-md md:text-display-lg-mobile text-white leading-tight">
+        <h1 className="font-headline-md text-headline-md md:text-display-lg-mobile text-primary leading-tight">
           Nuestra Ubicación
         </h1>
         <p className="font-body-md text-body-md text-white/70 mt-4 max-w-xl mx-auto">
@@ -25,14 +25,14 @@ export default function Ubicacion() {
         <div className="max-w-container-max mx-auto grid md:grid-cols-2 items-center gap-16">
           <div className="space-y-8">
             <div className="space-y-5">
-              <div className="flex items-start gap-4 bg-surface-container rounded-xl p-5 shadow-[0px_4px_20px_rgba(45,74,47,0.05)]">
+              <div className="flex items-start gap-4 bg-surface-container rounded-xl p-5 shadow-[0px_4px_20px_rgba(254,43,36,0.05)]">
                 <span className="material-symbols-outlined text-primary-container">location_on</span>
                 <div>
                   <p className="font-label-md text-label-md text-primary">Dirección</p>
                   <p className="font-body-md text-body-md text-on-surface-variant">Cl. 13 #15-01, Acacías, Meta</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 bg-surface-container rounded-xl p-5 shadow-[0px_4px_20px_rgba(45,74,47,0.05)]">
+              <div className="flex items-start gap-4 bg-surface-container rounded-xl p-5 shadow-[0px_4px_20px_rgba(254,43,36,0.05)]">
                 <span className="material-symbols-outlined text-primary-container">call</span>
                 <div>
                   <p className="font-label-md text-label-md text-primary">Teléfono</p>
@@ -45,7 +45,7 @@ export default function Ubicacion() {
                 href="https://www.google.com/maps/dir/?api=1&destination=Cl.%2013%20%2315-01%2C%20Acac%C3%ADas%2C%20Meta"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-primary-container text-white px-8 py-3 rounded-full font-label-md text-label-md hover:bg-primary transition-all duration-300"
+                className="inline-flex items-center gap-2 bg-primary-container text-white px-8 py-3 rounded-full font-label-md text-label-md hover:bg-brand-dark transition-all duration-300"
               >
                 <span className="material-symbols-outlined text-lg">directions</span>
                 Cómo Llegar
@@ -61,7 +61,7 @@ export default function Ubicacion() {
           </div>
           <div className="rounded-xl overflow-hidden shadow-2xl aspect-[4/3]">
             <iframe
-              title="Ubicación de Pepas Coffee en Acacías, Meta"
+              title="Ubicación de Órale Tacos en Acacías, Meta"
               className="w-full h-full border-0"
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -75,9 +75,9 @@ export default function Ubicacion() {
       <footer className="bg-surface-container border-t border-outline-variant">
         <div className="max-w-container-max mx-auto px-gutter py-12 flex flex-col md:flex-row justify-between items-center gap-6 text-center md:text-left">
           <div className="flex items-center gap-3">
-            <img alt="Pepas Coffee" className="h-10 w-auto object-contain" src={logoDark} />
+            <img alt="Órale Tacos" className="h-12 w-auto object-contain rounded-lg" src={logoDark} />
             <span className="font-label-md text-label-md text-on-surface-variant">
-              © {new Date().getFullYear()} Pepas Coffee
+              © {new Date().getFullYear()} Órale Tacos
             </span>
           </div>
           <a
@@ -85,7 +85,7 @@ export default function Ubicacion() {
             href="https://www.instagram.com/pepascoffee/"
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Instagram de Pepas Coffee"
+            aria-label="Instagram de Órale Tacos"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <rect x="2" y="2" width="20" height="20" rx="5" />

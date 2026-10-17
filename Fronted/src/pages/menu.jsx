@@ -9,7 +9,7 @@ const fmt = (n) => "$" + n.toLocaleString("es-CO");
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-:root{--g900:#1a2e1b;--g800:#2D4A2F;--g700:#3a5e3c;--g600:#4A7C59;--g400:#7ab87a;--g200:#d4ead4;--g100:#edf7ed;--gold:#c8a84b;--cream:#f5f3ef;--border:#e2ddd6;--text:#1a2e1b;--muted:#6b7a6b;}
+:root{--g900:#1c1210;--g800:#fe2b24;--g700:#c81812;--g600:#e0241d;--g400:#fbba24;--g200:#f6d9b5;--g100:#fff1de;--gold:#fbba24;--cream:#f8f0e4;--border:#ecdcc6;--text:#1c1210;--muted:#7a6a60;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
 .bowl-badge{background:var(--gold);color:var(--g900);border-radius:999px;font-size:.78rem;font-weight:700;padding:.3rem .9rem;display:flex;align-items:center;gap:.35rem;}
@@ -53,7 +53,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .olist{flex:1;overflow-y:auto;padding:.8rem 1.3rem;display:flex;flex-direction:column;gap:.75rem;}
 .bc{border:1.5px solid var(--border);border-radius:12px;padding:.9rem 1rem;position:relative;}
 .bn{position:absolute;top:-.55rem;left:.8rem;background:var(--g600);color:#fff;font-size:.65rem;font-weight:700;padding:.1rem .55rem;border-radius:999px;}
-.bclose{position:absolute;top:.6rem;right:.7rem;background:#f5f3ef;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:.75rem;color:var(--muted);display:flex;align-items:center;justify-content:center;}
+.bclose{position:absolute;top:.6rem;right:.7rem;background:#f8f0e4;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:.75rem;color:var(--muted);display:flex;align-items:center;justify-content:center;}
 .bcarb{font-size:.92rem;font-weight:700;margin:.3rem 0 .5rem;}
 .btags{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:.6rem;}
 .bt{background:var(--g100);color:var(--g800);border-radius:6px;font-size:.7rem;font-weight:600;padding:.15rem .45rem;}
@@ -95,7 +95,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .closed-badge{display:inline-flex;align-items:center;gap:.5rem;background:#fee2e2;color:#991b1b;border:1.5px solid #fca5a5;border-radius:999px;padding:.45rem 1.1rem;font-size:.82rem;font-weight:700;margin-bottom:1.6rem;}
 .closed-badge .cd{width:8px;height:8px;border-radius:50%;background:#991b1b;}
 @media(max-width:720px){.layout{grid-template-columns:1fr;}.rp{position:static;height:auto;border-left:none;border-top:1px solid var(--border);}.pgrid{grid-template-columns:repeat(2,1fr);}.home-btn{padding:.32rem .65rem;font-size:.72rem;}.bowl-badge{font-size:.7rem;padding:.25rem .7rem;}.cafgrid{grid-template-columns:1fr;}}
-.pill.disabled{opacity:.5;cursor:not-allowed;background:#f5f3ef;border-color:var(--border);color:var(--muted);}
+.pill.disabled{opacity:.5;cursor:not-allowed;background:#f8f0e4;border-color:var(--border);color:var(--muted);}
 .pill-remove{margin-left:auto;padding-left:.4rem;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.85rem;line-height:1;opacity:.6;transition:opacity .15s;}
 .pill:hover .pill-remove{opacity:1;}
 .pc-remove{position:absolute;top:.35rem;right:.4rem;background:rgba(0,0,0,.07);border:none;border-radius:50%;width:18px;height:18px;cursor:pointer;font-size:.7rem;color:var(--muted);display:flex;align-items:center;justify-content:center;transition:background .15s;}

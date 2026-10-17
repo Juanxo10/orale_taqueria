@@ -14,7 +14,7 @@ const fmt = (n) => "$" + Number(n).toLocaleString("es-CO");
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-:root{--g900:#1a2e1b;--g800:#2D4A2F;--g700:#3a5e3c;--g600:#4A7C59;--g400:#7ab87a;--g200:#d4ead4;--g100:#edf7ed;--gold:#c8a84b;--cream:#f5f3ef;--border:#e2ddd6;--text:#1a2e1b;--muted:#6b7a6b;--red:#dc2626;--red-bg:#fef2f2;}
+:root{--g900:#1c1210;--g800:#fe2b24;--g700:#c81812;--g600:#e0241d;--g400:#fbba24;--g200:#f6d9b5;--g100:#fff1de;--gold:#fbba24;--cream:#f8f0e4;--border:#ecdcc6;--text:#1c1210;--muted:#7a6a60;--red:#dc2626;--red-bg:#fef2f2;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
 .topnav{background:var(--g800);display:flex;align-items:center;justify-content:space-between;padding:.85rem 1.5rem;position:sticky;top:0;z-index:50;}
@@ -33,7 +33,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .summary-head span{color:var(--g400);font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600;}
 .summary-head strong{color:var(--gold);font-size:1.2rem;font-weight:800;}
 .summary-rows{padding:.6rem 1.2rem;}
-.srow{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f5f3ef;font-size:.83rem;}
+.srow{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #f8f0e4;font-size:.83rem;}
 .srow:last-child{border-bottom:none;}
 .srow .sl{color:var(--muted);font-size:.75rem;}
 .srow .sv{font-weight:500;}
@@ -84,7 +84,7 @@ textarea.fi{resize:vertical;min-height:70px;}
 .btn-wompi:hover{background:#4a22c7;}
 .btn-wompi:disabled{opacity:.7;cursor:not-allowed;}
 .fine{text-align:center;font-size:.7rem;color:#aaa;margin-top:.85rem;line-height:1.6;}
-.success-card{background:#edf7ed;border:1px solid var(--g200);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;color:var(--g800);}
+.success-card{background:#fff1de;border:1px solid var(--g200);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;color:var(--g800);}
 .success-card strong{display:block;font-size:.95rem;margin-bottom:.25rem;}
 @media(max-width:560px){.form-grid{grid-template-columns:1fr;}.form-group.full{grid-column:1;}.wrap{padding:1.2rem .9rem 5rem;}}
 `;

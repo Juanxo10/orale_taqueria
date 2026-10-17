@@ -4,6 +4,7 @@
 
 body {
   margin: 0;
+  background: #140c0a;
 }
 
 #root {
@@ -15,16 +16,134 @@ body {
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
+/* Navbar roja con guirnalda de papel picado colgando debajo */
 .glass-nav {
-  background: #FF1E1E;
+  background: #fe2b24;
   backdrop-filter: blur(10px);
+  position: relative;
+}
+.glass-nav::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 16px;
+  pointer-events: none;
+  background:
+    conic-gradient(from 150deg at 14px 0, #fbba24 60deg, transparent 0),
+    conic-gradient(from 150deg at 42px 0, #fff5e6 60deg, transparent 0),
+    conic-gradient(from 150deg at 70px 0, #fe2b24 60deg, transparent 0);
+  background-size: 84px 16px;
+  background-repeat: repeat-x;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
 }
 
 .hero-text-shadow {
   text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.55), 0px 8px 24px rgba(0, 0, 0, 0.45);
 }
 
+/* Resalte tipo marcador para palabras clave */
+.keyword {
+  color: #fbba24;
+}
+
+/* Cinta de tacos que corre sin fin */
+.marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+.marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Sello giratorio */
+.spin-slow {
+  animation: spin-slow 18s linear infinite;
+}
+
+/* Chip flotante inclinado */
+.float-tilt {
+  animation: float-tilt 5s ease-in-out infinite;
+}
+.float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+
+/* Llama del logo */
+.flame {
+  transform-origin: 50% 100%;
+  animation: flicker 1.6s ease-in-out infinite;
+}
+
+.pulse-live {
+  animation: pulse-live 1.8s ease-out infinite;
+}
+
+/* Línea tipo circuito -> aquí, borde punteado de comal que se "dibuja" */
+.draw-line {
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: draw-line 2.4s ease forwards;
+}
+
+/* Entrada escalonada del hero */
+.rise {
+  opacity: 0;
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+}
+
+/* Tarjetas: brillo de salsa al pasar el mouse */
+.card-hot {
+  transition: transform 0.5s ease, box-shadow 0.5s ease, border-color 0.5s ease;
+}
+.card-hot:hover {
+  transform: translateY(-8px) rotate(-0.6deg);
+  box-shadow: 0 20px 40px -12px rgba(254, 43, 36, 0.45);
+  border-color: #fe2b24;
+}
+
 @keyframes subtle-zoom {
   from { transform: scale(1.0); }
   to { transform: scale(1.1); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+@keyframes float-tilt {
+  0%, 100% { transform: translateY(0) rotate(-6deg); }
+  50% { transform: translateY(-10px) rotate(-3deg); }
+}
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-14px) rotate(2deg); }
+}
+@keyframes flicker {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  30% { transform: scale(1.12, 1.2) rotate(-4deg); opacity: 0.9; }
+  60% { transform: scale(0.95, 1.08) rotate(3deg); opacity: 1; }
+}
+@keyframes pulse-live {
+  0% { box-shadow: 0 0 0 0 rgba(251, 186, 36, 0.7); }
+  100% { box-shadow: 0 0 0 12px rgba(251, 186, 36, 0); }
+}
+@keyframes draw-line {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes rise {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee, .spin-slow, .float-tilt, .float-soft, .flame, .pulse-live, .draw-line, .rise {
+    animation: none !important;
+    opacity: 1;
+    stroke-dashoffset: 0;
+  }
 }

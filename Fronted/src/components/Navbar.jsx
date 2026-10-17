@@ -25,7 +25,7 @@ export default function Navbar({ active, position = "static", rightSlot, showLin
 
   return (
     <nav
-      className={`w-full z-50 glass-nav shadow-[0px_4px_20px_rgba(255,30,30,0.15)] ${POSITION_CLASS[position]}`}
+      className={`w-full z-50 glass-nav shadow-[0px_4px_20px_rgba(254,43,36,0.35)] ${POSITION_CLASS[position]}`}
     >
       <div className="flex justify-between items-center gap-3 w-full px-gutter max-w-container-max mx-auto py-3 md:py-4">
         <button
@@ -33,7 +33,7 @@ export default function Navbar({ active, position = "static", rightSlot, showLin
           onClick={() => goTo("/")}
           aria-label="Ir al inicio"
         >
-          <img alt="Pepas Coffee" className="h-12 md:h-16 w-auto object-contain" src={logo} />
+          <img alt="Órale Tacos" className="h-12 md:h-16 w-auto object-contain rounded-lg transition-transform duration-300 hover:rotate-[-4deg] hover:scale-105" src={logo} />
         </button>
 
         {showLinks && (
@@ -61,10 +61,10 @@ export default function Navbar({ active, position = "static", rightSlot, showLin
         <div className="flex items-center gap-2 md:gap-0">
           {rightSlot ?? (
             <button
-              className="bg-surface-container-lowest text-[#FF1E1E] flex-shrink-0 whitespace-nowrap px-5 py-2.5 md:px-8 md:py-3 rounded-full font-label-md text-label-md hover:bg-black hover:text-white transition-all duration-300"
+              className="bg-primary text-on-primary flex-shrink-0 whitespace-nowrap px-5 py-2.5 md:px-8 md:py-3 rounded-full font-label-md text-label-md shadow-[0_4px_0_#7a4d00] hover:translate-y-[2px] hover:shadow-[0_2px_0_#7a4d00] hover:bg-white active:translate-y-1 active:shadow-none transition-all duration-200"
               onClick={() => goTo("/menu")}
             >
-              Pedir Ahora
+              Pedir Tacos
             </button>
           )}
 
