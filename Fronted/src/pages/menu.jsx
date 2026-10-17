@@ -8,15 +8,35 @@ import { MENU, ALL_EXTRAS, DOM } from "../data/menuData";
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 const slug = (s) => "cat-" + s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
+// Lluvia de tacos del menú (semilla fija: no cambia por render)
+const RAIN = (() => {
+  let seed = 11;
+  const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  return Array.from({ length: 24 }, () => ({
+    left: rnd() * 96, size: 34 + rnd() * 40,
+    dur: 14 + rnd() * 16, delay: -rnd() * 30, sway: 14 + rnd() * 26, swayDur: 3 + rnd() * 3, spin: (rnd() < 0.5 ? -1 : 1) * (15 + rnd() * 40),
+  }));
+})();
+
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root{--red:#fe2b24;--red-d:#c81812;--yel:#fbba24;--bg:#140c0a;--card:#261715;--card2:#301c19;--line:#4a302b;--txt:#fbf1e3;--mut:#d9c3b0;}
 .mn{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
 .mn *{box-sizing:border-box;}
-.mn-hero{max-width:1200px;margin:0 auto;padding:2rem 1.25rem 1rem;}
+.mn-body{position:relative;}
+.mn-rain{position:sticky;top:0;height:100vh;margin-bottom:-100vh;overflow:hidden;pointer-events:none;z-index:0;}
+.mn-drop{position:absolute;top:0;line-height:1;will-change:transform;animation:mn-fall linear infinite;}
+.mn-sway{animation:mn-sway ease-in-out infinite alternate;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55));}
+@keyframes mn-fall{from{transform:translate3d(0,-20vh,0);}to{transform:translate3d(0,115vh,0);}}
+@keyframes mn-sway{from{transform:translateX(calc(var(--sway) * -1)) rotate(calc(var(--spin) * -1));}to{transform:translateX(var(--sway)) rotate(var(--spin));}}
+@media(prefers-reduced-motion:reduce){.mn-drop,.mn-sway{animation:none;}.mn-drop{top:calc(var(--i) * 3.5%);}}
+.mn-hero,.mn-wrap,.mn-closed{position:relative;z-index:1;}
+.mn-hero{max-width:1200px;margin:0 auto;padding:2rem 1.25rem 1.2rem;}
 .mn-hero h1{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:800;line-height:1.1;}
 .mn-hero h1 span{color:var(--yel);}
-.mn-hero p{color:var(--mut);margin-top:.4rem;font-size:.95rem;}
+.mn-eyebrow{display:block;color:var(--yel);font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.5rem;}
+.mn-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;}
+.mn-chips span{border:1.5px solid var(--line);border-radius:999px;padding:.3rem .8rem;font-size:.8rem;font-weight:600;color:var(--mut);}
 .mn-tabs{position:sticky;top:0;z-index:60;background:rgba(20,12,10,.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
 .mn-tabs-in{max-width:1200px;margin:0 auto;padding:.7rem 1.25rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;}
 .mn-tabs-in::-webkit-scrollbar{display:none;}
@@ -33,7 +53,7 @@ const CSS = `
 .mn-note{color:var(--yel);font-size:.82rem;font-weight:600;margin-bottom:.8rem;}
 .mn-grid{display:grid;grid-template-columns:1fr;gap:.75rem;margin-top:.8rem;}
 @media(min-width:620px){.mn-grid{grid-template-columns:1fr 1fr;}}
-.mn-item{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:.5rem;transition:border-color .15s;}
+.mn-item{background:rgba(38,23,21,.88);backdrop-filter:blur(6px);border:1.5px solid var(--line);border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:.5rem;transition:border-color .15s;}
 .mn-item.sel{border-color:var(--yel);}
 .mn-item.off{opacity:.5;}
 .mn-name{font-weight:700;font-size:1rem;line-height:1.25;}
@@ -186,10 +206,21 @@ export default function Menu() {
       {tiendaAbierta === true && (
         <>
           <header className="mn-hero">
+            <span className="mn-eyebrow">Elige lo que se te antoje, compa</span>
             <h1>Nuestro <span>menú</span></h1>
-            <p>Elige lo que se te antoje, compa. Te lo llevamos o lo recoges.</p>
+            <div className="mn-chips"><span>Te lo llevamos</span><span>o lo recoges en tienda</span></div>
           </header>
 
+          <div className="mn-body">
+            <div className="mn-rain" aria-hidden="true">
+              {RAIN.map((d, i) => (
+                <span key={i} className="mn-drop" style={{ left: `${d.left}%`, fontSize: d.size, animationDuration: `${d.dur}s`, animationDelay: `${d.delay}s`, "--i": i }}>
+                  <span className="mn-sway" style={{ display: "block", animationDuration: `${d.swayDur}s`, "--sway": `${d.sway}px`, "--spin": `${d.spin}deg` }}>
+                    🌮
+                  </span>
+                </span>
+              ))}
+            </div>
           <nav className="mn-tabs" aria-label="Categorías">
             <div className="mn-tabs-in">
               {MENU.map(({ cat }) => (
@@ -233,6 +264,8 @@ export default function Menu() {
               ))}
             </main>
             <aside className="mn-aside">{cart}</aside>
+          </div>
+
           </div>
 
           {totalQty > 0 && (
