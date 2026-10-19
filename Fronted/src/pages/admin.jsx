@@ -395,6 +395,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .sug-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.75rem;}
 .sug-filter-btn{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:.3rem .85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;}
 .sug-filter-btn.active{background:var(--g800);color:#fff;border-color:var(--g800);}
+.sug-filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;}
+.sug-tipo{display:inline-flex;align-items:center;gap:.25rem;border-radius:999px;font-size:.62rem;font-weight:800;padding:.14rem .6rem;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;}
+.sug-tipo-sugerencia{background:#fef3c7;color:#92400e;border:1px solid #fcd34d;}
+.sug-tipo-queja{background:#ffedd5;color:#9a3412;border:1px solid #fdba74;}
+.sug-tipo-reclamo{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;}
+.sug-row-reclamo td:first-child{box-shadow:inset 3px 0 0 #dc2626;}
+.sug-row-queja td:first-child{box-shadow:inset 3px 0 0 #f97316;}
+.sug-row-sugerencia td:first-child{box-shadow:inset 3px 0 0 #fbbf24;}
 .sug-empty{text-align:center;padding:3rem;color:var(--muted);font-size:.9rem;}
 @media(max-width:768px){
   .sug-page{padding:.75rem .5rem 2rem;}
@@ -530,6 +538,7 @@ export default function Admin() {
   const [sugerencias, setSugerencias] = useState([]);
   const [sugLoading, setSugLoading] = useState(false);
   const [sugSoloNuevas, setSugSoloNuevas] = useState(false);
+  const [sugTipo, setSugTipo] = useState("todos");
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [formData, setFormData] = useState({ nombre: "", email: "", password: "", rol: "empleado" });
@@ -757,6 +766,8 @@ export default function Admin() {
   };
 
   useEffect(() => { if (view === "usuarios") fetchStaff(); }, [view]);
+
+  const sugVisibles = sugTipo === "todos" ? sugerencias : sugerencias.filter((s) => s.tipo === sugTipo);
 
   const fetchSugerencias = (soloNuevas = false) => {
     setSugLoading(true);
@@ -1009,7 +1020,7 @@ export default function Admin() {
             {cajaCargando ? "…" : tiendaAbierta ? "Caja abierta" : "Caja cerrada"}
           </button>
         )}
-        {isAdmin && <button className={`mobile-nav-btn${view==="sugerencias"?" active":""}`} onClick={() => { setView(view==="sugerencias"?"hoy":"sugerencias"); setMobileMenuOpen(false); }}>Sugerencias</button>}
+        {isAdmin && <button className={`mobile-nav-btn${view==="sugerencias"?" active":""}`} onClick={() => { setView(view==="sugerencias"?"hoy":"sugerencias"); setMobileMenuOpen(false); }}>Quejas y sugerencias</button>}
         {isAdmin && <button className={`mobile-nav-btn${view==="usuarios"?" active":""}`} onClick={() => { setView(view==="usuarios"?"hoy":"usuarios"); setSearch(""); setFilterStatus("todos"); setMobileMenuOpen(false); }}>Usuarios</button>}
         {isAdmin && <button className={`mobile-nav-btn${view==="stats"?" active":""}`} onClick={() => { setView(view==="stats"?"hoy":"stats"); setSearch(""); setFilterStatus("todos"); setMobileMenuOpen(false); }}>Estadísticas</button>}
         {isAdmin && <button className={`mobile-nav-btn${view==="historial"?" active":""}`} onClick={() => { setView(view==="historial"?"hoy":"historial"); setSearch(""); setFilterStatus("todos"); setMobileMenuOpen(false); }}>Historial</button>}
@@ -1027,7 +1038,7 @@ export default function Admin() {
         </div>
         {/* Botones desktop */}
         <div className="nav-right">
-          {isAdmin && <button className={`btn-historial${view==="sugerencias"?" active":""}`} onClick={() => setView(view==="sugerencias"?"hoy":"sugerencias")}>{view==="sugerencias"?"Volver":"Sugerencias"}</button>}
+          {isAdmin && <button className={`btn-historial${view==="sugerencias"?" active":""}`} onClick={() => setView(view==="sugerencias"?"hoy":"sugerencias")}>{view==="sugerencias"?"Volver":"Quejas y sugerencias"}</button>}
           {isAdmin && <button className={`btn-historial${view==="usuarios"?" active":""}`} onClick={() => { setView(view==="usuarios"?"hoy":"usuarios"); setSearch(""); setFilterStatus("todos"); }}>{view==="usuarios"?"Volver":"Usuarios"}</button>}
           {isAdmin && <button className={`btn-historial${view==="stats"?" active":""}`} onClick={() => { setView(view==="stats"?"hoy":"stats"); setSearch(""); setFilterStatus("todos"); }}>{view==="stats"?"Volver":"Estadísticas"}</button>}
           {isAdmin && <button className={`btn-historial${view==="historial"?" active":""}`} onClick={() => { setView(view==="historial"?"hoy":"historial"); setSearch(""); setFilterStatus("todos"); }}>{view==="historial"?"Volver a hoy":"Historial"}</button>}
@@ -1599,7 +1610,7 @@ export default function Admin() {
       {view === "sugerencias" && (
         <div className="sug-page">
           <div className="sug-header">
-            <h2>Sugerencias de clientes</h2>
+            <h2>Sugerencias, quejas y reclamos</h2>
             <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
               <button
                 className={`sug-filter-btn${!sugSoloNuevas ? " active" : ""}`}
@@ -1612,15 +1623,27 @@ export default function Admin() {
             </div>
           </div>
 
+          <div className="sug-filters">
+            {[["todos", "Todos"], ["sugerencia", "Sugerencias"], ["queja", "Quejas"], ["reclamo", "Reclamos"]].map(([k, label]) => {
+              const n = k === "todos" ? sugerencias.length : sugerencias.filter((s) => s.tipo === k).length;
+              return (
+                <button key={k} className={`sug-filter-btn${sugTipo === k ? " active" : ""}`} onClick={() => setSugTipo(k)}>
+                  {label} ({n})
+                </button>
+              );
+            })}
+          </div>
+
           {sugLoading ? (
-            <div className="stats-loading">Cargando sugerencias...</div>
-          ) : !sugerencias.length ? (
-            <div className="sug-empty">No hay sugerencias{sugSoloNuevas ? " sin leer" : ""} aún.</div>
+            <div className="stats-loading">Cargando mensajes...</div>
+          ) : !sugVisibles.length ? (
+            <div className="sug-empty">No hay {sugTipo === "todos" ? "mensajes" : { sugerencia: "sugerencias", queja: "quejas", reclamo: "reclamos" }[sugTipo]}{sugSoloNuevas ? " sin leer" : ""} aún.</div>
           ) : (
             <div className="sug-table-wrap">
               <table className="sug-table">
                 <thead>
                   <tr>
+                    <th>Tipo</th>
                     <th>Nombre</th>
                     <th>Mensaje</th>
                     <th className="col-sug-date">Fecha</th>
@@ -1629,8 +1652,9 @@ export default function Admin() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sugerencias.map((s) => (
-                    <tr key={s.id}>
+                  {sugVisibles.map((s) => (
+                    <tr key={s.id} className={`sug-row-${s.tipo}`}>
+                      <td><span className={`sug-tipo sug-tipo-${s.tipo}`}>{s.tipo}</span></td>
                       <td>
                         {s.nombre
                           ? <span className="sug-nombre">{s.nombre}</span>

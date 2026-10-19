@@ -1,7 +1,12 @@
 const pool = require("../db");
 
-// ── Crear sugerencia ──────────────────────────────────────
-async function crearSugerencia({ nombre, mensaje }) {
+const TIPOS = ["sugerencia", "queja", "reclamo"];
+
+// ── Crear sugerencia / queja / reclamo ────────────────────
+async function crearSugerencia({ nombre, mensaje, tipo = "sugerencia" }) {
+  if (!TIPOS.includes(tipo)) {
+    throw { status: 400, message: "Tipo inválido: usa sugerencia, queja o reclamo" };
+  }
   if (!mensaje || mensaje.trim().length < 5) {
     throw { status: 400, message: "El mensaje debe tener al menos 5 caracteres" };
   }
@@ -13,10 +18,10 @@ async function crearSugerencia({ nombre, mensaje }) {
   const mensajeSanitizado = mensaje.trim();
 
   const { rows } = await pool.query(
-    `INSERT INTO sugerencias (nombre, mensaje)
-     VALUES ($1, $2)
-     RETURNING id, nombre, created_at`,
-    [nombreSanitizado, mensajeSanitizado]
+    `INSERT INTO sugerencias (nombre, mensaje, tipo)
+     VALUES ($1, $2, $3)
+     RETURNING id, nombre, tipo, created_at`,
+    [nombreSanitizado, mensajeSanitizado, tipo]
   );
 
   return rows[0];
@@ -26,7 +31,7 @@ async function crearSugerencia({ nombre, mensaje }) {
 async function listarSugerencias({ soloNoLeidas = false } = {}) {
   const where = soloNoLeidas ? "WHERE leida = false" : "";
   const { rows } = await pool.query(
-    `SELECT id, nombre, mensaje, leida, created_at
+    `SELECT id, nombre, mensaje, tipo, leida, created_at
      FROM sugerencias
      ${where}
      ORDER BY created_at DESC`
