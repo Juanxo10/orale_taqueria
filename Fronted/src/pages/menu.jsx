@@ -52,7 +52,9 @@ const CSS = `
 .mn-item.sel{border-color:var(--yel);}
 .mn-item.off{opacity:.5;}
 .mn-img{aspect-ratio:4/3;margin:-1rem -1rem .1rem;border-radius:12px 12px 0 0;overflow:hidden;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:.75rem;}
-.mn-img img{width:100%;height:100%;object-fit:cover;}.mn-name{font-weight:700;font-size:1rem;line-height:1.25;}
+.mn-img img{width:100%;height:100%;object-fit:cover;object-position:center;}
+.mn-img.tall{aspect-ratio:3/4;}
+.mn-name{font-weight:700;font-size:1rem;line-height:1.25;}
 .mn-desc{color:var(--mut);font-size:.8rem;line-height:1.5;flex:1;}
 .mn-foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:auto;padding-top:.3rem;}
 .mn-price{color:var(--yel);font-weight:800;font-size:1.05rem;}
@@ -307,7 +309,8 @@ export default function Menu() {
                       return (
                         <article key={name} className={`mn-item${qty ? " sel" : ""}${off ? " off" : ""}`}>
                           <div className="mn-img">
-                            {FOTOS[name] ? <img src={FOTOS[name]} alt={name} loading="lazy" /> : <span>Foto próximamente</span>}
+                            {FOTOS[name] ? <img src={FOTOS[name]} alt={name} loading="lazy"
+                              onLoad={(e) => e.currentTarget.parentElement.classList.toggle("tall", e.currentTarget.naturalHeight > e.currentTarget.naturalWidth)} /> : <span>Foto próximamente</span>}
                           </div>
                           <div className="mn-name">{name}</div>
                           {desc && <p className="mn-desc">{desc}</p>}

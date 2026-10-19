@@ -12,7 +12,7 @@ INSERT INTO productos (nombre, tipo, precio) VALUES
   ('Tacos de Birria', 'extra', 26000),
   ('Tacos Rancheros', 'extra', 24000),
   ('Tacos al Pastor', 'extra', 24000),
-  ('Tacos de Cochinita Pibil', 'exa', 25000),
+  ('Tacos de Cochinita Pibil', 'extra', 25000),
   ('La Hijuebirria', 'extra', 36000),
   ('Taquiza Órale', 'extra', 35000),
   -- Bebidas de la casa
@@ -51,4 +51,4 @@ INSERT INTO productos (nombre, tipo, precio) VALUES
   ('La Mestiza', 'extra', 32000),
   ('La Mera Burger', 'extra', 32000),
   ('Burrito El Patrón', 'extra', 29000),
-  ('Burrito Ranchero', 'extra', 29000);
+  ('Burrito Ranchero', 'extra', 25000);
