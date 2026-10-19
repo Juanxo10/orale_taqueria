@@ -49,4 +49,16 @@ async function marcarLeida(id) {
   return rows[0];
 }
 
-module.exports = { crearSugerencia, listarSugerencias, marcarLeida };
+// ── Eliminar (admin): solo mensajes ya leídos ─────────────
+async function eliminarSugerencia(id) {
+  const { rows } = await pool.query(
+    `DELETE FROM sugerencias WHERE id = $1 AND leida = true RETURNING id`,
+    [id]
+  );
+  if (rows.length) return rows[0];
+  const { rowCount } = await pool.query(`SELECT 1 FROM sugerencias WHERE id = $1`, [id]);
+  if (rowCount === 0) throw { status: 404, message: "Sugerencia no encontrada" };
+  throw { status: 409, message: "Solo se pueden eliminar mensajes ya leídos" };
+}
+
+module.exports = { crearSugerencia, listarSugerencias, marcarLeida, eliminarSugerencia };

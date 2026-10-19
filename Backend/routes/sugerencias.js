@@ -1,6 +1,6 @@
 const { Router } = require("express");
-const { crearSugerencia, listarSugerencias, marcarLeida } = require("../services/sugerenciaService");
-const { authenticate } = require("../middlewares/authMiddleware");
+const { crearSugerencia, listarSugerencias, marcarLeida, eliminarSugerencia } = require("../services/sugerenciaService");
+const { authenticate, requireAdmin } = require("../middlewares/authMiddleware");
 
 const router = Router();
 
@@ -37,6 +37,19 @@ router.patch("/:id/leida", authenticate, async (req, res) => {
   } catch (err) {
     const status = err.status || 500;
     res.status(status).json({ error: err.message || "Error al actualizar sugerencia" });
+  }
+});
+
+// DELETE /api/sugerencias/:id — eliminar un mensaje ya leído (solo admin)
+router.delete("/:id", authenticate, requireAdmin, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) return res.status(400).json({ error: "ID inválido" });
+    await eliminarSugerencia(id);
+    res.json({ ok: true, id });
+  } catch (err) {
+    const status = err.status || 500;
+    res.status(status).json({ error: err.message || "Error al eliminar sugerencia" });
   }
 });
 

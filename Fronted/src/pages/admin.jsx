@@ -391,6 +391,8 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .sug-badge-nueva{display:inline-block;background:var(--g100);color:var(--g700);border:1px solid var(--g200);border-radius:999px;font-size:.6rem;font-weight:700;padding:.12rem .55rem;letter-spacing:.05em;}
 .sug-badge-leida{display:inline-block;background:#f3f4f6;color:var(--muted);border:1px solid #e5e7eb;border-radius:999px;font-size:.6rem;font-weight:700;padding:.12rem .55rem;letter-spacing:.05em;}
 .btn-mark-read{border:1.5px solid var(--border);background:#fff;border-radius:8px;padding:.28rem .65rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;color:var(--g800);transition:all .15s;white-space:nowrap;}
+.btn-delete-sug{border:1.5px solid #fca5a5;background:#fff;border-radius:8px;padding:.28rem .65rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.72rem;font-weight:600;cursor:pointer;color:#b91c1c;transition:all .15s;white-space:nowrap;}
+.btn-delete-sug:hover{background:#fee2e2;border-color:#dc2626;}
 .btn-mark-read:hover{border-color:var(--g600);background:var(--g100);}
 .sug-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.2rem;flex-wrap:wrap;gap:.75rem;}
 .sug-filter-btn{border:1.5px solid var(--border);background:#fff;border-radius:999px;padding:.3rem .85rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.78rem;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;}
@@ -781,6 +783,13 @@ export default function Admin() {
   useEffect(() => { if (view === "sugerencias") fetchSugerencias(sugSoloNuevas); }, [view]);
 
   useEffect(() => { if (view === "inventario") fetchProductos(); }, [view]);
+
+  const eliminarSugerencia = async (id) => {
+    if (!window.confirm("¿Eliminar este mensaje definitivamente? No se puede deshacer.")) return;
+    const res = await fetch(`${API_URL}/api/sugerencias/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || "No se pudo eliminar"); return; }
+    setSugerencias((prev) => prev.filter((s) => s.id !== id));
+  };
 
   const marcarLeida = async (id) => {
     await fetch(`${API_URL}/api/sugerencias/${id}/leida`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
@@ -1677,6 +1686,11 @@ export default function Admin() {
                         {!s.leida && (
                           <button className="btn-mark-read" onClick={() => marcarLeida(s.id)}>
                             Marcar leída
+                          </button>
+                        )}
+                        {s.leida && isAdmin && (
+                          <button className="btn-delete-sug" onClick={() => eliminarSugerencia(s.id)}>
+                            Eliminar
                           </button>
                         )}
                       </td>
