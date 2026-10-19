@@ -510,6 +510,9 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .btag.inc{background:#ffe3a1;color:#7a4d00;}
 .btag.carbo{background:#fff3d6;border-color:#fbba24;color:#7a4d00;}
 .bar-fill.green{background:var(--brand);}
+.bar-fill.blue{background:#8c4a2f;}
+.bar-fill.purple{background:#5a2a1c;}
+.bar-fill.red{background:#c81812;}
 .hora-bar{background:#f7c75a;}
 .hora-bar:hover{background:var(--brand);}
 .day-bar,.ingreso-bar{background:var(--brand);}
@@ -534,6 +537,23 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .btn-logout{border-color:rgba(255,255,255,.65);color:#fff;}
 .btn-logout:hover{background:#fff;color:var(--brand);border-color:#fff;}
 .stats-bar{padding-top:calc(.8rem + 12px);}
+
+/* ─── ÓRALE: pedidos y acciones ─── */
+.order-card{border-radius:18px;transition:transform .2s,box-shadow .2s,border-color .2s;}
+.order-card:hover{transform:translateY(-3px);box-shadow:0 14px 28px -12px rgba(254,43,36,.35);border-color:#f3b8a8;}
+.oc-num{font-family:'Bowlby One',Impact,sans-serif;font-weight:400;letter-spacing:0;font-size:.85rem;}
+.ftab:hover{border-color:var(--brand);}
+.ftab.active{background:var(--brand);border-color:var(--brand);color:#fff;}
+.action-btn{box-shadow:0 3px 0 rgba(0,0,0,.18);}
+.action-btn:active{transform:translateY(3px);box-shadow:none;}
+.btn-advance{background:var(--brand);box-shadow:0 3px 0 var(--brand-deep);}
+.btn-advance:hover{background:#e0241d;}
+.price-total{font-family:'Bowlby One',Impact,sans-serif;font-weight:400;color:var(--brand);font-size:.95rem;}
+.sug-filter-btn.active{background:var(--brand);border-color:var(--brand);}
+.btn-new-user,.btn-modal-save{background:var(--brand);box-shadow:0 3px 0 var(--brand-deep);}
+.btn-new-user:hover,.btn-modal-save:hover{background:#e0241d;}
+.modal-card{border-radius:24px;border:3px solid var(--gold);}
+.modal-card h3{font-family:'Bowlby One',Impact,sans-serif;font-weight:400;}
 .mobile-live{color:#ffe3a1;}
 .mobile-live span{background:#fbba24;}
 @media(max-width:768px){.brand-logo{width:34px;height:34px;border-radius:8px;}.stats-bar{padding-top:calc(.55rem + 12px);}.stat-num{font-size:.8rem;}}
@@ -1108,7 +1128,7 @@ export default function Admin() {
           )}
           <button
             className="btn-historial"
-            style={soundReady ? {background:"#4ade80",color:"#14532d",borderColor:"#4ade80"} : {borderColor:"#f59e0b",color:"#fbbf24"}}
+            style={soundReady ? {background:"#4ade80",color:"#14532d",borderColor:"#4ade80"} : {borderColor:"rgba(255,255,255,.65)",color:"#fff"}}
             onClick={activarSonido}
             title={soundReady ? "Sonido activo" : "Haz clic para activar el sonido de alertas"}
           >
