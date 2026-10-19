@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { Fragment, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
-import { MENU } from "../data/menuData";
+import { MENU, groupExtras } from "../data/menuData";
 
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 
@@ -851,9 +851,9 @@ export default function Admin() {
       if (b.vaso > 0) allIngredients.push(`Vaso`);
       return `<div class="bowl"><div class="bowl-num">&#9632; BOWL ${i + 1}</div><div class="ingredients">${allIngredients.join(" &nbsp;|&nbsp; ")}</div></div>`;
     }).join("");
-    const extras = Object.keys(o.extraItems || {}).length
-      ? `<div class="divider"></div><div class="section-lbl">PRODUCTOS ADICIONALES</div><div class="extra-list">${Object.entries(o.extraItems).map(([n,q]) => `<div class="extra-row"><span>${n}</span><span>x${q}</span></div>`).join("")}</div>`
-      : "";
+    const extras = groupExtras(o.extraItems).map(({ cat, items }) =>
+      `<div class="divider"></div><div class="section-lbl">${cat.toUpperCase()}</div><div class="extra-list">${items.map(([n,q]) => `<div class="extra-row"><span>${n}</span><span>x${q}</span></div>`).join("")}</div>`
+    ).join("");
     const entrega = o.tipo_entrega === "recogida"
       ? `<div class="addr-type">&#9632; RECOGE EN TIENDA</div>`
       : `<div class="addr-type">&#9632; DOMICILIO</div><div class="addr-text">${o.addr}, ${o.barrio}${o.ref ? `<br>${o.ref}` : ""}</div>`;
@@ -1136,18 +1136,18 @@ export default function Admin() {
                         </div>
                       ))}
                     </div>
-                    {Object.keys(o.extraItems || {}).length > 0 && (
-                      <>
-                        <span className="oc-section-lbl">Productos cafetería</span>
+                    {groupExtras(o.extraItems).map(({ cat, items }) => (
+                      <Fragment key={cat}>
+                        <span className="oc-section-lbl">{cat}</span>
                         <div className="bowl-item" style={{ marginBottom: ".85rem" }}>
                           <div className="bowl-tags">
-                            {Object.entries(o.extraItems).map(([name, qty]) => (
+                            {items.map(([name, qty]) => (
                               <span key={name} className="btag caf">{name} ×{qty}</span>
                             ))}
                           </div>
                         </div>
-                      </>
-                    )}
+                      </Fragment>
+                    ))}
                     <span className="oc-section-lbl">Entrega</span>
                     <div className="addr-row">
                       <span className="addr-icon"></span>
@@ -1270,18 +1270,18 @@ export default function Admin() {
                             </div>
                           ))}
                         </div>
-                        {Object.keys(o.extraItems || {}).length > 0 && (
-                          <>
-                            <span className="oc-section-lbl">Productos cafetería</span>
+                        {groupExtras(o.extraItems).map(({ cat, items }) => (
+                          <Fragment key={cat}>
+                            <span className="oc-section-lbl">{cat}</span>
                             <div className="bowl-item" style={{ marginBottom: ".85rem" }}>
                               <div className="bowl-tags">
-                                {Object.entries(o.extraItems).map(([name, qty]) => (
+                                {items.map(([name, qty]) => (
                                   <span key={name} className="btag caf">{name} ×{qty}</span>
                                 ))}
                               </div>
                             </div>
-                          </>
-                        )}
+                          </Fragment>
+                        ))}
                         <span className="oc-section-lbl">Entrega</span>
                         <div className="addr-row">
                           <span className="addr-icon"></span>

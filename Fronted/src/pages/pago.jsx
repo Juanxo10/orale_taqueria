@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import logo from "../assets/image.png";
+import logo from "../assets/Logo_tacos.jpg";
 import { API_URL } from "../config";
 import {
   ALL_EXTRAS, DOM,

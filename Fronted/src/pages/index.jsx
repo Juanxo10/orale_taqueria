@@ -22,7 +22,7 @@ const ANTOJOS = [
   { title: "Tacos Cochinita Pibil", tag: "Tacos", text: "Cochinita al pibil con cebolla morada, salsas de la casa y limón.", img: img6, alt: "Tacos de cochinita pibil sobre tabla de madera" },
   { title: "Nachos Órale", tag: "Para picar", text: "Totopos crujientes con queso, pico de gallo y guacamole.", img: img5, alt: "Nachos con queso derretido y pico de gallo" },
   { title: "Charola de Tacos", tag: "Para compartir", text: "Varios tacos en una charola, con salsas y limón al lado.", img: heroImg, alt: "Charola de tacos con salsas" },
-  { title: "Directo del comal", tag: "En vivo", text: "Mira cómo los armamos: todo se hace al momento.", img: img7, video: video2, alt: "Preparación de tacos" },
+  { title: "Directo del comal", tag: "Del comal", text: "Mira cómo los armamos: todo se hace al momento.", img: img7, video: video2, alt: "Preparación de tacos" },
 ];
 
 const PASOS = [
@@ -304,9 +304,6 @@ export default function Index() {
             </figure>
             <figure className="group relative row-span-2 rounded-[2rem] overflow-hidden card-hot border-2 border-transparent">
               <LazyVideo src={video4} poster={img7} className="w-full h-full object-cover" />
-              <span className="absolute top-3 left-3 flex items-center gap-2 bg-black/60 backdrop-blur rounded-full px-3 py-1 text-xs font-label-md text-white">
-                <span className="w-2 h-2 rounded-full bg-primary-container pulse-live" /> En vivo
-              </span>
             </figure>
             <figure className="group relative rounded-[2rem] overflow-hidden card-hot border-2 border-transparent">
               <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src={img7} alt="Limón exprimido sobre tacos" loading="lazy" />
