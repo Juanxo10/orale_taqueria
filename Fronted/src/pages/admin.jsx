@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 import { MENU } from "../data/menuData";
+import logo from "../assets/Logo_tacos.jpg";
 
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 
@@ -516,6 +517,27 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .new-order-toast{border-left-color:var(--gold);background:var(--g900);}
 :focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
+/* ─── ÓRALE: barra superior roja con guirnalda de papel picado ─── */
+.topnav{background:var(--brand);box-shadow:0 4px 20px rgba(254,43,36,.35);}
+.topnav::after{content:"";position:absolute;left:0;right:0;top:100%;height:14px;pointer-events:none;
+  background:conic-gradient(from 150deg at 12px 0,#fbba24 60deg,transparent 0),conic-gradient(from 150deg at 36px 0,#fff5e6 60deg,transparent 0),conic-gradient(from 150deg at 60px 0,#fe2b24 60deg,transparent 0);
+  background-size:72px 14px;background-repeat:repeat-x;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25));}
+.brand-logo{width:44px;height:44px;border-radius:10px;object-fit:cover;flex-shrink:0;}
+.brand-name{font-family:'Bowlby One',Impact,sans-serif;font-weight:400;letter-spacing:0;}
+.brand-sub{color:#ffe3a1;}
+.admin-badge{background:var(--gold);color:var(--g900);}
+.live-dot{color:#fff;}
+.live-dot span{background:#fbba24;}
+.btn-historial{border-color:rgba(255,255,255,.65);color:#fff;}
+.btn-historial:hover{background:#fff;color:var(--brand);}
+.btn-historial.active{background:var(--gold);color:var(--g900);border-color:var(--gold);}
+.btn-logout{border-color:rgba(255,255,255,.65);color:#fff;}
+.btn-logout:hover{background:#fff;color:var(--brand);border-color:#fff;}
+.stats-bar{padding-top:calc(.8rem + 12px);}
+.mobile-live{color:#ffe3a1;}
+.mobile-live span{background:#fbba24;}
+@media(max-width:768px){.brand-logo{width:34px;height:34px;border-radius:8px;}.stats-bar{padding-top:calc(.55rem + 12px);}.stat-num{font-size:.8rem;}}
+@media(max-width:380px){.stat-num{font-size:.7rem;}}
 @media(max-width:768px){
   .inv-page{padding:.75rem .5rem 2rem;}
   .inv-page h2{font-size:1.1rem;margin-bottom:1rem;}
@@ -929,7 +951,7 @@ export default function Admin() {
       @media print{body{width:auto;}@page{margin:3mm;size:72mm auto;}}
     </style></head><body>
       <div class="header">
-        <div class="brand">Pepas Coffee</div>
+        <div class="brand">Órale Tacos</div>
         <div class="sub">Ticket de cocina</div>
         <div class="meta">${date} &nbsp;&#9679;&nbsp; ${now}</div>
         <div class="pedido-num">Pedido #${o.id}</div>
@@ -957,8 +979,8 @@ export default function Admin() {
       )
       .join("\n");
     const msg = tipo === "entregado"
-      ? `Hola ${o.nombre}, tu pedido Pepas Coffee fue entregado. ¡Gracias por tu compra! 🌿\n\n${lines}\n\nTotal: ${fmt(o.total)}`
-      : `Hola ${o.nombre}, tu pedido Pepas Coffee esta en camino.\n\n${lines}\n\nTotal: ${fmt(o.total)}\n\nLlega en aprox. 15 min.`;
+      ? `Hola ${o.nombre}, tu pedido Órale Tacos fue entregado. ¡Gracias por tu compra! 🌮\n\n${lines}\n\nTotal: ${fmt(o.total)}`
+      : `Hola ${o.nombre}, tu pedido Órale Tacos esta en camino.\n\n${lines}\n\nTotal: ${fmt(o.total)}\n\nLlega en aprox. 15 min.`;
     const num = o.tel.replace(/\D/g, "");
     window.open(`https://wa.me/57${num}?text=${encodeURIComponent(msg)}`, "_blank");
   };
@@ -1041,7 +1063,10 @@ export default function Admin() {
       {/* Drawer menú móvil */}
       <div className={`mobile-menu${mobileMenuOpen ? " open" : ""}`}>
         <div className="mobile-menu-header">
-          <div className="brand-name">pepas coffee</div>
+          <div className="brand-wrap">
+            <img src={logo} alt="" className="brand-logo" />
+            <div className="brand-name">Órale Tacos</div>
+          </div>
           <button className="btn-close-menu" onClick={() => setMobileMenuOpen(false)}>✕</button>
         </div>
         <div className="mobile-live"><span></span> En vivo</div>
@@ -1061,8 +1086,9 @@ export default function Admin() {
 
       <div className="topnav">
         <div className="brand-wrap">
+          <img src={logo} alt="" className="brand-logo" />
           <div>
-            <div className="brand-name">pepas coffee</div>
+            <div className="brand-name">Órale Tacos</div>
             <div className="brand-sub">Panel de administración</div>
           </div>
           <span className="admin-badge">{isAdmin ? "Admin" : "Empleado"}</span>
