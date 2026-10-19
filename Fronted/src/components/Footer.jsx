@@ -4,7 +4,7 @@ import logo from "../assets/Logo_tacos.jpg";
 const LINKS = [
   { label: "Menú", to: "/menu" },
   { label: "Ubicación", to: "/ubicacion" },
-  { label: "Sugerencias", to: "/sugerencias" },
+  { label: "Sugerencias y reclamos", to: "/sugerencias" },
 ];
 
 const SOCIAL =

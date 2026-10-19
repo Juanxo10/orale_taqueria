@@ -5,8 +5,30 @@ import Footer from "../components/Footer";
 import PageHeader, { SideTaco } from "../components/PageHeader";
 import { API_URL } from "../config";
 
-const TICKER = ["Tu opinión cuenta", "Cuéntanos todo", "Mejoramos contigo", "Cada taco importa", "Órale, escríbenos"];
+const TICKER = ["Te escuchamos", "Sugerencias", "Quejas", "Reclamos", "Órale, escríbenos"];
 const MAX = 1000;
+
+// Cada tipo es una "boleta" del talonario: color, textos y tono propios.
+const TIPOS = {
+  sugerencia: {
+    label: "Sugerencia", icon: "lightbulb", bg: "#fbba24", fg: "#2a1204", shadow: "#7a4d00",
+    hint: "Una idea para que cada taco quede mejor.",
+    placeholder: "Me encantaría que tuvieran…",
+    gracias: "¡Gracias por tu sugerencia!", cuerpo: "Ya la recibimos y la vamos a tener en cuenta para seguir mejorando.",
+  },
+  queja: {
+    label: "Queja", icon: "sentiment_dissatisfied", bg: "#fff5e6", fg: "#2a1204", shadow: "#a8927a",
+    hint: "Algo no te gustó: cuéntanos con calma.",
+    placeholder: "Lo que no me gustó fue…",
+    gracias: "Sentimos lo ocurrido", cuerpo: "Recibimos tu queja y la vamos a revisar para que no se repita.",
+  },
+  reclamo: {
+    label: "Reclamo", icon: "report", bg: "#fe2b24", fg: "#ffffff", shadow: "#8f0f0b",
+    hint: "Algo salió mal con tu pedido: dinos qué pasó y cuándo.",
+    placeholder: "Mi pedido llegó… (indica el día y qué ocurrió)",
+    gracias: "Recibimos tu reclamo", cuerpo: "Lo vamos a revisar con atención y lo resolveremos lo antes posible.",
+  },
+};
 
 const field =
   "w-full bg-surface-container-lowest border-2 px-4 py-3 rounded-2xl outline-none transition-all font-body-md text-on-surface placeholder:text-outline focus:border-primary focus:ring-4 focus:ring-primary/25";
@@ -15,6 +37,7 @@ export default function Sugerencias() {
   const [form, setForm] = useState({ nombre: "", mensaje: "" });
   const [state, setState] = useState("idle"); // idle | loading | ok | error
   const [error, setError] = useState("");
+  const [tipo, setTipo] = useState("sugerencia");
 
   const enviar = async (e) => {
     e.preventDefault();
@@ -30,7 +53,7 @@ export default function Sugerencias() {
       res = await fetch(`${API_URL}/api/sugerencias`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, tipo }),
       });
     } catch {
       setState("error");
@@ -48,6 +71,7 @@ export default function Sugerencias() {
   };
 
   const hayError = state === "error";
+  const t = TIPOS[tipo];
   const cerca = form.mensaje.length >= MAX * 0.9;
 
   return (
@@ -56,12 +80,12 @@ export default function Sugerencias() {
         <Navbar active="sugerencias" />
 
         <PageHeader
-          icon="chat_bubble"
-          chip="Tu opinión importa"
+          icon="forum"
+          chip="Tu voz importa"
           ticker={TICKER}
-          text="Tu sugerencia nos ayuda a mejorar cada taco y cada entrega. Cuéntanos qué te gustó, qué cambiarías o qué quieres ver en el menú."
+          text="Elige si es una sugerencia, una queja o un reclamo y cuéntanos. Cada mensaje lo lee el equipo."
         >
-          Cuéntanos tu <span className="keyword inline-block -rotate-2 hover:rotate-0 transition-transform">opinión</span>
+          Sugerencias, quejas o <span className="keyword inline-block -rotate-2 hover:rotate-0 transition-transform">reclamos</span>
         </PageHeader>
 
         <main className="flex-1 tex-warm overflow-hidden py-16 md:py-section-gap px-gutter">
@@ -89,17 +113,15 @@ export default function Sugerencias() {
                       <motion.path d="M5 12.5l4.5 4.5L19 7.5" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, delay: 0.4 }} />
                     </svg>
                   </motion.div>
-                  <h2 className="font-display-lg text-3xl md:text-4xl leading-tight mb-3">¡Gracias!</h2>
-                  <p className="font-body-lg text-base md:text-lg mb-8 max-w-sm mx-auto">
-                    Ya recibimos tu sugerencia y la vamos a tener en cuenta para seguir mejorando.
-                  </p>
+                  <h2 className="font-display-lg text-3xl md:text-4xl leading-tight mb-3">{t.gracias}</h2>
+                  <p className="font-body-lg text-base md:text-lg mb-8 max-w-sm mx-auto">{t.cuerpo}</p>
                   <motion.button
                     whileHover={{ y: 3 }}
                     whileTap={{ y: 6 }}
                     className="bg-primary-container text-white px-8 py-4 min-h-[52px] rounded-full font-label-md text-base shadow-[0_6px_0_#8f0f0b]"
                     onClick={() => setState("idle")}
                   >
-                    Enviar otra sugerencia
+                    Enviar otro mensaje
                   </motion.button>
                 </motion.div>
               ) : (
@@ -112,6 +134,46 @@ export default function Sugerencias() {
                   transition={{ duration: 0.5, ease: [0.2, 0.7, 0.2, 1] }}
                   className="bg-surface-container rounded-[2rem] p-6 sm:p-8 md:p-10 space-y-6 border-2 border-outline-variant shadow-[0_30px_60px_-30px_rgba(254,43,36,0.5)]"
                 >
+                  <fieldset className="space-y-3">
+                    <legend className="font-label-md text-label-md text-primary mb-3">¿Qué quieres contarnos? *</legend>
+                    <div role="radiogroup" aria-label="Tipo de mensaje" className="grid grid-cols-3 gap-2 sm:gap-3">
+                      {Object.entries(TIPOS).map(([k, v]) => {
+                        const on = tipo === k;
+                        return (
+                          <motion.button
+                            key={k}
+                            type="button"
+                            role="radio"
+                            aria-checked={on}
+                            onClick={() => setTipo(k)}
+                            animate={{ rotate: on ? -2 : 0, y: on ? -4 : 0 }}
+                            whileHover={{ y: -6 }}
+                            whileTap={{ scale: 0.95 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 18 }}
+                            className={`flex flex-col items-center justify-center gap-1.5 min-h-[88px] px-1 py-3 rounded-2xl border-2 font-label-md text-sm ${
+                              on ? "border-transparent" : "border-dashed border-outline text-on-surface-variant hover:text-on-surface"
+                            }`}
+                            style={on ? { background: v.bg, color: v.fg, boxShadow: `0 5px 0 ${v.shadow}` } : undefined}
+                          >
+                            <span className="material-symbols-outlined text-3xl" style={{ fontVariationSettings: `'FILL' ${on ? 1 : 0}` }}>{v.icon}</span>
+                            {v.label}
+                          </motion.button>
+                        );
+                      })}
+                    </div>
+                    <AnimatePresence mode="wait">
+                      <motion.p
+                        key={tipo}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="font-body-md text-sm text-on-surface-variant"
+                      >
+                        {t.hint}
+                      </motion.p>
+                    </AnimatePresence>
+                  </fieldset>
                   <div className="space-y-2">
                     <label htmlFor="sug-nombre" className="font-label-md text-label-md text-primary">
                       Tu nombre (opcional)
@@ -128,7 +190,7 @@ export default function Sugerencias() {
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="sug-mensaje" className="font-label-md text-label-md text-primary">
-                      Tu sugerencia *
+                      Tu {t.label.toLowerCase()} *
                     </label>
                     <div className="relative">
                       <textarea
@@ -139,7 +201,7 @@ export default function Sugerencias() {
                         rows={6}
                         aria-invalid={hayError}
                         aria-describedby={hayError ? "sug-error" : undefined}
-                        placeholder="Escribe aquí tu idea, comentario o sugerencia..."
+                        placeholder={t.placeholder}
                         className={`${field} pb-9 resize-y ${hayError ? "border-error" : "border-outline-variant"}`}
                         value={form.mensaje}
                         onChange={(e) => setForm((f) => ({ ...f, mensaje: e.target.value }))}
@@ -184,7 +246,7 @@ export default function Sugerencias() {
                     ) : (
                       <>
                         <span className="material-symbols-outlined text-xl">send</span>
-                        Enviar Sugerencia
+                        Enviar {t.label.toLowerCase()}
                       </>
                     )}
                   </motion.button>
