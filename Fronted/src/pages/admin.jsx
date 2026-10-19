@@ -19,12 +19,16 @@ const statusLabel = (s, estadoPago) => {
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-:root{--g900:#1a2e1b;--g800:#2D4A2F;--g700:#3a5e3c;--g600:#4A7C59;--g400:#7ab87a;--g200:#d4ead4;--g100:#edf7ed;--gold:#c8a84b;--cream:#f5f3ef;--border:#e2ddd6;--text:#1a2e1b;--muted:#6b7a6b;
-  --status-nuevo:#2D4A2F;--status-nuevo-bg:#edf7ed;
+:root{
+  /* Paleta Órale: --g* conserva los nombres históricos pero ahora son carbón-café (900-700), rojo (600), amarillo (400/200) y crema (100) */
+  --g900:#2a1204;--g800:#3a1a10;--g700:#5a2a1c;--g600:#e0241d;--g400:#fbba24;--g200:#ffe3a1;--g100:#fdf0dc;
+  --gold:#fbba24;--cream:#fbf1e3;--border:#ecdcc6;--text:#2a1204;--muted:#7a6558;
+  --brand:#fe2b24;--brand-deep:#8f0f0b;--bg:#fff;--accent:#e0241d;
+  --status-nuevo:#c81812;--status-nuevo-bg:#ffe1de;
   --status-prep:#92400e;--status-prep-bg:#fef3c7;
   --status-camino:#1e40af;--status-camino-bg:#dbeafe;
-  --status-entregado:#374151;--status-entregado-bg:#f3f4f6;
-  --status-cancelado:#991b1b;--status-cancelado-bg:#fee2e2;
+  --status-entregado:#166534;--status-entregado-bg:#dcfce7;
+  --status-cancelado:#57534e;--status-cancelado-bg:#e7e0d8;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
@@ -494,6 +498,24 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .inv-toggle.agotado{background:#fee2e2;color:#991b1b;}
 .inv-toggle.agotado:hover{background:#fca5a5;}
 .inv-toggle:disabled{opacity:.5;cursor:not-allowed;}
+
+/* ─── ÓRALE: tipografía y semántica sobre los tokens ─── */
+.stats-page h2,.sug-page h2,.users-page h2,.inv-page h2{font-family:'Bowlby One',Impact,sans-serif;font-weight:400;letter-spacing:0;}
+.kpi-val,.stat-num{font-family:'Bowlby One',Impact,sans-serif;font-weight:400;color:var(--brand);}
+.inv-toggle.disponible{background:#dcfce7;color:#166534;}
+.inv-toggle.disponible:hover{background:#bbf7d0;}
+.btn-toggle.activate{background:#dcfce7;color:#166534;}
+.btn-toggle.activate:hover{background:#bbf7d0;}
+.btag.inc{background:#ffe3a1;color:#7a4d00;}
+.btag.carbo{background:#fff3d6;border-color:#fbba24;color:#7a4d00;}
+.bar-fill.green{background:var(--brand);}
+.hora-bar{background:#f7c75a;}
+.hora-bar:hover{background:var(--brand);}
+.day-bar,.ingreso-bar{background:var(--brand);}
+.sug-badge-nueva{background:#ffe1de;color:#c81812;border-color:#fca5a5;}
+.new-order-toast{border-left-color:var(--gold);background:var(--g900);}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px;}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms !important;transition-duration:.01ms !important;}}
 @media(max-width:768px){
   .inv-page{padding:.75rem .5rem 2rem;}
   .inv-page h2{font-size:1.1rem;margin-bottom:1rem;}
