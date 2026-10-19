@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import logo from "../assets/Logo_tacos.jpg";
 import heroImg from "../assets/taco4.jpg";
 import img5 from "../assets/taco5.jpg";
@@ -367,77 +368,7 @@ export default function Index() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="tex-warm border-t border-outline-variant">
-        <div className="max-w-container-max mx-auto px-gutter py-14 md:py-section-gap grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
-          <div>
-            <div className="flex items-center mb-5 md:mb-6">
-              <img alt="Órale Tacos" className="h-16 w-auto object-contain rounded-xl" src={logo} />
-            </div>
-            <p className="font-body-md text-body-md text-on-surface-variant mb-6">
-              Tacos hechos al momento, con salsa de la casa y mucho sabor.
-            </p>
-          </div>
-          <div>
-            <h4 className="font-label-md text-label-md text-primary mb-4 md:mb-6 uppercase tracking-widest">
-              Navegación
-            </h4>
-            <ul className="space-y-3 md:space-y-4">
-              <li>
-                <a
-                  className="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                  href="/menu"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate("/menu");
-                  }}
-                >
-                  Menú
-                </a>
-              </li>
-              <li>
-                <a
-                  className="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                  href="/ubicacion"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate("/ubicacion");
-                  }}
-                >
-                  Ubicación
-                </a>
-              </li>
-              <li>
-                <a
-                  className="font-body-md text-body-md text-on-surface-variant hover:text-primary transition-colors"
-                  href="/sugerencias"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    navigate("/sugerencias");
-                  }}
-                >
-                  Sugerencias
-                </a>
-              </li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-outline-variant py-6 md:py-8">
-          <div className="max-w-container-max mx-auto px-gutter flex flex-col md:flex-row justify-between items-center gap-3 md:gap-4 text-center md:text-left">
-            <span className="font-label-md text-label-md text-on-surface-variant">
-              © {new Date().getFullYear()} Órale Tacos. Todos los derechos reservados.
-            </span>
-            <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
-              <a className="font-label-md text-label-md text-on-surface-variant hover:text-primary" href="#">
-                Política de Privacidad
-              </a>
-              <a className="font-label-md text-label-md text-on-surface-variant hover:text-primary" href="#">
-                Términos de Servicio
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
