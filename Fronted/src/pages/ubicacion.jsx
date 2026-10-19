@@ -34,7 +34,7 @@ export default function Ubicacion() {
         </PageHeader>
 
         <main className="flex-1 tex-warm overflow-hidden py-16 md:py-section-gap px-gutter">
-          <SideTaco className="-left-24 bottom-6" rot={-16} delay={0.6} />
+          <SideTaco className="-left-32 bottom-6" rot={-16} delay={0.6} />
           <div className="relative z-10 max-w-container-max mx-auto grid md:grid-cols-2 items-center gap-12 md:gap-16">
             <div className="space-y-8">
               <div className="space-y-5">
