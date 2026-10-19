@@ -1,33 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AnimatePresence, motion, MotionConfig } from "motion/react";
 import { API_URL } from "../config";
+import logo from "../assets/Logo_tacos.jpg";
+import { SideTaco } from "../components/PageHeader";
 
-const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Plus Jakarta Sans',sans-serif;}
-.login-page{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1c1210 0%,#fe2b24 50%,#c81812 100%);padding:1.5rem;}
-.login-card{background:#fff;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
-.login-logo{text-align:center;margin-bottom:2rem;}
-.login-logo h1{font-size:2rem;font-weight:800;color:#1c1210;letter-spacing:-1px;}
-.login-logo p{font-size:.72rem;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:#7a6a60;margin-top:.25rem;}
-.login-badge{display:inline-block;background:#fbba24;color:#1c1210;border-radius:999px;font-size:.65rem;font-weight:700;padding:.2rem .7rem;margin-top:.5rem;}
-.form-group{margin-bottom:1.25rem;}
-.form-group label{display:block;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7a6a60;margin-bottom:.4rem;}
-.form-group input{width:100%;border:1.5px solid #ecdcc6;border-radius:10px;padding:.7rem 1rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.88rem;color:#1c1210;outline:none;transition:border-color .15s;background:#f8f0e4;}
-.form-group input:focus{border-color:#e0241d;background:#fff;}
-.login-btn{width:100%;border:none;border-radius:10px;padding:.75rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .15s;background:#fe2b24;color:#fff;margin-top:.5rem;}
-.login-btn:hover{background:#c81812;}
-.login-btn:disabled{opacity:.6;cursor:not-allowed;}
-.login-error{background:#fee2e2;color:#991b1b;border-radius:8px;padding:.55rem .8rem;font-size:.78rem;font-weight:600;margin-bottom:1rem;text-align:center;}
-.login-footer{text-align:center;margin-top:1.5rem;font-size:.72rem;color:#7a6a60;}
-@media(max-width:480px){
-  .login-card{padding:2rem 1.5rem;border-radius:16px;}
-  .login-logo h1{font-size:1.6rem;}
-  .form-group input{padding:.6rem .85rem;font-size:.82rem;}
-  .login-btn{padding:.65rem;font-size:.85rem;}
-}
-`;
+const input =
+  "w-full bg-white border-2 border-[#e6d3b8] rounded-2xl px-4 py-3 font-body-md text-base text-on-primary placeholder:text-[#8c6f64] outline-none transition-all focus:border-primary-container focus:ring-4 focus:ring-primary-container/20";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -60,7 +39,7 @@ export default function Login() {
       localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("adminUser", JSON.stringify(data.user));
       navigate("/admin");
-    } catch (err) {
+    } catch {
       setError("Error de conexión con el servidor");
     } finally {
       setLoading(false);
@@ -68,32 +47,82 @@ export default function Login() {
   };
 
   return (
-    <>
-      <style>{CSS}</style>
-      <div className="login-page">
-        <div className="login-card">
-          <div className="login-logo">
-            <h1>pepas coffee</h1>
-            <p>Panel de administración</p>
-            <span className="login-badge">Acceso staff</span>
+    <MotionConfig reducedMotion="user">
+      <main className="tex-ember min-h-[100svh] overflow-hidden flex items-center justify-center px-gutter py-16 font-body-md text-on-surface">
+        <SideTaco className="-left-20 lg:-left-24 bottom-4" rot={-20} />
+        <SideTaco className="-right-16 top-10" rot={22} flip delay={1.2} />
+
+        <motion.div
+          initial={{ opacity: 0, y: 40, rotate: -2 }}
+          animate={{ opacity: 1, y: 0, rotate: 0 }}
+          transition={{ type: "spring", stiffness: 140, damping: 16 }}
+          className="relative z-10 w-full max-w-md"
+        >
+          <img
+            src={logo}
+            alt="Órale Tacos"
+            className="spin-slow absolute -top-10 left-1/2 -translate-x-1/2 z-10 w-20 h-20 rounded-full object-cover border-4 border-background shadow-xl"
+          />
+
+          <div className="bg-primary-fixed rounded-[2rem] p-3 shadow-[0_30px_60px_-20px_rgba(254,43,36,0.6)] border-4 border-primary">
+            <div className="rounded-[1.4rem] border-2 border-dashed border-[#c9a77d] px-6 pt-14 pb-8 sm:px-8 bg-[#fff5e6]">
+              <div className="text-center mb-7">
+                <h1 className="font-display-lg text-[28px] sm:text-3xl leading-tight text-on-primary">
+                  Panel <span className="text-primary-container inline-block -rotate-2">Órale</span>
+                </h1>
+                <span className="inline-flex items-center gap-1.5 mt-3 bg-primary text-on-primary rounded-full px-3 py-1 font-label-md text-xs">
+                  <span className="material-symbols-outlined text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>badge</span>
+                  Acceso staff
+                </span>
+              </div>
+
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    role="alert"
+                    initial={{ opacity: 0, height: 0, x: -8 }}
+                    animate={{ opacity: 1, height: "auto", x: [-8, 6, -4, 0] }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="flex items-start gap-2 rounded-2xl bg-[#ffdad6] text-[#7a0f0a] px-4 py-3 mb-5 font-body-md text-sm font-semibold"
+                  >
+                    <span className="material-symbols-outlined text-lg shrink-0">error</span>
+                    {error}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <div className="space-y-2">
+                  <label htmlFor="login-email" className="block font-label-md text-label-md text-on-primary-fixed-variant">Email</label>
+                  <input id="login-email" type="email" autoComplete="username" placeholder="tu@email.com" className={input} value={email} onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="login-pass" className="block font-label-md text-label-md text-on-primary-fixed-variant">Contraseña</label>
+                  <input id="login-pass" type="password" autoComplete="current-password" placeholder="Ingresa tu contraseña" className={input} value={password} onChange={(e) => setPassword(e.target.value)} required />
+                </div>
+                <motion.button
+                  type="submit"
+                  disabled={loading}
+                  whileHover={loading ? undefined : { y: 3 }}
+                  whileTap={loading ? undefined : { y: 6 }}
+                  className="w-full inline-flex items-center justify-center gap-3 bg-primary-container text-white px-8 py-4 min-h-[56px] rounded-full font-label-md text-base shadow-[0_6px_0_#8f0f0b] disabled:opacity-70 disabled:cursor-wait"
+                >
+                  {loading ? (
+                    <>
+                      <span className="w-5 h-5 rounded-full border-2 border-white/40 border-t-white animate-spin" aria-hidden="true" />
+                      Verificando…
+                    </>
+                  ) : (
+                    "Iniciar sesión"
+                  )}
+                </motion.button>
+              </form>
+
+              <p className="text-center mt-6 font-label-md text-xs text-on-primary-fixed-variant">Solo personal autorizado</p>
+            </div>
           </div>
-          {error && <div className="login-error">{error}</div>}
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Email</label>
-              <input type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label>Contraseña</label>
-              <input type="password" placeholder="Ingresa tu contraseña" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-            <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? "Verificando..." : "Iniciar sesión"}
-            </button>
-          </form>
-          <div className="login-footer">Solo personal autorizado</div>
-        </div>
-      </div>
-    </>
+        </motion.div>
+      </main>
+    </MotionConfig>
   );
 }
