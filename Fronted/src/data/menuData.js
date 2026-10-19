@@ -62,7 +62,13 @@ export const MENU = [
     { name: "La Mestiza", price: 32000, desc: "¡No mames, qué antojo! Papas a la francesa bien crujientes, cargadas de birria jugosa, chorizo, plátano maduro y mucho queso fundido, rematadas con pico de gallo fresco, guacamole y nuestras salsas de la casa. ¡Un desmadre de sabores al puro estilo Órale!" },
     { name: "La Mera Burger", price: 32000, desc: "¡No manches! Pan artesanal cargado de nuestra jugosa birria, abundante queso, vegetales frescos y el toque especial de nuestra salsa mexicana de la casa. Acompañada de totopos crujientes. ¡Está de poca madre!" },
     { name: "Burrito El Patrón", price: 29000, desc: "¡Esto es un desmadre! Tortilla de harina bien cargada de carne y chorizo criollo, frijol refrito, abundante queso, cebolla salteada, pico de gallo y guacamole. Acompañado de nuestra salsa chipotle. ¡Puro sabor mexicano en cada mordida!" },
+    { name: "Burrito Ranchero", price: 29000 },
   ]},
 ];
 
 export const ALL_EXTRAS = MENU.flatMap((c) => c.items);
+
+// Agrupa { nombre: cantidad } por categoría del menú: [{ cat, items: [[nombre, cantidad]] }]
+export const groupExtras = (extraItems = {}) =>
+  MENU.map((c) => ({ cat: c.cat, items: c.items.filter((i) => extraItems[i.name] > 0).map((i) => [i.name, extraItems[i.name]]) }))
+    .filter((g) => g.items.length);

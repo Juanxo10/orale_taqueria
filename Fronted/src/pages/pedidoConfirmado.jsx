@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
+import { groupExtras } from "../data/menuData";
 
 const CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -184,12 +185,12 @@ export default function PedidoConfirmado() {
                 </article>
               ))}
 
-              {extras.length > 0 && (
-                <article className="line-item">
-                  <strong>Adicionales de cafetería</strong>
-                  <p>{extras.map(([name, quantity]) => `${name} x${quantity}`).join(" · ")}</p>
+              {groupExtras(order?.extraItems).map(({ cat, items }) => (
+                <article key={cat} className="line-item">
+                  <strong>{cat}</strong>
+                  <p>{items.map(([name, quantity]) => `${name} x${quantity}`).join(" · ")}</p>
                 </article>
-              )}
+              ))}
             </div>
           </section>
 

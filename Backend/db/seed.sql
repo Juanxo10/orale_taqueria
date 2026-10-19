@@ -50,4 +50,5 @@ INSERT INTO productos (nombre, tipo, precio) VALUES
   ('Plátano Chingón', 'extra', 24000),
   ('La Mestiza', 'extra', 32000),
   ('La Mera Burger', 'extra', 32000),
-  ('Burrito El Patrón', 'extra', 29000);
+  ('Burrito El Patrón', 'extra', 29000),
+  ('Burrito Ranchero', 'extra', 29000);

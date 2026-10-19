@@ -6,6 +6,11 @@ import { API_URL } from "../config";
 import { MENU, ALL_EXTRAS, DOM } from "../data/menuData";
 
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
+// Fotos de productos: guardar en src/assets/menu/ con el nombre exacto del producto (ej. "Tacos Carnitas.jpg").
+const FOTOS = Object.fromEntries(
+  Object.entries(import.meta.glob("../assets/menu/*.{jpg,jpeg,png,webp}", { eager: true, import: "default" }))
+    .map(([path, url]) => [path.split("/").pop().replace(/\.\w+$/, ""), url])
+);
 const slug = (s) => "cat-" + s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 const CSS = `
@@ -26,7 +31,7 @@ const CSS = `
 .mn-eyebrow{display:block;color:var(--yel);font-size:.78rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin-bottom:.5rem;}
 .mn-chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem;}
 .mn-chips span{border:1.5px solid var(--line);border-radius:999px;padding:.3rem .8rem;font-size:.8rem;font-weight:600;color:var(--mut);}
-.mn-tabs{position:sticky;top:0;z-index:60;background:transparent;border-bottom:1px solid transparent;transition:background .25s,border-color .25s;}
+.mn-tabs{position:sticky;top:calc(var(--nav-h,72px) + 14px);z-index:40;background:transparent;border-bottom:1px solid transparent;transition:background .25s,border-color .25s;}
 .mn-tabs.stuck{background:rgba(20,12,10,.55);backdrop-filter:blur(12px);border-bottom-color:var(--line);}
 .mn-tabs-in{max-width:1200px;margin:0 auto;padding:.7rem 1.25rem;display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;}
 .mn-tabs-in::-webkit-scrollbar{display:none;}
@@ -36,8 +41,8 @@ const CSS = `
 .mn-tab.on{background:var(--yel);border-color:var(--yel);color:#2a1204;}
 .mn-wrap{max-width:1200px;margin:0 auto;padding:1rem 1.25rem 7rem;display:grid;grid-template-columns:minmax(0,1fr);gap:2rem;}
 @media(min-width:960px){.mn-wrap{grid-template-columns:minmax(0,1fr) 340px;padding-bottom:3rem;}}
-.mn-sec{scroll-margin-top:80px;margin-bottom:2.2rem;}
-@media(min-width:960px){.mn-sec{scroll-margin-top:130px;}}
+.mn-sec{scroll-margin-top:calc(var(--nav-h,72px) + 90px);margin-bottom:2.2rem;}
+@media(min-width:960px){.mn-sec{scroll-margin-top:calc(var(--nav-h,72px) + 140px);}}
 .mn-sec h2{font-size:1.35rem;font-weight:800;display:flex;align-items:center;gap:.6rem;margin-bottom:.35rem;color:var(--txt);}
 .mn-sec h2 svg{color:var(--yel);}
 .mn-note{color:var(--yel);font-size:.82rem;font-weight:600;margin-bottom:.8rem;}
@@ -46,7 +51,8 @@ const CSS = `
 .mn-item{background:rgba(38,23,21,.88);backdrop-filter:blur(6px);border:1.5px solid var(--line);border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:.5rem;transition:border-color .15s;}
 .mn-item.sel{border-color:var(--yel);}
 .mn-item.off{opacity:.5;}
-.mn-name{font-weight:700;font-size:1rem;line-height:1.25;}
+.mn-img{aspect-ratio:4/3;margin:-1rem -1rem .1rem;border-radius:12px 12px 0 0;overflow:hidden;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;color:var(--mut);font-size:.75rem;}
+.mn-img img{width:100%;height:100%;object-fit:cover;}.mn-name{font-weight:700;font-size:1rem;line-height:1.25;}
 .mn-desc{color:var(--mut);font-size:.8rem;line-height:1.5;flex:1;}
 .mn-foot{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-top:auto;padding-top:.3rem;}
 .mn-price{color:var(--yel);font-weight:800;font-size:1.05rem;}
@@ -58,7 +64,7 @@ const CSS = `
 .mn-out{font-size:.72rem;font-weight:700;color:var(--mut);border:1px solid var(--line);border-radius:999px;padding:.3rem .7rem;}
 .mn-cart{background:var(--card);border:1.5px solid var(--line);border-radius:18px;display:flex;flex-direction:column;overflow:hidden;}
 .mn-aside{display:none;}
-@media(min-width:960px){.mn-aside{display:block;position:sticky;top:130px;align-self:start;}}
+@media(min-width:960px){.mn-aside{display:block;position:sticky;top:calc(var(--nav-h,72px) + 140px);align-self:start;}}
 .mn-cart h3{font-size:1.05rem;font-weight:800;padding:1rem 1.2rem;border-bottom:1px solid var(--line);}
 .mn-lines{padding:.5rem 1.2rem;max-height:46vh;overflow-y:auto;}
 .mn-empty{color:var(--mut);font-size:.88rem;text-align:center;padding:1.8rem 0;}
@@ -96,6 +102,7 @@ export default function Menu() {
   const clickLock = useRef(false);
   const glowRef = useRef(null);
   const waveRef = useRef(null);
+  const rootRef = useRef(null);
   const tabsRef = useRef(null);
 
   useEffect(() => {
@@ -113,14 +120,19 @@ export default function Menu() {
   // La barra de categorías se pega arriba del todo (el navbar rojo no es sticky: .glass-nav fuerza position:relative).
   useEffect(() => {
     if (tiendaAbierta !== true) return;
+    // El navbar es sticky y su alto cambia por breakpoint: se mide y se expone como --nav-h
+    const nav = document.querySelector(".glass-nav");
+    const setH = () => rootRef.current?.style.setProperty("--nav-h", (nav?.offsetHeight ?? 72) + "px");
+    setH();
+    addEventListener("resize", setH);
     const io = new IntersectionObserver((entries) => {
       if (clickLock.current) return;
       if (window.scrollY < 120) { setActiveCat(null); return; }
       const vis = entries.filter((e) => e.isIntersecting).sort((x, y) => x.boundingClientRect.top - y.boundingClientRect.top)[0];
       if (vis) setActiveCat(vis.target.dataset.cat);
-    }, { rootMargin: "-80px 0px -60% 0px" });
+    }, { rootMargin: `-${(nav?.offsetHeight ?? 72) + 90}px 0px -60% 0px` });
     document.querySelectorAll(".mn-sec").forEach((el) => io.observe(el));
-    return () => io.disconnect();
+    return () => { io.disconnect(); removeEventListener("resize", setH); };
   }, [tiendaAbierta]);
 
   // Resplandor que sigue al puntero + ondas de agua (canvas) que nacen al moverlo. Sin re-render.
@@ -178,7 +190,7 @@ export default function Menu() {
   useEffect(() => {
     const el = tabsRef.current;
     if (tiendaAbierta !== true || !el) return;
-    const on = () => el.classList.toggle("stuck", el.getBoundingClientRect().top <= 0);
+    const on = () => el.classList.toggle("stuck", el.getBoundingClientRect().top <= (parseFloat(getComputedStyle(el).top) || 0) + 1);
     on();
     addEventListener("scroll", on, { passive: true });
     return () => removeEventListener("scroll", on);
@@ -240,7 +252,7 @@ export default function Menu() {
   );
 
   return (
-    <div className="mn">
+    <div className="mn" ref={rootRef}>
       <style>{CSS}</style>
       <Navbar active="menu" position="sticky" showLinks={false} />
 
@@ -294,6 +306,9 @@ export default function Menu() {
                       const off = desactivados.has(name);
                       return (
                         <article key={name} className={`mn-item${qty ? " sel" : ""}${off ? " off" : ""}`}>
+                          <div className="mn-img">
+                            {FOTOS[name] ? <img src={FOTOS[name]} alt={name} loading="lazy" /> : <span>Foto próximamente</span>}
+                          </div>
                           <div className="mn-name">{name}</div>
                           {desc && <p className="mn-desc">{desc}</p>}
                           <div className="mn-foot">
