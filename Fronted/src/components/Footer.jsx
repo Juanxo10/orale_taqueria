@@ -22,7 +22,7 @@ export default function Footer() {
           </p>
           <p className="flex items-center gap-2 font-body-md text-body-md text-on-surface-variant mb-6">
             <span className="material-symbols-outlined text-primary text-lg">location_on</span>
-            Diagonal 8 #8-99, Acacías, Meta
+            Calle 16 # 31-38, Barrio El Bachué, Acacías, Meta
           </p>
           <a
             className="w-11 h-11 rounded-full border border-primary-container flex items-center justify-center text-primary-container hover:bg-primary-container hover:text-white transition-all"

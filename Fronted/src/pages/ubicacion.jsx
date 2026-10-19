@@ -4,7 +4,7 @@ import Footer from "../components/Footer";
 import PageHeader, { SideTaco } from "../components/PageHeader";
 
 const TICKER = ["Ven por tus tacos", "Acacías, Meta", "Salsa de la casa", "Te esperamos", "Órale, pásale"];
-const DIRECCION = "Diagonal 8 #8-99, Acacías, Meta";
+const DIRECCION = "Calle 16 # 31-38, Barrio El Bachué, Acacías, Meta";
 
 const reveal = (i = 0) => ({
   initial: { opacity: 0, y: 36 },
@@ -58,7 +58,7 @@ export default function Ubicacion() {
 
               <motion.div {...reveal(2)} className="flex flex-col sm:flex-row gap-4">
                 <motion.a
-                  href="https://www.google.com/maps/dir/?api=1&destination=Diagonal%208%20%238-99%2C%20Acac%C3%ADas%2C%20Meta"
+                  href="https://www.google.com/maps/dir/?api=1&destination=Calle%2016%20%23%2031-38%2C%20Barrio%20El%20Bach%C3%BA%C3%A9%2C%20Acac%C3%ADas%2C%20Meta"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: 3 }}
@@ -95,7 +95,7 @@ export default function Ubicacion() {
                   className="w-full h-full border-0"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
-                  src="https://www.google.com/maps?q=Diagonal%208%20%238-99%2C%20Acac%C3%ADas%2C%20Meta%2C%20Colombia&output=embed"
+                  src="https://www.google.com/maps?q=Calle%2016%20%23%2031-38%2C%20Barrio%20El%20Bach%C3%BA%C3%A9%2C%20Acac%C3%ADas%2C%20Meta%2C%20Colombia&output=embed"
                 />
               </div>
             </motion.div>
