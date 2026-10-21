@@ -2,6 +2,8 @@ import { Fragment, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 import { MENU, groupExtras } from "../data/menuData";
+import Facturacion from "../components/Facturacion";
+import Insumos from "../components/Insumos";
 import logo from "../assets/Logo_tacos.jpg";
 
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
@@ -273,7 +275,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1.2rem;margin-bottom:1.5rem;}
 .stats-card{background:#fff;border:1.5px solid var(--border);border-radius:16px;padding:1.4rem 1.6rem;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .stats-card h3{font-size:.75rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
-.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;margin-bottom:1.8rem;}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1rem;margin-bottom:1.8rem;}
 .kpi{background:#fff;border:1.5px solid var(--border);border-radius:14px;padding:1.2rem .8rem;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.06);}
 .kpi-val{font-size:1.8rem;font-weight:800;color:var(--g800);line-height:1;}
 .kpi-lbl{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:.35rem;}
@@ -592,7 +594,7 @@ export default function Admin() {
   const [orders, setOrders] = useState([]);
   const [filterStatus, setFilterStatus] = useState("todos");
   const [search, setSearch] = useState("");
-  const [view, setView] = useState("hoy"); // "hoy" | "historial" | "stats" | "usuarios"
+  const [view, setView] = useState("hoy"); // "hoy" | "historial" | "stats" | "usuarios" | "facturacion"
   const [histDate, setHistDate] = useState("");
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(false);
@@ -616,6 +618,7 @@ export default function Admin() {
   // Inventario (productos sin stock)
   const [productosDesactivados, setProductosDesactivados] = useState(new Set());
   const [invCargando, setInvCargando] = useState(false);
+  const [invTab, setInvTab] = useState("disponibilidad"); // "disponibilidad" | "insumos"
   // Modal de confirmación genérico
   const [confirmModal, setConfirmModal] = useState(null); // { mensaje, onConfirm }
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -801,14 +804,14 @@ export default function Admin() {
     return () => clearInterval(interval);
   }, []);
 
-  const fetchStats = () => {
+  const fetchStats = (desde = statsDesde, hasta = statsHasta) => {
     setStatsLoading(true);
     const params = new URLSearchParams();
-    if (statsDesde) params.set("desde", statsDesde);
-    if (statsHasta) params.set("hasta", statsHasta);
+    if (desde) params.set("desde", desde);
+    if (hasta) params.set("hasta", hasta);
     const qs = params.toString();
-    fetch(`${API_URL}/api/pedidos/estadisticas${qs ? `?${qs}` : ""}`)
-      .then((r) => r.json())
+    fetch(`${API_URL}/api/pedidos/estadisticas${qs ? `?${qs}` : ""}`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then((data) => { setStats(data); setStatsLoading(false); })
       .catch((err) => { console.error("Error al cargar estadísticas:", err); setStatsLoading(false); });
   };
@@ -980,7 +983,7 @@ export default function Admin() {
         <div class="client-name">${o.nombre}</div>
         <div class="client-tel">${o.tel}</div>
       </div>
-      <div class="section-lbl">Bowls</div>
+      ${o.bowls.length ? '<div class="section-lbl">Bowls</div>' : ""}
       ${bowlRows}${extras}
       <div class="entrega-block">${entrega}</div>
       <div class="total-block"><span class="total-lbl">Total</span><span class="total-val">${fmt(o.total)}</span></div>
@@ -993,11 +996,12 @@ export default function Admin() {
   };
 
   const sendWA = (o, tipo) => {
-    const lines = o.bowls
+    const bowlLines = o.bowls
       .map((b, i) =>
         `Bowl ${i + 1}: ${b.base}${(b.incluidos || []).length ? " | Incluye: " + b.incluidos.join(", ") : ""} | Toppings: ${groupItems(b.toppings).map(({name,count}) => count > 1 ? `${name} x${count}` : name).join(", ")} | Proteína: ${groupItems(b.proteinas).map(({name,count}) => count > 1 ? `${name} x${count}` : name).join(", ")}${b.bebida ? " | Bebida: " + b.bebida : ""}`
       )
-      .join("\n");
+      ;
+    const lines = [...bowlLines, ...Object.entries(o.extraItems || {}).map(([n, q]) => `${n} x${q}`)].join("\n");
     const msg = tipo === "entregado"
       ? `Hola ${o.nombre}, tu pedido Órale Tacos fue entregado. ¡Gracias por tu compra! 🌮\n\n${lines}\n\nTotal: ${fmt(o.total)}`
       : `Hola ${o.nombre}, tu pedido Órale Tacos esta en camino.\n\n${lines}\n\nTotal: ${fmt(o.total)}\n\nLlega en aprox. 15 min.`;
@@ -1098,6 +1102,7 @@ export default function Admin() {
         )}
         {isAdmin && <button className={`mobile-nav-btn${view==="sugerencias"?" active":""}`} onClick={() => { setView(view==="sugerencias"?"hoy":"sugerencias"); setMobileMenuOpen(false); }}>Quejas y sugerencias</button>}
         {isAdmin && <button className={`mobile-nav-btn${view==="usuarios"?" active":""}`} onClick={() => { setView(view==="usuarios"?"hoy":"usuarios"); setSearch(""); setFilterStatus("todos"); setMobileMenuOpen(false); }}>Usuarios</button>}
+        {isAdmin && <button className={`mobile-nav-btn${view==="facturacion"?" active":""}`} onClick={() => { setView(view==="facturacion"?"hoy":"facturacion"); setSearch(""); setFilterStatus("todos"); setMobileMenuOpen(false); }}>Facturación</button>}
         {isAdmin && <button className={`mobile-nav-btn${view==="stats"?" active":""}`} onClick={() => { setView(view==="stats"?"hoy":"stats"); setSearch(""); setFilterStatus("todos"); setMobileMenuOpen(false); }}>Estadísticas</button>}
         {isAdmin && <button className={`mobile-nav-btn${view==="historial"?" active":""}`} onClick={() => { setView(view==="historial"?"hoy":"historial"); setSearch(""); setFilterStatus("todos"); setMobileMenuOpen(false); }}>Historial</button>}
         <button className={`mobile-nav-btn${view==="inventario"?" active":""}`} onClick={() => { setView(view==="inventario"?"hoy":"inventario"); setMobileMenuOpen(false); }}>Inventario</button>
@@ -1117,6 +1122,7 @@ export default function Admin() {
         <div className="nav-right">
           {isAdmin && <button className={`btn-historial${view==="sugerencias"?" active":""}`} onClick={() => setView(view==="sugerencias"?"hoy":"sugerencias")}>{view==="sugerencias"?"Volver":"Quejas y sugerencias"}</button>}
           {isAdmin && <button className={`btn-historial${view==="usuarios"?" active":""}`} onClick={() => { setView(view==="usuarios"?"hoy":"usuarios"); setSearch(""); setFilterStatus("todos"); }}>{view==="usuarios"?"Volver":"Usuarios"}</button>}
+          {isAdmin && <button className={`btn-historial${view==="facturacion"?" active":""}`} onClick={() => { setView(view==="facturacion"?"hoy":"facturacion"); setSearch(""); setFilterStatus("todos"); }}>{view==="facturacion"?"Volver":"Facturación"}</button>}
           {isAdmin && <button className={`btn-historial${view==="stats"?" active":""}`} onClick={() => { setView(view==="stats"?"hoy":"stats"); setSearch(""); setFilterStatus("todos"); }}>{view==="stats"?"Volver":"Estadísticas"}</button>}
           {isAdmin && <button className={`btn-historial${view==="historial"?" active":""}`} onClick={() => { setView(view==="historial"?"hoy":"historial"); setSearch(""); setFilterStatus("todos"); }}>{view==="historial"?"Volver a hoy":"Historial"}</button>}
           <button className={`btn-historial${view==="inventario"?" active":""}`} onClick={() => setView(view==="inventario"?"hoy":"inventario")}>{view==="inventario"?"Volver":"Inventario"}</button>
@@ -1207,6 +1213,7 @@ export default function Admin() {
                         <div className="client-phone">{o.tel}</div>
                       </div>
                     </div>
+                    {o.bowls.length > 0 && <>
                     <span className="oc-section-lbl">Bowls</span>
                     <div className="bowl-list">
                       {o.bowls.map((b, i) => (
@@ -1224,6 +1231,7 @@ export default function Admin() {
                         </div>
                       ))}
                     </div>
+                    </>}
                     {groupExtras(o.extraItems).map(({ cat, items }) => (
                       <Fragment key={cat}>
                         <span className="oc-section-lbl">{cat}</span>
@@ -1251,7 +1259,7 @@ export default function Admin() {
                   <div className="oc-footer">
                     <div>
                       <div className="price-total">{fmt(o.total)}</div>
-                      <div className="price-sub">{o.bowls.length} bowl{o.bowls.length !== 1 ? "s" : ""}{Object.keys(o.extraItems || {}).length > 0 ? " + productos" : ""}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
+                      <div className="price-sub">{o.bowls.length > 0 && `${o.bowls.length} bowl${o.bowls.length !== 1 ? "s" : ""}${Object.keys(o.extraItems || {}).length > 0 ? " + " : ""}`}{Object.keys(o.extraItems || {}).length > 0 && "productos"}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
                     </div>
                     <div className="footer-actions">
                       <button className="btn-print" onClick={() => printOrder(o)} title="Imprimir ticket de cocina">🖨️ Imprimir</button>
@@ -1341,6 +1349,7 @@ export default function Admin() {
                             <div className="client-phone">{o.tel}</div>
                           </div>
                         </div>
+                        {o.bowls.length > 0 && <>
                         <span className="oc-section-lbl">Bowls</span>
                         <div className="bowl-list">
                           {o.bowls.map((b, i) => (
@@ -1358,6 +1367,7 @@ export default function Admin() {
                             </div>
                           ))}
                         </div>
+                        </>}
                         {groupExtras(o.extraItems).map(({ cat, items }) => (
                           <Fragment key={cat}>
                             <span className="oc-section-lbl">{cat}</span>
@@ -1385,7 +1395,7 @@ export default function Admin() {
                       <div className="oc-footer">
                         <div>
                           <div className="price-total">{fmt(o.total)}</div>
-                          <div className="price-sub">{o.bowls.length} bowl{o.bowls.length !== 1 ? "s" : ""}{Object.keys(o.extraItems || {}).length > 0 ? " + productos" : ""}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
+                          <div className="price-sub">{o.bowls.length > 0 && `${o.bowls.length} bowl${o.bowls.length !== 1 ? "s" : ""}${Object.keys(o.extraItems || {}).length > 0 ? " + " : ""}`}{Object.keys(o.extraItems || {}).length > 0 && "productos"}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
                         </div>
                         <div className="footer-actions">
                           <span className="done-text">{statusLabel(o.status, o.estado_pago)}</span>
@@ -1405,7 +1415,7 @@ export default function Admin() {
       </>)}
 
       {/* ESTADÍSTICAS */}
-      {view === "stats" && (<>
+      {view === "stats" && isAdmin && (<>
         {statsLoading || !stats ? (
           <div className="stats-loading">Cargando estadísticas...</div>
         ) : (
@@ -1422,12 +1432,12 @@ export default function Admin() {
                 <input type="date" value={statsHasta} onChange={(e) => setStatsHasta(e.target.value)}
                   style={{ marginLeft: 6, padding: "4px 8px", borderRadius: 6, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--text)", fontSize: ".85rem" }} />
               </label>
-              <button onClick={fetchStats}
+              <button onClick={() => fetchStats()}
                 style={{ padding: "4px 14px", borderRadius: 6, border: "none", background: "var(--accent)", color: "#fff", cursor: "pointer", fontSize: ".85rem", fontWeight: 600 }}>
                 Aplicar
               </button>
               {(statsDesde || statsHasta) && (
-                <button onClick={() => { setStatsDesde(""); setStatsHasta(""); setTimeout(fetchStats, 0); }}
+                <button onClick={() => { setStatsDesde(""); setStatsHasta(""); fetchStats("", ""); }}
                   style={{ padding: "4px 12px", borderRadius: 6, border: "1px solid var(--border)", background: "var(--bg)", color: "var(--accent)", cursor: "pointer", fontSize: ".82rem" }}>
                   Limpiar filtro
                 </button>
@@ -1439,22 +1449,23 @@ export default function Admin() {
               <div className="kpi"><div className="kpi-val">{stats.resumen.total_pedidos}</div><div className="kpi-lbl">Total pedidos</div></div>
               <div className="kpi"><div className="kpi-val">{stats.resumen.entregados}</div><div className="kpi-lbl">Entregados</div></div>
               <div className="kpi"><div className="kpi-val">{stats.resumen.cancelados}</div><div className="kpi-lbl">Cancelados</div></div>
-              <div className="kpi"><div className="kpi-val">{fmt(stats.resumen.ingresos_totales)}</div><div className="kpi-lbl">Ingresos totales</div></div>
+              <div className="kpi"><div className="kpi-val">{fmt(stats.resumen.ingresos_totales)}</div><div className="kpi-lbl">Ingresos (incl. domicilios)</div></div>
               <div className="kpi"><div className="kpi-val">{fmt(stats.resumen.ticket_promedio)}</div><div className="kpi-lbl">Ticket promedio</div></div>
+              <div className="kpi"><div className="kpi-val">{stats.productos.reduce((t, x) => t + x.cantidad, 0)}</div><div className="kpi-lbl">Productos vendidos</div></div>
               <div className="kpi"><div className="kpi-val">{stats.resumen.clientes_unicos}</div><div className="kpi-lbl">Clientes únicos</div></div>
             </div>
 
             <div className="stats-grid">
               {/* Ingresos últimos 30 días */}
               <div className="stats-card" style={{ gridColumn: "1 / -1" }}>
-                <h3>Ingresos por día</h3>
+                <h3>Ingresos por día (hora de Colombia)</h3>
                 {stats.ingresosPorDia.length === 0 ? <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos aún</p> : (
                   <div className="ingreso-chart">
                     {stats.ingresosPorDia.map((d) => {
                       const max = Math.max(...stats.ingresosPorDia.map((x) => x.ingresos), 1);
                       return (
                         <div key={d.fecha} className="ingreso-row">
-                          <span className="ingreso-date">{new Date(d.fecha).toLocaleDateString("es-CO", { day: "2-digit", month: "short" })}</span>
+                          <span className="ingreso-date">{new Date(d.fecha + "T00:00:00").toLocaleDateString("es-CO", { day: "2-digit", month: "short" })}</span>
                           <div className="ingreso-bar-wrap"><div className="ingreso-bar" style={{ width: `${(d.ingresos / max) * 100}%` }}></div></div>
                           <span className="ingreso-val">{fmt(d.ingresos)}</span>
                           <span style={{ fontSize: ".65rem", color: "var(--muted)", minWidth: 45 }}>{d.pedidos} ped.</span>
@@ -1513,75 +1524,46 @@ export default function Admin() {
                 })()}
               </div>
 
-              {/* Top bases */}
+              {/* Productos más vendidos */}
               <div className="stats-card">
-                <h3>Bases más pedidas</h3>
+                <h3>Productos más vendidos</h3>
                 <div className="bar-chart">
-                  {stats.topBases.map((b, i) => {
-                    const max = stats.topBases[0]?.cantidad || 1;
+                  {stats.productos.slice(0, 10).map((b) => {
+                    const max = stats.productos[0]?.cantidad || 1;
                     return (
                       <div key={b.nombre} className="bar-row">
                         <span className="bar-label">{b.nombre}</span>
                         <div className="bar-track"><div className="bar-fill green" style={{ width: `${(b.cantidad / max) * 100}%` }}></div></div>
-                        <span className="bar-val">{b.cantidad}</span>
+                        <span className="bar-val" style={{ minWidth: "5.5rem", textAlign: "right" }}>{`${b.cantidad} · ${fmt(b.ingresos)}`}</span>
                       </div>
                     );
                   })}
-                  {!stats.topBases.length && <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos</p>}
+                  {!stats.productos.length && <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos</p>}
                 </div>
               </div>
 
-              {/* Top proteínas */}
+              {/* Ventas por categoría del menú */}
               <div className="stats-card">
-                <h3>Proteínas favoritas</h3>
+                <h3>Ventas por categoría</h3>
                 <div className="bar-chart">
-                  {stats.topProteinas.map((b) => {
-                    const max = stats.topProteinas[0]?.cantidad || 1;
-                    return (
-                      <div key={b.nombre} className="bar-row">
-                        <span className="bar-label">{b.nombre}</span>
-                        <div className="bar-track"><div className="bar-fill orange" style={{ width: `${(b.cantidad / max) * 100}%` }}></div></div>
-                        <span className="bar-val">{b.cantidad}</span>
+                  {(() => {
+                    const catDe = Object.fromEntries(MENU.flatMap((c) => c.items.map((i) => [i.name, c.cat])));
+                    const porCat = {};
+                    for (const pr of stats.productos) {
+                      const c = (porCat[catDe[pr.nombre] || "Otros"] ||= { cat: catDe[pr.nombre] || "Otros", cantidad: 0, ingresos: 0 });
+                      c.cantidad += pr.cantidad;
+                      c.ingresos += pr.ingresos;
+                    }
+                    const cats = Object.values(porCat).sort((a, b) => b.ingresos - a.ingresos);
+                    const max = cats[0]?.ingresos || 1;
+                    return cats.length ? cats.map((b) => (
+                      <div key={b.cat} className="bar-row">
+                        <span className="bar-label">{b.cat}</span>
+                        <div className="bar-track"><div className="bar-fill orange" style={{ width: `${(b.ingresos / max) * 100}%` }}></div></div>
+                        <span className="bar-val" style={{ minWidth: "5.5rem", textAlign: "right" }}>{`${b.cantidad} · ${fmt(b.ingresos)}`}</span>
                       </div>
-                    );
-                  })}
-                  {!stats.topProteinas.length && <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos</p>}
-                </div>
-              </div>
-
-              {/* Top toppings */}
-              <div className="stats-card">
-                <h3>Toppings más elegidos</h3>
-                <div className="bar-chart">
-                  {stats.topToppings.map((b) => {
-                    const max = stats.topToppings[0]?.cantidad || 1;
-                    return (
-                      <div key={b.nombre} className="bar-row">
-                        <span className="bar-label">{b.nombre}</span>
-                        <div className="bar-track"><div className="bar-fill gold" style={{ width: `${(b.cantidad / max) * 100}%` }}></div></div>
-                        <span className="bar-val">{b.cantidad}</span>
-                      </div>
-                    );
-                  })}
-                  {!stats.topToppings.length && <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos</p>}
-                </div>
-              </div>
-
-              {/* Top bebidas */}
-              <div className="stats-card">
-                <h3>Bebidas populares</h3>
-                <div className="bar-chart">
-                  {stats.topBebidas.map((b) => {
-                    const max = stats.topBebidas[0]?.cantidad || 1;
-                    return (
-                      <div key={b.nombre} className="bar-row">
-                        <span className="bar-label">{b.nombre}</span>
-                        <div className="bar-track"><div className="bar-fill blue" style={{ width: `${(b.cantidad / max) * 100}%` }}></div></div>
-                        <span className="bar-val">{b.cantidad}</span>
-                      </div>
-                    );
-                  })}
-                  {!stats.topBebidas.length && <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos</p>}
+                    )) : <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos</p>;
+                  })()}
                 </div>
               </div>
 
@@ -1640,22 +1622,22 @@ export default function Admin() {
                 </div>
               </div>
 
-              {/* Productos adicionales más pedidos */}
+              {/* Domicilio vs recogida */}
               <div className="stats-card">
-                <h3>Productos adicionales más pedidos</h3>
+                <h3>Domicilio vs recogida</h3>
                 <div className="bar-chart">
-                  {(stats.topExtras || []).map((b) => {
-                    const max = (stats.topExtras || [])[0]?.cantidad || 1;
+                  {[["Domicilio", stats.resumen.domicilio, "blue"], ["Recogida en tienda", stats.resumen.recogida, "gold"]].map(([lbl, n, color]) => {
+                    const max = Math.max(stats.resumen.domicilio, stats.resumen.recogida, 1);
                     return (
-                      <div key={b.nombre} className="bar-row">
-                        <span className="bar-label">{b.nombre}</span>
-                        <div className="bar-track"><div className="bar-fill purple" style={{ width: `${(b.cantidad / max) * 100}%` }}></div></div>
-                        <span className="bar-val">{b.cantidad}</span>
+                      <div key={lbl} className="bar-row">
+                        <span className="bar-label">{lbl}</span>
+                        <div className="bar-track"><div className={`bar-fill ${color}`} style={{ width: `${(n / max) * 100}%` }}></div></div>
+                        <span className="bar-val">{n}</span>
                       </div>
                     );
                   })}
-                  {!(stats.topExtras || []).length && <p style={{color:"var(--muted)",fontSize:".82rem"}}>Sin datos</p>}
                 </div>
+                <p style={{ color: "var(--muted)", fontSize: ".78rem", marginTop: ".8rem" }}>Cobrado en domicilios: {fmt(stats.resumen.ingresos_domicilio)}</p>
               </div>
 
               {/* Tasa de cancelación semanal */}
@@ -1666,7 +1648,7 @@ export default function Admin() {
                   <tbody>
                     {stats.cancelacionSemanal.map((w) => (
                       <tr key={w.semana}>
-                        <td>{new Date(w.semana).toLocaleDateString("es-CO", { day: "2-digit", month: "short" })}</td>
+                        <td>{new Date(w.semana + "T00:00:00").toLocaleDateString("es-CO", { day: "2-digit", month: "short" })}</td>
                         <td>{w.total}</td>
                         <td>{w.cancelados}</td>
                         <td style={{ color: w.total > 0 && (w.cancelados / w.total) > 0.15 ? "#991b1b" : "var(--g800)", fontWeight: 700 }}>
@@ -1682,6 +1664,14 @@ export default function Admin() {
           </div>
         )}
       </>)}
+
+      {/* FACTURACIÓN */}
+      {view === "facturacion" && isAdmin && (
+        <div className="inv-page">
+          <h2>Facturación — extracto de ventas</h2>
+          <Facturacion token={token} />
+        </div>
+      )}
 
       {/* SUGERENCIAS */}
       {view === "sugerencias" && (
@@ -1863,8 +1853,15 @@ export default function Admin() {
       {/* INVENTARIO */}
       {view === "inventario" && (
         <div className="inv-page">
-          <h2>Inventario — Disponibilidad de productos</h2>
-          {INVENTARIO_GRUPOS.map(({ cat, items }) => (
+          <h2>Inventario</h2>
+          <div className="filter-tabs" style={{ marginBottom: "1.2rem" }}>
+            <button className={`ftab${invTab === "disponibilidad" ? " active" : ""}`} onClick={() => setInvTab("disponibilidad")}>Disponibilidad de productos</button>
+            {isAdmin && <button className={`ftab${invTab === "insumos" ? " active" : ""}`} onClick={() => setInvTab("insumos")}>Materia prima</button>}
+          </div>
+          {invTab === "insumos" && isAdmin && (
+            <Insumos token={token} isAdmin={isAdmin} productos={INVENTARIO_GRUPOS.flatMap((g) => g.items)} />
+          )}
+          {invTab === "disponibilidad" && INVENTARIO_GRUPOS.map(({ cat, items }) => (
             <div key={cat} className="inv-section">
               <div className="inv-section-title">{cat}</div>
               <div className="inv-grid">

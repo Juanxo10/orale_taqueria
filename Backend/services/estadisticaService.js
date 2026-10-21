@@ -1,131 +1,86 @@
 const pool = require("../db");
 
+const TZ = "'America/Bogota'";
+// Todas las fechas/horas se calculan en hora de Colombia (la BD guarda UTC: una venta de las 8 pm caería en el día siguiente).
+const local = (col) => `(${col} AT TIME ZONE ${TZ})`;
+// $1 = desde, $2 = hasta (ambos opcionales, inclusivos)
+const rango = (col) =>
+  `AND ($1::date IS NULL OR ${local(col)}::date >= $1::date) AND ($2::date IS NULL OR ${local(col)}::date <= $2::date)`;
+
 async function obtenerEstadisticas(desde, hasta) {
-  // Construir filtro de fecha
-  const params = [];
-  let dateFilter = "";
-  let dateFilterPed = "";
+  const params = [desde || null, hasta || null];
+  const q = async (sql) => (await pool.query(sql, params)).rows;
 
-  if (desde && hasta) {
-    params.push(desde, hasta);
-    dateFilter = `AND creado_en >= $1::date AND creado_en < ($2::date + INTERVAL '1 day')`;
-    dateFilterPed = `AND ped.creado_en >= $1::date AND ped.creado_en < ($2::date + INTERVAL '1 day')`;
-  } else if (desde) {
-    params.push(desde);
-    dateFilter = `AND creado_en >= $1::date`;
-    dateFilterPed = `AND ped.creado_en >= $1::date`;
-  } else if (hasta) {
-    params.push(hasta);
-    dateFilter = `AND creado_en < ($1::date + INTERVAL '1 day')`;
-    dateFilterPed = `AND ped.creado_en < ($1::date + INTERVAL '1 day')`;
-  }
+  // Pedidos válidos = no cancelados y con pago confirmado. Los cancelados solo cuentan en el resumen y la tasa de cancelación.
+  const validos = `estado NOT IN ('cancelado', 'pendiente_pago')`;
 
-  const resumenRes = await pool.query(`
+  const [resumen] = await q(`
     SELECT
       COUNT(*)::int AS total_pedidos,
       COUNT(*) FILTER (WHERE estado = 'entregado')::int AS entregados,
       COUNT(*) FILTER (WHERE estado = 'cancelado')::int AS cancelados,
       COALESCE(SUM(total) FILTER (WHERE estado != 'cancelado'), 0)::int AS ingresos_totales,
+      COALESCE(SUM(domicilio) FILTER (WHERE estado != 'cancelado'), 0)::int AS ingresos_domicilio,
       COALESCE(ROUND(AVG(total) FILTER (WHERE estado != 'cancelado')), 0)::int AS ticket_promedio,
-      COUNT(DISTINCT nombre_cliente)::int AS clientes_unicos
-    FROM pedidos WHERE estado != 'pendiente_pago' ${dateFilter}
-  `, params);
+      COUNT(DISTINCT telefono) FILTER (WHERE estado != 'cancelado')::int AS clientes_unicos,
+      COUNT(*) FILTER (WHERE ${validos} AND tipo_entrega = 'recogida')::int AS recogida,
+      COUNT(*) FILTER (WHERE ${validos} AND tipo_entrega != 'recogida')::int AS domicilio
+    FROM pedidos WHERE estado != 'pendiente_pago' ${rango("creado_en")}
+  `);
 
-  const ingresosDiaRes = await pool.query(`
-    SELECT creado_en::date AS fecha, COUNT(*)::int AS pedidos,
+  const ingresosPorDia = await q(`
+    SELECT ${local("creado_en")}::date::text AS fecha, COUNT(*)::int AS pedidos,
       COALESCE(SUM(total) FILTER (WHERE estado != 'cancelado'), 0)::int AS ingresos
-    FROM pedidos WHERE estado != 'pendiente_pago' ${dateFilter}
-    GROUP BY creado_en::date ORDER BY fecha
-  `, params);
+    FROM pedidos WHERE estado != 'pendiente_pago' ${rango("creado_en")}
+    GROUP BY 1 ORDER BY 1
+  `);
 
-  const porHoraRes = await pool.query(`
-    SELECT EXTRACT(HOUR FROM creado_en)::int AS hora, COUNT(*)::int AS cantidad
-    FROM pedidos WHERE estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilter}
-    GROUP BY hora ORDER BY hora
-  `, params);
+  const pedidosPorHora = await q(`
+    SELECT EXTRACT(HOUR FROM ${local("creado_en")})::int AS hora, COUNT(*)::int AS cantidad
+    FROM pedidos WHERE ${validos} ${rango("creado_en")}
+    GROUP BY 1 ORDER BY 1
+  `);
 
-  const topBasesRes = await pool.query(`
-    SELECT p.nombre, COUNT(*)::int AS cantidad
-    FROM bowls b JOIN productos p ON b.base_id = p.id JOIN pedidos ped ON b.pedido_id = ped.id
-    WHERE ped.estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilterPed}
-    GROUP BY p.nombre ORDER BY cantidad DESC LIMIT 10
-  `, params);
+  const pedidosPorDiaSemana = await q(`
+    SELECT EXTRACT(DOW FROM ${local("creado_en")})::int AS dia, COUNT(*)::int AS cantidad
+    FROM pedidos WHERE ${validos} ${rango("creado_en")}
+    GROUP BY 1 ORDER BY 1
+  `);
 
-  const topProteinasRes = await pool.query(`
-    SELECT p.nombre, COUNT(*)::int AS cantidad
-    FROM bowl_items bi JOIN productos p ON bi.producto_id = p.id JOIN bowls b ON bi.bowl_id = b.id JOIN pedidos ped ON b.pedido_id = ped.id
-    WHERE p.tipo = 'proteina' AND ped.estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilterPed}
-    GROUP BY p.nombre ORDER BY cantidad DESC LIMIT 10
-  `, params);
-
-  const topToppingsRes = await pool.query(`
-    SELECT p.nombre, COUNT(*)::int AS cantidad
-    FROM bowl_items bi JOIN productos p ON bi.producto_id = p.id JOIN bowls b ON bi.bowl_id = b.id JOIN pedidos ped ON b.pedido_id = ped.id
-    WHERE p.tipo = 'topping' AND ped.estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilterPed}
-    GROUP BY p.nombre ORDER BY cantidad DESC LIMIT 10
-  `, params);
-
-  const topBebidasRes = await pool.query(`
-    SELECT p.nombre, COUNT(*)::int AS cantidad
-    FROM bowls b JOIN productos p ON b.bebida_id = p.id JOIN pedidos ped ON b.pedido_id = ped.id
-    WHERE ped.estado NOT IN ('cancelado', 'pendiente_pago') AND b.bebida_id IS NOT NULL ${dateFilterPed}
-    GROUP BY p.nombre ORDER BY cantidad DESC LIMIT 10
-  `, params);
-
-  const topClientesRes = await pool.query(`
-    SELECT nombre_cliente AS nombre, COUNT(*)::int AS pedidos,
-      COALESCE(SUM(total) FILTER (WHERE estado != 'cancelado'), 0)::int AS gastado
-    FROM pedidos WHERE estado != 'pendiente_pago' ${dateFilter}
-    GROUP BY nombre_cliente ORDER BY pedidos DESC LIMIT 10
-  `, params);
-
-  const topBarriosRes = await pool.query(`
-    SELECT barrio, COUNT(*)::int AS pedidos
-    FROM pedidos WHERE estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilter}
-    GROUP BY barrio ORDER BY pedidos DESC LIMIT 10
-  `, params);
-
-  const porDiaSemanaRes = await pool.query(`
-    SELECT EXTRACT(DOW FROM creado_en)::int AS dia, COUNT(*)::int AS cantidad
-    FROM pedidos WHERE estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilter}
-    GROUP BY dia ORDER BY dia
-  `, params);
-
-  const metodoPagoRes = await pool.query(`
-    SELECT metodo_pago, COUNT(*)::int AS cantidad
-    FROM pedidos WHERE estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilter}
-    GROUP BY metodo_pago ORDER BY cantidad DESC
-  `, params);
-
-  const cancelacionRes = await pool.query(`
-    SELECT DATE_TRUNC('week', creado_en)::date AS semana, COUNT(*)::int AS total,
-      COUNT(*) FILTER (WHERE estado = 'cancelado')::int AS cancelados
-    FROM pedidos WHERE estado != 'pendiente_pago' ${dateFilter}
-    GROUP BY semana ORDER BY semana
-  `, params);
-
-  const topExtrasRes = await pool.query(`
-    SELECT p.nombre, SUM(pe.cantidad)::int AS cantidad
+  // Unidades e ingreso por producto vendido (ingreso = cantidad × precio actual del producto)
+  const productos = await q(`
+    SELECT p.nombre, SUM(pe.cantidad)::int AS cantidad, (SUM(pe.cantidad) * p.precio)::int AS ingresos
     FROM pedido_extras pe JOIN productos p ON pe.producto_id = p.id JOIN pedidos ped ON pe.pedido_id = ped.id
-    WHERE ped.estado NOT IN ('cancelado', 'pendiente_pago') ${dateFilterPed}
-    GROUP BY p.nombre ORDER BY cantidad DESC LIMIT 10
-  `, params);
+    WHERE ped.${validos} ${rango("ped.creado_en")}
+    GROUP BY p.id ORDER BY cantidad DESC, p.nombre
+  `);
 
-  return {
-    resumen: resumenRes.rows[0],
-    ingresosPorDia: ingresosDiaRes.rows,
-    pedidosPorHora: porHoraRes.rows,
-    topBases: topBasesRes.rows,
-    topProteinas: topProteinasRes.rows,
-    topToppings: topToppingsRes.rows,
-    topBebidas: topBebidasRes.rows,
-    topClientes: topClientesRes.rows,
-    topBarrios: topBarriosRes.rows,
-    pedidosPorDiaSemana: porDiaSemanaRes.rows,
-    metodosPago: metodoPagoRes.rows,
-    cancelacionSemanal: cancelacionRes.rows,
-    topExtras: topExtrasRes.rows,
-  };
+  const topClientes = await q(`
+    SELECT MAX(nombre_cliente) AS nombre, telefono, COUNT(*)::int AS pedidos, SUM(total)::int AS gastado
+    FROM pedidos WHERE ${validos} ${rango("creado_en")}
+    GROUP BY telefono ORDER BY pedidos DESC, gastado DESC LIMIT 10
+  `);
+
+  const topBarrios = await q(`
+    SELECT barrio, COUNT(*)::int AS pedidos
+    FROM pedidos WHERE ${validos} AND barrio IS NOT NULL AND barrio != '' ${rango("creado_en")}
+    GROUP BY barrio ORDER BY pedidos DESC LIMIT 10
+  `);
+
+  const metodosPago = await q(`
+    SELECT metodo_pago, COUNT(*)::int AS cantidad, SUM(total)::int AS ingresos
+    FROM pedidos WHERE ${validos} ${rango("creado_en")}
+    GROUP BY metodo_pago ORDER BY cantidad DESC
+  `);
+
+  const cancelacionSemanal = await q(`
+    SELECT DATE_TRUNC('week', ${local("creado_en")})::date::text AS semana, COUNT(*)::int AS total,
+      COUNT(*) FILTER (WHERE estado = 'cancelado')::int AS cancelados
+    FROM pedidos WHERE estado != 'pendiente_pago' ${rango("creado_en")}
+    GROUP BY 1 ORDER BY 1
+  `);
+
+  return { resumen, ingresosPorDia, pedidosPorHora, pedidosPorDiaSemana, productos, topClientes, topBarrios, metodosPago, cancelacionSemanal };
 }
 
 module.exports = { obtenerEstadisticas };

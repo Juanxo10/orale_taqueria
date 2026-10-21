@@ -7,11 +7,14 @@ const pool = require("../db");
 const sql = (f) => fs.readFileSync(path.join(__dirname, "..", "db", f), "utf8");
 
 (async () => {
-  for (const f of ["schema.sql", "migration_auth.sql", "migration_caja_vaso.sql", "migration_sugerencias.sql", "migration_tipo_entrega.sql", "migration_wompi.sql", "migration_productos_activo.sql"]) {
+  for (const f of ["schema.sql", "migration_auth.sql", "migration_caja_vaso.sql", "migration_sugerencias.sql", "migration_tipo_entrega.sql", "migration_wompi.sql", "migration_productos_activo.sql", "migration_insumos.sql"]) {
     await pool.query(sql(f));
   }
   const { rows } = await pool.query("SELECT COUNT(*)::int AS n FROM productos");
   if (rows[0].n === 0) await pool.query(sql("seed.sql"));
+
+  const ins = await pool.query("SELECT COUNT(*)::int AS n FROM insumos");
+  if (ins.rows[0].n === 0) await pool.query(sql("seed_insumos.sql"));
 
   const email = process.env.ADMIN_EMAIL || "admin@tacos.local";
   const password = process.env.ADMIN_PASSWORD || "admin123";

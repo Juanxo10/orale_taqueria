@@ -1,11 +1,12 @@
 const { Router } = require("express");
+const { authenticate, requireAdmin } = require("../middlewares/authMiddleware");
 const { crearPedido, listarPedidos, cambiarEstado } = require("../services/pedidoService");
 const { obtenerEstadisticas } = require("../services/estadisticaService");
 
 const router = Router();
 
 // GET /api/pedidos/estadisticas — estadísticas para el admin
-router.get("/estadisticas", async (req, res) => {
+router.get("/estadisticas", authenticate, requireAdmin, async (req, res) => {
   try {
     const { desde, hasta } = req.query;
     const stats = await obtenerEstadisticas(desde || null, hasta || null);

@@ -125,8 +125,8 @@ export default function PedidoConfirmado() {
 
       <div className="topnav">
         <div>
-          <div className="brand-name">pepas coffee</div>
-          <div className="brand-sub">Bowls frescos · Vida saludable</div>
+          <div className="brand-name">Órale Taquería</div>
+          <div className="brand-sub">Tacos y antojitos mexicanos</div>
         </div>
         <button className="back-link" onClick={() => navigate("/menu")}>Pedir de nuevo</button>
       </div>
@@ -202,10 +202,12 @@ export default function PedidoConfirmado() {
                   <span>Número de pedido</span>
                   <strong>{order.numero_pedido}</strong>
                 </div>
-                <div className="summary-row">
-                  <span>Bowls</span>
-                  <strong>{order.bowls.length}</strong>
-                </div>
+                {order.bowls.length > 0 && (
+                  <div className="summary-row">
+                    <span>Bowls</span>
+                    <strong>{order.bowls.length}</strong>
+                  </div>
+                )}
                 {extras.length > 0 && (
                   <div className="summary-row">
                     <span>Extras</span>
