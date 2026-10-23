@@ -2,6 +2,7 @@ import { motion, MotionConfig } from "motion/react";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import PageHeader, { SideTaco } from "../components/PageHeader";
+import { guardarConsentimiento, useConsentimiento } from "../data/preferencias";
 
 const TICKER = ["Ven por tus tacos", "Acacías, Meta", "Salsa de la casa", "Te esperamos", "Órale, pásale"];
 const DIRECCION = "Calle 16 # 31-38, Barrio El Bachué, Acacías, Meta";
@@ -19,6 +20,7 @@ const DATOS = [
 ];
 
 export default function Ubicacion() {
+  const consent = useConsentimiento();
   return (
     <MotionConfig reducedMotion="user">
       <div className="bg-background text-on-surface font-body-md overflow-x-clip min-h-screen flex flex-col">
@@ -90,13 +92,39 @@ export default function Ubicacion() {
             >
               <div className="papel-picado" aria-hidden="true" />
               <div className="rounded-[2rem] overflow-hidden border-4 border-primary shadow-[0_30px_60px_-20px_rgba(254,43,36,0.6)] aspect-[4/3] bg-surface-container">
-                <iframe
-                  title="Ubicación de Órale Tacos en Acacías, Meta"
-                  className="w-full h-full border-0"
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                  src="https://www.google.com/maps?q=Calle%2016%20%23%2031-38%2C%20Barrio%20El%20Bach%C3%BA%C3%A9%2C%20Acac%C3%ADas%2C%20Meta%2C%20Colombia&output=embed"
-                />
+                {consent === "todas" ? (
+                  <iframe
+                    title="Ubicación de Órale Tacos en Acacías, Meta"
+                    className="w-full h-full border-0"
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    src="https://www.google.com/maps?q=Calle%2016%20%23%2031-38%2C%20Barrio%20El%20Bach%C3%BA%C3%A9%2C%20Acac%C3%ADas%2C%20Meta%2C%20Colombia&output=embed"
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">
+                    <span className="material-symbols-outlined text-primary text-5xl">map</span>
+                    <p className="font-body-md text-sm text-on-surface-variant max-w-sm">
+                      El mapa lo muestra Google y puede usar cookies. Cárgalo solo si estás de acuerdo.
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => guardarConsentimiento("todas")}
+                        className="px-5 py-2.5 rounded-full bg-primary-container text-white font-label-md text-sm"
+                      >
+                        Cargar mapa
+                      </button>
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DIRECCION + ", Colombia")}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-5 py-2.5 rounded-full border border-outline-variant text-on-surface font-label-md text-sm"
+                      >
+                        Abrir en Google Maps
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>

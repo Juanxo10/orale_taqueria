@@ -2,14 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/Logo_tacos.jpg";
 import { API_URL } from "../config";
-import {
-  ALL_EXTRAS, DOM,
-} from "../data/menuData";
+import { useMenu, DOM } from "../data/menuData";
 
-// Precio de cada adicional derivado de la misma fuente que usa menu.jsx,
-// para que nunca queden desincronizados (bug: productos nuevos cobrándose $0).
-const CAFETERIA_PRECIOS = Object.fromEntries(ALL_EXTRAS.map((it) => [it.name, it.price]));
-
+import { almacenLocal, almacenSesion } from "../data/almacen";
 const fmt = (n) => "$" + Number(n).toLocaleString("es-CO");
 
 const CSS = `
@@ -54,6 +49,9 @@ input.fi:focus,textarea.fi:focus,select.fi:focus{border-color:var(--g600);box-sh
 input.fi.err,textarea.fi.err{border-color:var(--red);box-shadow:0 0 0 3px rgba(220,38,38,.1);}
 textarea.fi{resize:vertical;min-height:70px;}
 .err-msg{font-size:.7rem;color:var(--red);display:none;}
+.consent{display:flex;gap:.6rem;align-items:flex-start;font-size:.78rem;line-height:1.5;color:var(--text);cursor:pointer;}
+.consent input{margin-top:.2rem;width:1.05rem;height:1.05rem;accent-color:var(--g800);flex-shrink:0;}
+.consent a{color:var(--g800);font-weight:700;text-decoration:underline;}
 .err-msg.show{display:block;}
 .pm-grid{display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.2rem;}
 .pm{background:#fff;border:1.5px solid var(--border);border-radius:12px;padding:1rem 1.2rem;cursor:pointer;display:flex;align-items:center;gap:.9rem;transition:all .15s;}
@@ -92,6 +90,9 @@ textarea.fi{resize:vertical;min-height:70px;}
 export default function Pago() {
   const navigate = useNavigate();
   const [orderData, setOrderData] = useState(null);
+  // Precio de cada adicional derivado de la misma fuente que usa menu.jsx (bug: productos nuevos cobrándose $0).
+  const menu = useMenu();
+  const PRECIOS_MENU = Object.fromEntries(menu.flatMap((c) => c.items).map((it) => [it.name, it.price]));
 
   // Delivery fields
   const [fname, setFname] = useState("");
@@ -100,6 +101,7 @@ export default function Pago() {
   const [fbarrio, setFbarrio] = useState("");
   const [freferencia, setFreferencia] = useState("");
   const [fnotes, setFnotes] = useState("");
+  const [acepta, setAcepta] = useState(false); // autorización de datos + términos (Ley 1581 de 2012)
 
   // Field errors
   const [errors, setErrors] = useState({});
@@ -108,13 +110,15 @@ export default function Pago() {
   const [tipoEntrega, setTipoEntrega] = useState("domicilio"); // "domicilio" | "recogida"
 
   const fnameRef = useRef(null);
+  const aceptaRef = useRef(null);
+  const soloAcepta = useRef(false); // el único error es la casilla: ir a ella en vez de al nombre
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem("pepas_order");
+      const raw = almacenLocal.get("orale_pedido");
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (!parsed?.bowls?.length && !Object.keys(parsed?.extraItems ?? {}).length) {
+        if (!Object.keys(parsed?.extraItems ?? {}).length) {
           navigate("/menu");
           return;
         }
@@ -127,10 +131,9 @@ export default function Pago() {
     }
   }, []);
 
-  const bowls = orderData?.bowls || [];
   const extraItems = orderData?.extraItems || {};
 
-  const extrasSubtotal = Object.entries(extraItems).reduce((s, [n, qty]) => s + (CAFETERIA_PRECIOS[n] ?? 0) * (qty || 0), 0);
+  const extrasSubtotal = Object.entries(extraItems).reduce((s, [n, qty]) => s + (PRECIOS_MENU[n] ?? 0) * (qty || 0), 0);
   const domicilioCosto = tipoEntrega === "recogida" ? 0 : DOM;
   const grandTotal = extrasSubtotal + domicilioCosto;
 
@@ -179,6 +182,11 @@ export default function Pago() {
       e.fnotes = "Máximo 300 caracteres";
     }
 
+    if (!acepta) {
+      e.acepta = "Debes aceptar para continuar con tu pedido";
+    }
+
+    soloAcepta.current = Object.keys(e).join() === "acepta";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -189,13 +197,12 @@ export default function Pago() {
     }
 
     if (!validateDelivery()) {
-      fnameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (soloAcepta.current ? aceptaRef : fnameRef).current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
     // Guardar pedido en backend
     const payload = {
-      bowls,
       extraItems,
       cliente: {
         nombre: fname.trim(),
@@ -207,6 +214,7 @@ export default function Pago() {
       },
       metodo_pago: "Contraentrega en efectivo",
       tipo_entrega: tipoEntrega,
+      acepta_terminos: acepta,
     };
 
     try {
@@ -227,20 +235,19 @@ export default function Pago() {
       const data = await res.json();
       const confirmedOrder = {
         ...data,
-        bowls,
         extraItems,
         cliente: payload.cliente,
         metodo_pago: payload.metodo_pago,
       };
 
       try {
-        sessionStorage.setItem("pepas_last_order", JSON.stringify(confirmedOrder));
+        almacenSesion.set("orale_ultimo_pedido", JSON.stringify(confirmedOrder));
       } catch (_) {
         // noop
       }
 
       try {
-        localStorage.removeItem("pepas_order");
+        almacenLocal.remove("orale_pedido");
       } catch (_) {
         // noop
       }
@@ -261,12 +268,11 @@ export default function Pago() {
     if (isSubmitting) return;
 
     if (!validateDelivery()) {
-      fnameRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (soloAcepta.current ? aceptaRef : fnameRef).current?.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
 
     const payload = {
-      bowls,
       extraItems,
       cliente: {
         nombre: fname.trim(),
@@ -278,6 +284,7 @@ export default function Pago() {
       },
       metodo_pago: "Transferencia Wompi",
       tipo_entrega: tipoEntrega,
+      acepta_terminos: acepta,
     };
 
     try {
@@ -298,20 +305,19 @@ export default function Pago() {
       const data = await res.json();
       const confirmedOrder = {
         ...data,
-        bowls,
         extraItems,
         cliente: payload.cliente,
         metodo_pago: payload.metodo_pago,
       };
 
       try {
-        sessionStorage.setItem("pepas_last_order", JSON.stringify(confirmedOrder));
+        almacenSesion.set("orale_ultimo_pedido", JSON.stringify(confirmedOrder));
       } catch (_) {
         // noop
       }
 
       try {
-        localStorage.removeItem("pepas_order");
+        almacenLocal.remove("orale_pedido");
       } catch (_) {
         // noop
       }
@@ -365,7 +371,7 @@ export default function Pago() {
 
       <div className="topnav">
         <div className="brand-wrap">
-          <img src={logo} alt="Pepas logo" className="brand-logo" />
+          <img src={logo} alt="Órale Taquería" className="brand-logo" />
           <div>
             <div className="brand-name">Órale Taquería</div>
             <div className="brand-sub">Tacos · Birria · Tequila</div>
@@ -393,7 +399,7 @@ export default function Pago() {
               return (
                 <div key={nombre} className="srow">
                   <span className="sl">{nombre} ×{qty}</span>
-                  <span className="sv">{fmt((CAFETERIA_PRECIOS[nombre] ?? 0) * qty)}</span>
+                  <span className="sv">{fmt((PRECIOS_MENU[nombre] ?? 0) * qty)}</span>
                 </div>
               );
             })}
@@ -423,7 +429,7 @@ export default function Pago() {
             <div className="pm-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--g700)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
             <div className="pm-info">
               <strong>Recoger en tienda / Comer aquí</strong>
-              <span>Ven a Pepas Coffee y recoge tu pedido. Sin costo de domicilio.</span>
+              <span>Ven a Órale Taquería y recoge tu pedido. Sin costo de domicilio.</span>
               <span className="pm-badge">Gratis</span>
             </div>
             <div className="pm-radio">{tipoEntrega === "recogida" ? "✓" : ""}</div>
@@ -469,6 +475,18 @@ export default function Pago() {
               {errors.fnotes && <span className="err-msg show">{errors.fnotes}</span>}
             </div>
           </div>
+        </div>
+
+        <div className="form-group full" ref={aceptaRef} style={{marginBottom:"1.2rem"}}>
+          <label className="consent">
+            <input type="checkbox" checked={acepta} onChange={(e) => { setAcepta(e.target.checked); if (e.target.checked) setErrors((p) => ({ ...p, acepta: undefined })); }} />
+            <span>
+              Autorizo el tratamiento de mis datos personales para gestionar este pedido y declaro que leí y acepto la{" "}
+              <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de Privacidad</a> y los{" "}
+              <a href="/terminos" target="_blank" rel="noopener noreferrer">Términos de Servicio</a>.
+            </span>
+          </label>
+          {errors.acepta && <span className="err-msg show">{errors.acepta}</span>}
         </div>
 
         {/* Forma de pago */}
@@ -533,7 +551,6 @@ export default function Pago() {
               {isSubmitting ? "Redirigiendo..." : "Pagar con transferencia"}
             </button>
           )}
-          <p className="fine">Al confirmar, el pedido se guarda directamente en el sistema para que aparezca en administración.</p>
         </div>
       </div>
     </>

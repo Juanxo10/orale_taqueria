@@ -1,6 +1,6 @@
 -- =============================================
 -- Migración: Soporte de pagos Wompi
--- Ejecutar en la base de datos pepasygranos
+-- Ejecutar en la base de datos de Órale Taquería
 -- =============================================
 
 -- 1. Agregar columna para el ID de transacción de Wompi en pedidos

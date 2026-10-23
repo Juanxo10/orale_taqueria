@@ -1,11 +1,12 @@
 const { Router } = require("express");
 const { crearSugerencia, listarSugerencias, marcarLeida, eliminarSugerencia } = require("../services/sugerenciaService");
 const { authenticate, requireAdmin } = require("../middlewares/authMiddleware");
+const limiters = require("../middlewares/limiters");
 
 const router = Router();
 
 // POST /api/sugerencias — enviar sugerencia (público)
-router.post("/", async (req, res) => {
+router.post("/", limiters.sugerencia, async (req, res) => {
   try {
     const { nombre, mensaje, tipo } = req.body;
     const result = await crearSugerencia({ nombre, mensaje, tipo });

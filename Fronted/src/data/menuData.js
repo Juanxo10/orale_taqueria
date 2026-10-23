@@ -1,7 +1,8 @@
-// Fuente única de verdad para productos y precios del menú (Orale Taquería, COP).
-// Usado por menu.jsx (armar pedido), pago.jsx (total a cobrar) y admin.jsx (inventario).
-// Debe reflejar exactamente lo que existe en la tabla `productos` (Backend/db/seed.sql,
-// que se regenera con `node Backend/scripts/genSeed.mjs`).
+// El menú vive en la BD (tabla productos, editable desde el admin) y se lee con useMenu().
+// MENU es el menú inicial: siembra la BD (`node Backend/scripts/genSeed.mjs`) y sirve de respaldo
+// mientras carga o si la API falla.
+import { useEffect, useState } from "react";
+import { API_URL } from "../config";
 
 export const DOM = 6000;
 
@@ -66,9 +67,36 @@ export const MENU = [
   ]},
 ];
 
-export const ALL_EXTRAS = MENU.flatMap((c) => c.items);
+let actual = MENU;
+let promesa = null;
+const oyentes = new Set(); // setState de cada useMenu montado: cargarMenu(true) los refresca a todos
 
-// Agrupa { nombre: cantidad } por categoría del menú: [{ cat, items: [[nombre, cantidad]] }]
-export const groupExtras = (extraItems = {}) =>
-  MENU.map((c) => ({ cat: c.cat, items: c.items.filter((i) => extraItems[i.name] > 0).map((i) => [i.name, extraItems[i.name]]) }))
-    .filter((g) => g.items.length);
+export const cargarMenu = (forzar = false) => {
+  if (forzar) promesa = null;
+  promesa ||= fetch(`${API_URL}/api/productos/menu`)
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((m) => { if (m.length) actual = m; oyentes.forEach((f) => f(actual)); return actual; })
+    .catch(() => { promesa = null; return actual; });
+  return promesa;
+};
+
+export function useMenu() {
+  const [menu, setMenu] = useState(actual);
+  useEffect(() => {
+    oyentes.add(setMenu);
+    cargarMenu().then(setMenu);
+    return () => oyentes.delete(setMenu);
+  }, []);
+  return menu;
+}
+
+// Agrupa { nombre: cantidad } por categoría del menú: [{ cat, items: [[nombre, cantidad]] }].
+// Lo que ya no está en el menú (productos archivados en pedidos viejos) va en "Otros".
+export const groupExtras = (extraItems = {}) => {
+  const enMenu = new Set(actual.flatMap((c) => c.items.map((i) => i.name)));
+  const otros = Object.entries(extraItems).filter(([n, q]) => q > 0 && !enMenu.has(n));
+  return [
+    ...actual.map((c) => ({ cat: c.cat, items: c.items.filter((i) => extraItems[i.name] > 0).map((i) => [i.name, extraItems[i.name]]) })),
+    { cat: "Otros", items: otros },
+  ].filter((g) => g.items.length);
+};

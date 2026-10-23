@@ -39,19 +39,6 @@ CREATE TABLE IF NOT EXISTS pedidos (
   creado_en      TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE TABLE IF NOT EXISTS bowls (
-  id        SERIAL PRIMARY KEY,
-  pedido_id INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
-  base_id   INTEGER REFERENCES productos(id),
-  bebida_id INTEGER REFERENCES productos(id)
-);
-
-CREATE TABLE IF NOT EXISTS bowl_items (
-  id          SERIAL PRIMARY KEY,
-  bowl_id     INTEGER NOT NULL REFERENCES bowls(id) ON DELETE CASCADE,
-  producto_id INTEGER NOT NULL REFERENCES productos(id)
-);
-
 CREATE TABLE IF NOT EXISTS pedido_extras (
   id          SERIAL PRIMARY KEY,
   pedido_id   INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,

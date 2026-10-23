@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
-import { groupExtras } from "../data/menuData";
+import { groupExtras, useMenu } from "../data/menuData";
+import logo from "../assets/Logo_tacos.jpg";
 
+import { almacenSesion } from "../data/almacen";
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bowlby+One&display=swap');
 :root{--g900:#1c1210;--g800:#fe2b24;--g700:#c81812;--g600:#e0241d;--g400:#fbba24;--g200:#f6d9b5;--g100:#fff1de;--gold:#fbba24;--cream:#f8f0e4;--border:#ecdcc6;--text:#1c1210;--muted:#7a6a60;--white:#fff;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(circle at top,#f9f5ea 0,#f8f0e4 42%,#fff1de 100%);color:var(--text);min-height:100vh;}
@@ -47,15 +49,52 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(circl
 .btn-secondary{background:#fff;border:1px solid var(--border);color:var(--g800);}
 .btn-secondary:hover{background:var(--g100);}
 @media(max-width:760px){.hero-grid,.layout{grid-template-columns:1fr;}.wrap{padding:1.2rem .9rem 4rem;}.hero{padding:1.35rem;}}
+
+/* Recibo: solo se ve al imprimir / guardar como PDF (A4, una columna, sin cortar filas entre páginas) */
+.recibo{display:none;}
+@media print{
+  @page{size:A4;margin:14mm;}
+  body{background:#fff !important;min-height:0;}
+  .topnav,.wrap{display:none !important;}
+  .recibo,.recibo *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .recibo{display:block;color:#1c1210;font-size:12px;line-height:1.5;}
+  .recibo .banda{background:#fe2b24;color:#fff;border-radius:10px 10px 0 0;padding:12px 16px;display:flex;align-items:center;gap:14px;}
+  .recibo .banda img{width:76px;height:76px;margin:-6px 0;border-radius:12px;object-fit:cover;flex-shrink:0;}
+  .recibo .marca{flex:1;}
+  .recibo .marca strong{display:block;font-family:'Bowlby One',Impact,sans-serif;font-weight:400;font-size:22px;line-height:1.1;}
+  .recibo .marca span{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#ffe3a1;}
+  .recibo .folio{text-align:right;background:#fbba24;color:#1c1210;border-radius:8px;padding:6px 12px;}
+  .recibo .folio span{display:block;font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;}
+  .recibo .folio strong{font-size:15px;}
+  .recibo .guirnalda{height:14px;margin-bottom:18px;background:conic-gradient(from 150deg at 12px 0,#fbba24 60deg,transparent 0),conic-gradient(from 150deg at 36px 0,#fff5e6 60deg,transparent 0),conic-gradient(from 150deg at 60px 0,#fe2b24 60deg,transparent 0);background-size:72px 14px;background-repeat:repeat-x;}
+  .recibo h2{font-family:'Bowlby One',Impact,sans-serif;font-weight:400;font-size:20px;color:#fe2b24;margin:0 0 2px;}
+  .recibo .sub{color:#7a6a60;margin-bottom:14px;}
+  .recibo dl{display:grid;grid-template-columns:96px 1fr;gap:4px 12px;margin-bottom:18px;padding:10px 12px;border:1px solid #ecdcc6;border-left:4px solid #fbba24;border-radius:6px;background:#fffaf2;}
+  .recibo dt{color:#7a6a60;}
+  .recibo dd{font-weight:700;}
+  .recibo table{width:100%;border-collapse:collapse;}
+  .recibo th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#fe2b24;border-bottom:2px solid #fe2b24;padding:6px 4px;}
+  .recibo td{padding:8px 4px;border-bottom:1px dashed #d9c3a5;vertical-align:top;}
+  .recibo tr{break-inside:avoid;}
+  .recibo .n{text-align:right;white-space:nowrap;}
+  .recibo td.n{color:#000;font-weight:600;font-variant-numeric:tabular-nums;}
+  .recibo .det{display:block;font-size:11px;color:#7a6a60;}
+  .recibo .total{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding:10px 14px;border-radius:8px;background:#fff1de;border:1.5px solid #fe2b24;font-size:16px;font-weight:800;break-inside:avoid;}
+  .recibo .total strong{font-weight:800;font-size:20px;color:#000;font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+  .recibo footer{margin-top:26px;padding-top:12px;border-top:1px dashed #d9c3a5;text-align:center;break-inside:avoid;}
+  .recibo footer strong{display:block;font-family:'Bowlby One',Impact,sans-serif;font-weight:400;font-size:15px;color:#fe2b24;margin-bottom:2px;}
+  .recibo footer span{font-size:11px;color:#7a6a60;}
+}
 `;
 
-const protName = (protein) => (typeof protein === "string" ? protein : protein?.name ?? "");
 const formatCurrency = (value) => "$" + Number(value || 0).toLocaleString("es-CO");
 
 export default function PedidoConfirmado() {
   const location = useLocation();
   const navigate = useNavigate();
   const [order, setOrder] = useState(() => location.state?.order ?? null);
+  const menu = useMenu(); // también re-renderiza al cargar el menú de la BD (groupExtras lo usa)
+  const precios = Object.fromEntries(menu.flatMap((c) => c.items).map((i) => [i.name, i.price]));
   // Estado real del pago Wompi: "aprobado" | "pendiente" | "rechazado" | "error" | null (no aplica, ej. contraentrega)
   const [paymentStatus, setPaymentStatus] = useState(null);
 
@@ -63,7 +102,7 @@ export default function PedidoConfirmado() {
     let ord = location.state?.order ?? null;
     if (!ord) {
       try {
-        const raw = sessionStorage.getItem("pepas_last_order");
+        const raw = almacenSesion.get("orale_ultimo_pedido");
         if (raw) ord = JSON.parse(raw);
       } catch (_) {
         // noop
@@ -167,24 +206,6 @@ export default function PedidoConfirmado() {
           <section className="card">
             <span className="section-title">Lo que pediste</span>
             <div className="line-list">
-              {order.bowls.map((bowl, index) => (
-                <article key={`${bowl.carb}-${index}`} className="line-item">
-                  <strong>Bowl {index + 1} · {bowl.carb}</strong>
-                  <p>
-                    Proteínas: {bowl.prots.map(protName).join(", ")}
-                    {bowl.tops?.length ? ` · Toppings: ${bowl.tops.join(", ")}` : ""}
-                    {bowl.bev ? ` · Bebida: ${bowl.bev}` : ""}
-                  </p>
-                  <div className="line-meta">
-                    {bowl.lechuga ? "Incluye lechuga" : "Sin lechuga"}
-                    {" · "}
-                    {bowl.vinagreta ? "Incluye vinagreta" : "Sin vinagreta"}
-                    {" · "}
-                    Caja +$1.000{bowl.bev ? " · Vaso +$1.000" : ""}
-                  </div>
-                </article>
-              ))}
-
               {groupExtras(order?.extraItems).map(({ cat, items }) => (
                 <article key={cat} className="line-item">
                   <strong>{cat}</strong>
@@ -202,15 +223,9 @@ export default function PedidoConfirmado() {
                   <span>Número de pedido</span>
                   <strong>{order.numero_pedido}</strong>
                 </div>
-                {order.bowls.length > 0 && (
-                  <div className="summary-row">
-                    <span>Bowls</span>
-                    <strong>{order.bowls.length}</strong>
-                  </div>
-                )}
                 {extras.length > 0 && (
                   <div className="summary-row">
-                    <span>Extras</span>
+                    <span>Productos</span>
                     <strong>{extras.reduce((sum, [, quantity]) => sum + quantity, 0)}</strong>
                   </div>
                 )}
@@ -267,6 +282,47 @@ export default function PedidoConfirmado() {
           )}
         </div>
       </div>
+
+      <section className="recibo" aria-hidden="true">
+        <div className="banda">
+          <img src={logo} alt="" />
+          <div className="marca">
+            <strong>Órale Taquería</strong>
+            <span>Tacos y antojitos mexicanos</span>
+          </div>
+          <div className="folio"><span>Pedido</span><strong>{order.numero_pedido}</strong></div>
+        </div>
+        <div className="guirnalda" />
+        <h2>¡Órale! Ya recibimos tu pedido</h2>
+        <p className="sub">{new Date().toLocaleString("es-CO", { dateStyle: "long", timeStyle: "short" })}</p>
+        <dl>
+          <dt>Cliente</dt><dd>{order.cliente.nombre} · {order.cliente.telefono}</dd>
+          <dt>Entrega</dt><dd>{order.cliente.direccion ? `${order.cliente.direccion}, ${order.cliente.barrio}` : "Recoger en tienda"}</dd>
+          {order.cliente.referencia && <><dt>Referencia</dt><dd>{order.cliente.referencia}</dd></>}
+          {order.cliente.notas && <><dt>Notas</dt><dd>{order.cliente.notas}</dd></>}
+          <dt>Pago</dt><dd>{metodoPagoLabel}</dd>
+        </dl>
+        <table>
+          <thead><tr><th>Lo que pediste</th><th className="n">Cant.</th><th className="n">Valor</th></tr></thead>
+          <tbody>
+            {extras.map(([name, quantity]) => (
+              <tr key={name}>
+                <td>{name}</td>
+                <td className="n">{quantity}</td>
+                <td className="n">{precios[name] ? formatCurrency(precios[name] * quantity) : ""}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <div className="total"><span>Total a pagar</span><strong>{formatCurrency(order.total)}</strong></div>
+        <footer>
+          <strong>¡Gracias por pedir en Órale!</strong>
+          <span>
+            {order.cliente.direccion ? "Entrega estimada 30-45 min. " : ""}
+            El total incluye domicilio y empaques cuando aplican. Si algo no está bien, escríbenos con tu número de pedido.
+          </span>
+        </footer>
+      </section>
     </>
   );
 }

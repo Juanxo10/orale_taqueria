@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { API_URL } from "../config";
+import { apiFetch } from "../data/api";
+import { esc } from "../data/html";
 
 const CSS = `
 .fac-wrap{display:flex;flex-direction:column;gap:1.5rem;}
@@ -26,7 +28,6 @@ const CSS = `
 
 const fmt = (n) => "$" + Math.round(n).toLocaleString("es-CO");
 const sum = (rows, k) => rows.reduce((t, r) => t + r[k], 0);
-const esc = (t) => String(t ?? "").replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[ch]);
 const agrupar = (rows, key) => {
   const g = {};
   for (const r of rows) {
@@ -53,7 +54,7 @@ export default function Facturacion({ token }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(`${API_URL}/api/facturacion?desde=${desde}&hasta=${hasta}&entregados=${soloEntregados}`, { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch(`${API_URL}/api/facturacion?desde=${desde}&hasta=${hasta}&entregados=${soloEntregados}`, { headers: { Authorization: `Bearer ${token}` } })
       .then(async (r) => {
         const d = await r.json();
         if (!r.ok) throw new Error(d.error || "Error");

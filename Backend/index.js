@@ -13,6 +13,12 @@ const tiendaRoutes = require("./routes/tienda");
 const wompiRoutes = require("./routes/wompi");
 const insumosRoutes = require("./routes/insumos");
 const facturacionRoutes = require("./routes/facturacion");
+const limiters = require("./middlewares/limiters");
+const pool = require("./db");
+const { validarEntorno, revisarClavesPorDefecto } = require("./utils/seguridadInicial");
+
+validarEntorno();
+const productosRoutes = require("./routes/productos");
 
 const app = express();
 
@@ -36,6 +42,19 @@ app.use(express.json({ limit: "1mb" }));
 // ─── Trust proxy (necesario para rate-limit detrás de reverse proxy / HTTPS) ─
 app.set("trust proxy", 1);
 
+// ─── Salud del servicio (Railway lo usa para saber si está vivo) ─────────────
+app.get("/health", async (_req, res) => {
+  try {
+    await pool.query("SELECT 1");
+    res.json({ ok: true });
+  } catch {
+    res.status(503).json({ ok: false });
+  }
+});
+
+// ─── Límite general de peticiones por IP ─────────────────────────────────────
+app.use("/api", limiters.global);
+
 // ─── Rutas ───────────────────────────────────────────────────────────────────
 app.use("/api/pedidos", pedidosRoutes);
 app.use("/api/auth", authRoutes);
@@ -45,6 +64,7 @@ app.use("/api/tienda", tiendaRoutes);
 app.use("/api/wompi", wompiRoutes);
 app.use("/api/insumos", insumosRoutes);
 app.use("/api/facturacion", facturacionRoutes);
+app.use("/api/productos", productosRoutes);
 
 // ─── Manejo de errores global ────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
@@ -53,10 +73,14 @@ app.use((err, req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  logger.info(`Servidor corriendo en http://localhost:${PORT}`);
-  warmup();
-  // Revisar pagos Wompi pendientes: inmediatamente y cada 1 minuto
-  setTimeout(revisarPendientesWompi, 10_000); // 10s después de arrancar
-  setInterval(revisarPendientesWompi, 60_000);
-});
+revisarClavesPorDefecto()
+  .catch((err) => logger.error({ err }, "No se pudo revisar las contraseñas del personal"))
+  .then(() => {
+    app.listen(PORT, () => {
+      logger.info(`Servidor corriendo en http://localhost:${PORT}`);
+      warmup();
+      // Revisar pagos Wompi pendientes: inmediatamente y cada 1 minuto
+      setTimeout(revisarPendientesWompi, 10_000); // 10s después de arrancar
+      setInterval(revisarPendientesWompi, 60_000);
+    });
+  });

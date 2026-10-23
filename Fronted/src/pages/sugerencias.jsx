@@ -231,6 +231,11 @@ export default function Sugerencias() {
                     )}
                   </AnimatePresence>
 
+                  <p className="text-xs leading-relaxed opacity-80 text-center">
+                    Al enviar aceptas que usemos tu mensaje y tu nombre (opcional) solo para atenderlo, según nuestra{" "}
+                    <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline font-bold">Política de Privacidad</a>.
+                  </p>
+
                   <motion.button
                     type="submit"
                     disabled={state === "loading"}

@@ -1,5 +1,6 @@
 const { Router } = require("express");
-const { authenticate, requireAdmin } = require("../middlewares/authMiddleware");
+const { authenticate, requireAdmin, requireStaff } = require("../middlewares/authMiddleware");
+const limiters = require("../middlewares/limiters");
 const { crearPedido, listarPedidos, cambiarEstado } = require("../services/pedidoService");
 const { obtenerEstadisticas } = require("../services/estadisticaService");
 
@@ -17,8 +18,8 @@ router.get("/estadisticas", authenticate, requireAdmin, async (req, res) => {
   }
 });
 
-// GET /api/pedidos — listar todos los pedidos para el admin
-router.get("/", async (_req, res) => {
+// GET /api/pedidos — listar todos los pedidos (personal autenticado: incluye datos de clientes)
+router.get("/", authenticate, requireStaff, async (_req, res) => {
   try {
     const pedidos = await listarPedidos();
     res.json(pedidos);
@@ -29,7 +30,7 @@ router.get("/", async (_req, res) => {
 });
 
 // POST /api/pedidos — crear un pedido nuevo
-router.post("/", async (req, res) => {
+router.post("/", limiters.crearPedido, async (req, res) => {
   try {
     const result = await crearPedido(req.body);
     res.status(201).json(result);
@@ -42,9 +43,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-// PATCH /api/pedidos/:id/estado — cambiar estado desde admin
-router.patch("/:id/estado", async (req, res) => {
+// PATCH /api/pedidos/:id/estado — cambiar estado (personal autenticado)
+router.patch("/:id/estado", authenticate, requireStaff, async (req, res) => {
   try {
+    if (!/^\d+$/.test(req.params.id)) return res.status(400).json({ error: "Id inválido" });
     const { estado } = req.body;
     const updated = await cambiarEstado(req.params.id, estado);
     res.json(updated);

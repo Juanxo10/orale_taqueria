@@ -1,11 +1,14 @@
 import { Fragment, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
-import { MENU, groupExtras } from "../data/menuData";
+import { useMenu, cargarMenu, groupExtras } from "../data/menuData";
 import Facturacion from "../components/Facturacion";
 import Insumos from "../components/Insumos";
 import logo from "../assets/Logo_tacos.jpg";
 
+import { almacenLocal } from "../data/almacen";
+import { apiFetch } from "../data/api";
+import { esc } from "../data/html";
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 
 const fmtHora = (d) =>
@@ -487,6 +490,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 
 /* ─── INVENTARIO ─── */
 .inv-page{padding:1.5rem 2rem 3rem;max-width:960px;width:100%;}
+.inv-page.wide{max-width:1800px;}
 .inv-page h2{font-size:1.5rem;font-weight:800;color:var(--g800);margin-bottom:1.5rem;letter-spacing:-.5px;}
 .inv-section{margin-bottom:1.8rem;}
 .inv-section-title{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.75rem;padding-bottom:.4rem;border-bottom:1px solid var(--border);}
@@ -570,8 +574,6 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 }
 `;
 
-const INVENTARIO_GRUPOS = MENU.map(({ cat, items }) => ({ cat, items: items.map((i) => i.name) }));
-
 const FILTERS = [
   { key: "todos", label: "Todos" },
   { key: "nuevo", label: "Nuevos" },
@@ -591,6 +593,7 @@ const fmtDate = (d) =>
   new Date(d).toLocaleDateString("es-CO", { weekday: "long", day: "numeric", month: "long" });
 
 export default function Admin() {
+  const menu = useMenu();
   const [orders, setOrders] = useState([]);
   const [filterStatus, setFilterStatus] = useState("todos");
   const [search, setSearch] = useState("");
@@ -637,13 +640,13 @@ export default function Admin() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("adminUser");
+    almacenLocal.remove("token");
+    almacenLocal.remove("adminUser");
     navigate("/login");
   };
 
   useEffect(() => {
-    fetch(`${API_URL}/api/tienda/estado`)
+    apiFetch(`${API_URL}/api/tienda/estado`)
       .then((r) => r.json())
       .then((d) => setTiendaAbierta(d.abierto))
       .catch(() => setTiendaAbierta(false));
@@ -658,7 +661,7 @@ export default function Admin() {
         setConfirmModal(null);
         setCajaCargando(true);
         try {
-          const res = await fetch(`${API_URL}/api/tienda/estado`, { method: "PATCH", headers: authHeaders });
+          const res = await apiFetch(`${API_URL}/api/tienda/estado`, { method: "PATCH", headers: authHeaders });
           const d = await res.json();
           setTiendaAbierta(d.abierto);
         } catch (err) {
@@ -670,7 +673,7 @@ export default function Admin() {
   };
 
   const fetchProductos = () => {
-    fetch(`${API_URL}/api/tienda/productos`)
+    apiFetch(`${API_URL}/api/tienda/productos`)
       .then((r) => r.json())
       .then((d) => setProductosDesactivados(new Set(d.desactivados)))
       .catch(() => {});
@@ -681,7 +684,7 @@ export default function Admin() {
     const ejecutar = async () => {
       setInvCargando(true);
       try {
-        const res = await fetch(`${API_URL}/api/tienda/productos/${encodeURIComponent(nombre)}`, {
+        const res = await apiFetch(`${API_URL}/api/tienda/productos/${encodeURIComponent(nombre)}`, {
           method: "PATCH",
           headers: authHeaders,
         });
@@ -745,8 +748,8 @@ export default function Admin() {
   };
 
   const fetchOrders = () => {
-    fetch(`${API_URL}/api/pedidos?_=${Date.now()}`)
-      .then((r) => r.json())
+    apiFetch(`${API_URL}/api/pedidos?_=${Date.now()}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
       .then((data) => {
         setOrders(data);
         setOrdersLoading(false);
@@ -787,7 +790,7 @@ export default function Admin() {
               body: nuevos.length === 1
                 ? `Valor: ${fmt(nuevos[0].total)} · ${nuevos[0].addr}`
                 : "Revisa el panel de administración",
-              icon: "/favicon.ico",
+              icon: "/orale-icon.png",
               tag: "nuevo-pedido",
             });
           }
@@ -810,7 +813,7 @@ export default function Admin() {
     if (desde) params.set("desde", desde);
     if (hasta) params.set("hasta", hasta);
     const qs = params.toString();
-    fetch(`${API_URL}/api/pedidos/estadisticas${qs ? `?${qs}` : ""}`, { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } })
+    apiFetch(`${API_URL}/api/pedidos/estadisticas${qs ? `?${qs}` : ""}`, { headers: { Authorization: `Bearer ${almacenLocal.get("token")}` } })
       .then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then((data) => { setStats(data); setStatsLoading(false); })
       .catch((err) => { console.error("Error al cargar estadísticas:", err); setStatsLoading(false); });
@@ -821,14 +824,14 @@ export default function Admin() {
     fetchStats();
   }, [view]);
 
-  const token = localStorage.getItem("token");
-  const adminUser = JSON.parse(localStorage.getItem("adminUser") || "{}");
+  const token = almacenLocal.get("token");
+  const adminUser = JSON.parse(almacenLocal.get("adminUser") || "{}");
   const isAdmin = adminUser.rol === "admin";
   const authHeaders = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
   const fetchStaff = () => {
     setStaffLoading(true);
-    fetch(`${API_URL}/api/staff`, { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch(`${API_URL}/api/staff`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => { setStaffList(data); setStaffLoading(false); })
       .catch(() => setStaffLoading(false));
@@ -841,7 +844,7 @@ export default function Admin() {
   const fetchSugerencias = (soloNuevas = false) => {
     setSugLoading(true);
     const qs = soloNuevas ? "?noLeidas=true" : "";
-    fetch(`${API_URL}/api/sugerencias${qs}`, { headers: { Authorization: `Bearer ${token}` } })
+    apiFetch(`${API_URL}/api/sugerencias${qs}`, { headers: { Authorization: `Bearer ${token}` } })
       .then((r) => r.json())
       .then((data) => { setSugerencias(Array.isArray(data) ? data : []); setSugLoading(false); })
       .catch(() => setSugLoading(false));
@@ -853,13 +856,13 @@ export default function Admin() {
 
   const eliminarSugerencia = async (id) => {
     if (!window.confirm("¿Eliminar este mensaje definitivamente? No se puede deshacer.")) return;
-    const res = await fetch(`${API_URL}/api/sugerencias/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+    const res = await apiFetch(`${API_URL}/api/sugerencias/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.error || "No se pudo eliminar"); return; }
     setSugerencias((prev) => prev.filter((s) => s.id !== id));
   };
 
   const marcarLeida = async (id) => {
-    await fetch(`${API_URL}/api/sugerencias/${id}/leida`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
+    await apiFetch(`${API_URL}/api/sugerencias/${id}/leida`, { method: "PATCH", headers: { Authorization: `Bearer ${token}` } });
     setSugerencias((prev) => prev.map((s) => s.id === id ? { ...s, leida: true } : s));
   };
 
@@ -883,7 +886,7 @@ export default function Admin() {
     try {
       const url = editingUser ? `${API_URL}/api/staff/${editingUser.id}` : `${API_URL}/api/staff`;
       const method = editingUser ? "PUT" : "POST";
-      const res = await fetch(url, { method, headers: authHeaders, body: JSON.stringify(formData) });
+      const res = await apiFetch(url, { method, headers: authHeaders, body: JSON.stringify(formData) });
       const data = await res.json();
       if (!res.ok) { setFormError(data.error || "Error al guardar"); setFormSaving(false); return; }
       setShowModal(false);
@@ -894,7 +897,7 @@ export default function Admin() {
 
   const toggleUser = async (id) => {
     try {
-      await fetch(`${API_URL}/api/staff/${id}/toggle`, { method: "PATCH", headers: authHeaders });
+      await apiFetch(`${API_URL}/api/staff/${id}/toggle`, { method: "PATCH", headers: authHeaders });
       fetchStaff();
     } catch (err) { console.error(err); }
   };
@@ -902,11 +905,12 @@ export default function Admin() {
   const changeStatus = async (id, val) => {
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: val } : o)));
     try {
-      await fetch(`${API_URL}/api/pedidos/${id}/estado`, {
+      const res = await apiFetch(`${API_URL}/api/pedidos/${id}/estado`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: val }),
       });
+      if (!res.ok) fetchOrders(); // el cambio no se guardó: volver a mostrar el estado real
     } catch (err) {
       console.error("Error al cambiar estado:", err);
     }
@@ -916,34 +920,13 @@ export default function Admin() {
     setOrders((prev) => prev.filter((o) => o.id !== id));
   };
 
-  const groupItems = (arr) => {
-    const counts = {};
-    arr.forEach((x) => { counts[x] = (counts[x] || 0) + 1; });
-    return Object.entries(counts).map(([name, count]) => ({ name, count }));
-  };
-
   const printOrder = (o) => {
-    const grp = (arr) => {
-      const c = {}; arr.forEach(x => { c[x] = (c[x] || 0) + 1; });
-      return Object.entries(c).map(([n, cnt]) => cnt > 1 ? `${n} x${cnt}` : n).join(", ");
-    };
-    const bowlRows = o.bowls.map((b, i) => {
-      const allIngredients = [];
-      if (b.base) allIngredients.push(`<b>${b.base.toUpperCase()}</b>`);
-      (b.incluidos || []).forEach(x => allIngredients.push(x));
-      grp(b.toppings).split(", ").filter(Boolean).forEach(x => allIngredients.push(x));
-      grp(b.proteinas).split(", ").filter(Boolean).forEach(x => allIngredients.push(`<b>${x}</b>`));
-      if (b.bebida) allIngredients.push(`Bebida: ${b.bebida}`);
-      if (b.caja > 0) allIngredients.push(`Caja`);
-      if (b.vaso > 0) allIngredients.push(`Vaso`);
-      return `<div class="bowl"><div class="bowl-num">&#9632; BOWL ${i + 1}</div><div class="ingredients">${allIngredients.join(" &nbsp;|&nbsp; ")}</div></div>`;
-    }).join("");
     const extras = groupExtras(o.extraItems).map(({ cat, items }) =>
-      `<div class="divider"></div><div class="section-lbl">${cat.toUpperCase()}</div><div class="extra-list">${items.map(([n,q]) => `<div class="extra-row"><span>${n}</span><span>x${q}</span></div>`).join("")}</div>`
+      `<div class="divider"></div><div class="section-lbl">${esc(cat.toUpperCase())}</div><div class="extra-list">${items.map(([n,q]) => `<div class="extra-row"><span>${esc(n)}</span><span>x${esc(q)}</span></div>`).join("")}</div>`
     ).join("");
     const entrega = o.tipo_entrega === "recogida"
       ? `<div class="addr-type">&#9632; RECOGE EN TIENDA</div>`
-      : `<div class="addr-type">&#9632; DOMICILIO</div><div class="addr-text">${o.addr}, ${o.barrio}${o.ref ? `<br>${o.ref}` : ""}</div>`;
+      : `<div class="addr-type">&#9632; DOMICILIO</div><div class="addr-text">${esc(o.addr)}, ${esc(o.barrio)}${o.ref ? `<br>${esc(o.ref)}` : ""}</div>`;
     const now = new Date().toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
     const date = new Date().toLocaleDateString("es-CO", { day: "2-digit", month: "2-digit", year: "numeric" });
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Pedido #${o.id}</title><style>
@@ -958,8 +941,6 @@ export default function Admin() {
       .client-name{font-size:16px;font-weight:900;text-transform:uppercase;line-height:1.3;}
       .client-tel{font-size:13px;font-weight:700;margin-top:2px;}
       .section-lbl{font-size:10px;font-weight:900;letter-spacing:3px;text-transform:uppercase;margin:10px 0 5px;}
-      .bowl{border:2px solid #000;padding:7px 9px;margin-bottom:7px;}
-      .bowl-num{font-size:13px;font-weight:900;letter-spacing:1px;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid #000;}
       .ingredients{font-size:13px;line-height:1.8;}
       .extra-list{border:2px solid #000;padding:6px 9px;}
       .extra-row{display:flex;justify-content:space-between;font-size:13px;font-weight:700;padding:2px 0;border-bottom:1px dashed #000;}
@@ -980,11 +961,10 @@ export default function Admin() {
         <div class="pedido-num">Pedido #${o.id}</div>
       </div>
       <div class="client-block">
-        <div class="client-name">${o.nombre}</div>
-        <div class="client-tel">${o.tel}</div>
+        <div class="client-name">${esc(o.nombre)}</div>
+        <div class="client-tel">${esc(o.tel)}</div>
       </div>
-      ${o.bowls.length ? '<div class="section-lbl">Bowls</div>' : ""}
-      ${bowlRows}${extras}
+      ${extras}
       <div class="entrega-block">${entrega}</div>
       <div class="total-block"><span class="total-lbl">Total</span><span class="total-val">${fmt(o.total)}</span></div>
     </body></html>`;
@@ -996,12 +976,7 @@ export default function Admin() {
   };
 
   const sendWA = (o, tipo) => {
-    const bowlLines = o.bowls
-      .map((b, i) =>
-        `Bowl ${i + 1}: ${b.base}${(b.incluidos || []).length ? " | Incluye: " + b.incluidos.join(", ") : ""} | Toppings: ${groupItems(b.toppings).map(({name,count}) => count > 1 ? `${name} x${count}` : name).join(", ")} | Proteína: ${groupItems(b.proteinas).map(({name,count}) => count > 1 ? `${name} x${count}` : name).join(", ")}${b.bebida ? " | Bebida: " + b.bebida : ""}`
-      )
-      ;
-    const lines = [...bowlLines, ...Object.entries(o.extraItems || {}).map(([n, q]) => `${n} x${q}`)].join("\n");
+    const lines = Object.entries(o.extraItems || {}).map(([n, q]) => `${n} x${q}`).join("\n");
     const msg = tipo === "entregado"
       ? `Hola ${o.nombre}, tu pedido Órale Tacos fue entregado. ¡Gracias por tu compra! 🌮\n\n${lines}\n\nTotal: ${fmt(o.total)}`
       : `Hola ${o.nombre}, tu pedido Órale Tacos esta en camino.\n\n${lines}\n\nTotal: ${fmt(o.total)}\n\nLlega en aprox. 15 min.`;
@@ -1213,25 +1188,7 @@ export default function Admin() {
                         <div className="client-phone">{o.tel}</div>
                       </div>
                     </div>
-                    {o.bowls.length > 0 && <>
-                    <span className="oc-section-lbl">Bowls</span>
-                    <div className="bowl-list">
-                      {o.bowls.map((b, i) => (
-                        <div key={i} className="bowl-item">
-                          <div className="bowl-item-title">Bowl {i + 1}</div>
-                          <div className="bowl-tags">
-                            {b.base && <span className="btag carbo">{b.base}</span>}
-                            {(b.incluidos || []).map((inc) => <span key={inc} className="btag inc">{inc}</span>)}
-                            {groupItems(b.toppings).map(({name,count}) => <span key={name} className="btag topping">{count > 1 ? `${name} x${count}` : name}</span>)}
-                            {groupItems(b.proteinas).map(({name,count}) => <span key={name} className="btag prot">{count > 1 ? `${name} x${count}` : name}</span>)}
-                            {b.bebida && <span className="btag bev">{b.bebida}</span>}
-                            {b.caja > 0 && <span className="btag" style={{background:"#fef9ec",color:"#92400e",border:"1px solid #f5d88a"}}>Caja +{fmt(b.caja)}</span>}
-                            {b.vaso > 0 && <span className="btag" style={{background:"#eff6ff",color:"#1e40af",border:"1px solid #bfdbfe"}}>Vaso +{fmt(b.vaso)}</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    </>}
+                    
                     {groupExtras(o.extraItems).map(({ cat, items }) => (
                       <Fragment key={cat}>
                         <span className="oc-section-lbl">{cat}</span>
@@ -1259,7 +1216,7 @@ export default function Admin() {
                   <div className="oc-footer">
                     <div>
                       <div className="price-total">{fmt(o.total)}</div>
-                      <div className="price-sub">{o.bowls.length > 0 && `${o.bowls.length} bowl${o.bowls.length !== 1 ? "s" : ""}${Object.keys(o.extraItems || {}).length > 0 ? " + " : ""}`}{Object.keys(o.extraItems || {}).length > 0 && "productos"}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
+                      <div className="price-sub">{Object.keys(o.extraItems || {}).length > 0 && "productos"}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
                     </div>
                     <div className="footer-actions">
                       <button className="btn-print" onClick={() => printOrder(o)} title="Imprimir ticket de cocina">🖨️ Imprimir</button>
@@ -1349,25 +1306,7 @@ export default function Admin() {
                             <div className="client-phone">{o.tel}</div>
                           </div>
                         </div>
-                        {o.bowls.length > 0 && <>
-                        <span className="oc-section-lbl">Bowls</span>
-                        <div className="bowl-list">
-                          {o.bowls.map((b, i) => (
-                            <div key={i} className="bowl-item">
-                              <div className="bowl-item-title">Bowl {i + 1}</div>
-                              <div className="bowl-tags">
-                                {b.base && <span className="btag carbo">{b.base}</span>}
-                                {(b.incluidos || []).map((inc) => <span key={inc} className="btag inc">{inc}</span>)}
-                                {groupItems(b.toppings).map(({name,count}) => <span key={name} className="btag topping">{count > 1 ? `${name} x${count}` : name}</span>)}
-                                {groupItems(b.proteinas).map(({name,count}) => <span key={name} className="btag prot">{count > 1 ? `${name} x${count}` : name}</span>)}
-                                {b.bebida && <span className="btag bev">{b.bebida}</span>}
-                                {b.caja > 0 && <span className="btag" style={{background:"#fef9ec",color:"#92400e",border:"1px solid #f5d88a"}}>Caja +{fmt(b.caja)}</span>}
-                                {b.vaso > 0 && <span className="btag" style={{background:"#eff6ff",color:"#1e40af",border:"1px solid #bfdbfe"}}>Vaso +{fmt(b.vaso)}</span>}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        </>}
+                        
                         {groupExtras(o.extraItems).map(({ cat, items }) => (
                           <Fragment key={cat}>
                             <span className="oc-section-lbl">{cat}</span>
@@ -1395,7 +1334,7 @@ export default function Admin() {
                       <div className="oc-footer">
                         <div>
                           <div className="price-total">{fmt(o.total)}</div>
-                          <div className="price-sub">{o.bowls.length > 0 && `${o.bowls.length} bowl${o.bowls.length !== 1 ? "s" : ""}${Object.keys(o.extraItems || {}).length > 0 ? " + " : ""}`}{Object.keys(o.extraItems || {}).length > 0 && "productos"}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
+                          <div className="price-sub">{Object.keys(o.extraItems || {}).length > 0 && "productos"}{o.tipo_entrega === "recogida" ? " · recogida" : " + domicilio"}</div>
                         </div>
                         <div className="footer-actions">
                           <span className="done-text">{statusLabel(o.status, o.estado_pago)}</span>
@@ -1547,7 +1486,7 @@ export default function Admin() {
                 <h3>Ventas por categoría</h3>
                 <div className="bar-chart">
                   {(() => {
-                    const catDe = Object.fromEntries(MENU.flatMap((c) => c.items.map((i) => [i.name, c.cat])));
+                    const catDe = Object.fromEntries(menu.flatMap((c) => c.items.map((i) => [i.name, c.cat])));
                     const porCat = {};
                     for (const pr of stats.productos) {
                       const c = (porCat[catDe[pr.nombre] || "Otros"] ||= { cat: catDe[pr.nombre] || "Otros", cantidad: 0, ingresos: 0 });
@@ -1852,20 +1791,20 @@ export default function Admin() {
 
       {/* INVENTARIO */}
       {view === "inventario" && (
-        <div className="inv-page">
+        <div className={`inv-page${invTab === "insumos" ? " wide" : ""}`}>
           <h2>Inventario</h2>
           <div className="filter-tabs" style={{ marginBottom: "1.2rem" }}>
             <button className={`ftab${invTab === "disponibilidad" ? " active" : ""}`} onClick={() => setInvTab("disponibilidad")}>Disponibilidad de productos</button>
             {isAdmin && <button className={`ftab${invTab === "insumos" ? " active" : ""}`} onClick={() => setInvTab("insumos")}>Materia prima</button>}
           </div>
           {invTab === "insumos" && isAdmin && (
-            <Insumos token={token} isAdmin={isAdmin} productos={INVENTARIO_GRUPOS.flatMap((g) => g.items)} />
+            <Insumos token={token} isAdmin={isAdmin} menu={menu} recargarMenu={() => cargarMenu(true)} />
           )}
-          {invTab === "disponibilidad" && INVENTARIO_GRUPOS.map(({ cat, items }) => (
+          {invTab === "disponibilidad" && menu.map(({ cat, items }) => (
             <div key={cat} className="inv-section">
               <div className="inv-section-title">{cat}</div>
               <div className="inv-grid">
-                {items.map((nombre) => {
+                {items.map(({ name: nombre }) => {
                   const agotado = productosDesactivados.has(nombre);
                   return (
                     <div key={nombre} className={`inv-item${agotado ? " agotado" : ""}`}>

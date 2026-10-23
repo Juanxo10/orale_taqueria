@@ -21,12 +21,12 @@ const userValidation = [
 
 const createValidation = [
   ...userValidation,
-  body("password").notEmpty().withMessage("La contraseña es requerida").isLength({ min: 6 }).withMessage("Mínimo 6 caracteres"),
+  body("password").notEmpty().withMessage("La contraseña es requerida").isLength({ min: 10 }).withMessage("Mínimo 10 caracteres"),
 ];
 
 const updateValidation = [
   ...userValidation,
-  body("password").optional({ values: "falsy" }).isLength({ min: 6 }).withMessage("Mínimo 6 caracteres"),
+  body("password").optional({ values: "falsy" }).isLength({ min: 10 }).withMessage("Mínimo 10 caracteres"),
 ];
 
 function handleErrors(req, res, next) {

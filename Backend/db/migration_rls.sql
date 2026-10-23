@@ -1,6 +1,4 @@
 -- Cierra la API REST de Supabase (PostgREST). Sin politicas: solo el backend (rol postgres) accede.
-ALTER TABLE public.bowl_items ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.bowls ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.configuracion ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.insumos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pedido_extras ENABLE ROW LEVEL SECURITY;

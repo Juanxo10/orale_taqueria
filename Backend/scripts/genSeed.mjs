@@ -12,3 +12,20 @@ ON CONFLICT (clave) DO NOTHING;
 INSERT INTO productos (nombre, tipo, precio) VALUES
 ${rows.join("\n")}
 `);
+
+// Categoría, descripción y orden de cada producto (menú en la BD). Solo rellena lo que aún no tiene categoría.
+const nul = (s) => (s ? `'${q(s)}'` : "NULL");
+const cats = MENU.map((c, ci) => `  ('${q(c.cat)}', ${nul(c.note)}, ${ci})`);
+const prods = MENU.flatMap((c) => c.items.map((i, ii) => `  ('${q(i.name)}', '${q(c.cat)}', ${nul(i.desc)}, ${ii})`));
+writeFileSync(new URL("../db/seed_menu.sql", import.meta.url),
+`-- Generado por scripts/genSeed.mjs desde Fronted/src/data/menuData.js (Orale Taquería)
+INSERT INTO categorias (nombre, nota, orden) VALUES
+${cats.join(",\n")}
+ON CONFLICT (nombre) DO NOTHING;
+
+UPDATE productos p SET categoria = v.cat, descripcion = v.descr, orden = v.orden
+FROM (VALUES
+${prods.join(",\n")}
+) AS v(nombre, cat, descr, orden)
+WHERE p.nombre = v.nombre AND p.tipo = 'extra' AND p.categoria IS NULL;
+`);

@@ -5,6 +5,7 @@ import { API_URL } from "../config";
 import logo from "../assets/Logo_tacos.jpg";
 import { SideTaco } from "../components/PageHeader";
 
+import { almacenLocal } from "../data/almacen";
 const input =
   "w-full bg-white border-2 border-[#e6d3b8] rounded-2xl px-4 py-3 font-body-md text-base text-on-primary placeholder:text-[#8c6f64] outline-none transition-all focus:border-primary-container focus:ring-4 focus:ring-primary-container/20";
 
@@ -35,9 +36,9 @@ export default function Login() {
         return;
       }
 
-      localStorage.setItem("token", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("adminUser", JSON.stringify(data.user));
+      almacenLocal.set("token", data.accessToken);
+      almacenLocal.set("refreshToken", data.refreshToken);
+      almacenLocal.set("adminUser", JSON.stringify(data.user));
       navigate("/admin");
     } catch {
       setError("Error de conexión con el servidor");

@@ -12,8 +12,9 @@ const router = Router();
 function verifyWompiSignature(body) {
   const secret = process.env.WOMPI_EVENTS_SECRET;
   if (!secret) {
-    logger.warn("WOMPI_EVENTS_SECRET no configurado — saltando verificación");
-    return true; // Configura el secreto para activar la verificación
+    // Sin secreto no se puede comprobar quién envía el evento: se rechaza (si no, cualquiera podría aprobar o cancelar pedidos)
+    logger.error("WOMPI_EVENTS_SECRET no configurado — webhook rechazado");
+    return false;
   }
 
   const properties = body?.signature?.properties ?? [];
@@ -22,18 +23,21 @@ function verifyWompiSignature(body) {
 
   if (!checksum || !timestamp) return false;
 
-  // Concatenar valores de cada propiedad (navegación por punto)
+  // Concatenar valores de cada propiedad (navegación por punto). Según la documentación de Wompi,
+  // las propiedades (p. ej. "transaction.id") se leen dentro de `data`, no en la raíz del evento.
   let toHash = "";
   for (const prop of properties) {
     const parts = prop.split(".");
-    let value = body;
+    let value = body?.data;
     for (const part of parts) value = value?.[part];
     toHash += value !== undefined && value !== null ? String(value) : "";
   }
   toHash += String(timestamp) + secret;
 
   const hash = crypto.createHash("sha256").update(toHash).digest("hex");
-  return hash === checksum;
+  const a = Buffer.from(hash);
+  const b = Buffer.from(String(checksum));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 // ─── POST /api/wompi/webhook ─────────────────────────────────────────────────

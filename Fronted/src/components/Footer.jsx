@@ -1,10 +1,16 @@
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/Logo_tacos.jpg";
+import { abrirPreferencias } from "../data/preferencias";
 
 const LINKS = [
   { label: "Menú", to: "/menu" },
   { label: "Ubicación", to: "/ubicacion" },
   { label: "Sugerencias y reclamos", to: "/sugerencias" },
+];
+
+const LEGAL = [
+  { label: "Política de Privacidad", to: "/privacidad" },
+  { label: "Términos de Servicio", to: "/terminos" },
 ];
 
 const SOCIAL =
@@ -62,12 +68,22 @@ export default function Footer() {
             © {new Date().getFullYear()} Órale Tacos. Todos los derechos reservados.
           </span>
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-1">
-            <a className="font-label-md text-xs text-on-surface-variant hover:text-primary" href="#">
-              Política de Privacidad
-            </a>
-            <a className="font-label-md text-xs text-on-surface-variant hover:text-primary" href="#">
-              Términos de Servicio
-            </a>
+            {LEGAL.map((l) => (
+              <a
+                key={l.to}
+                className="font-label-md text-xs text-on-surface-variant hover:text-primary"
+                href={l.to}
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigate(l.to);
+                }}
+              >
+                {l.label}
+              </a>
+            ))}
+            <button type="button" className="font-label-md text-xs text-on-surface-variant hover:text-primary" onClick={abrirPreferencias}>
+              Preferencias de cookies
+            </button>
           </div>
         </div>
       </div>

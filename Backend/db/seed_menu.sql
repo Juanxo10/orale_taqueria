@@ -1,0 +1,57 @@
+-- Generado por scripts/genSeed.mjs desde Fronted/src/data/menuData.js (Orale Taquería)
+INSERT INTO categorias (nombre, nota, orden) VALUES
+  ('Entradas', NULL, 0),
+  ('Tacos', NULL, 1),
+  ('Bebidas de la casa', NULL, 2),
+  ('Sodas artesanales', NULL, 3),
+  ('Otras bebidas', NULL, 4),
+  ('Cocteles', NULL, 5),
+  ('Quesadillas', NULL, 6),
+  ('Pizzas', 'Todas nuestras pizzas nacen de nuestra masa artesanal, preparada en casa.', 7),
+  ('Exclusivos del restaurante', NULL, 8)
+ON CONFLICT (nombre) DO NOTHING;
+
+UPDATE productos p SET categoria = v.cat, descripcion = v.descr, orden = v.orden
+FROM (VALUES
+  ('Nachada', 'Entradas', '¡Chulada! Nachos bien crujientes con puerco deshebrado, bañados en frijoles refritos y rematados con pico de gallo fresco, guacamole cremoso, piña dulce, queso rallado y nuestras salsas de la casa, pa'' darle el sabor chingón.', 0),
+  ('Las Tostaditas', 'Entradas', '¡A huevo, qué crujiente! Cuatro tortillas de maíz doradas, cubiertas con frijol refrito, guacamole y pico de gallo fresco. Una entrada ligera y perfecta para abrir el apetito.', 1),
+  ('Totopos Chingones', 'Entradas', '¡Éntrale sin miedo! Totopos de maíz dorados y crujientes, acompañados de guacamole, pico de gallo y salsa de la casa. Una entrada para compartir al puro estilo Órale.', 2),
+  ('Tacos Carnitas', 'Tacos', '¡A huevo! Tacos de carnitas hechas con carne de cerdo cocida en su propia grasa y espolvoreada con totopos crujientes triturados, servidos en tortillas de maíz y acompañadas de nuestra salsa Veracruz, cebolla y cilantro. Un clásico mexicano.', 0),
+  ('Tacos de Birria', 'Tacos', '¡Órale! Tacos bien cargados de birria de res jugosa y sazonada, dorados con queso hasta quedar brutales. Van con cebolla, cilantro y su caldito aparte. Un taco que nunca falla.', 1),
+  ('Tacos Rancheros', 'Tacos', '¡Qué chido! Carne molida de res mezclada con chorizo criollo, cocinada con cebolla y especias al estilo tradicional. Servidos en tortillas suaves de maíz, con un sabor ranchero claro y sin rodeos.', 2),
+  ('Tacos al Pastor', 'Tacos', '¡De pelos! Jugoso puerco al pastor, bien marinado en especias, servido en tortillas de maíz con piña caramelizada, cebolla y cilantro. Un clásico taquero.', 3),
+  ('Tacos de Cochinita Pibil', 'Tacos', '¡Porky! Tacos de cochinita pibil, con carne de cerdo desmenuzada y marinada en achiote y jugo cítrico, servida con cebolla morada, lágrimas de limón y cilantro. Un sabor de Yucatán.', 4),
+  ('La Hijuebirria', 'Tacos', '¡No te hagas, traes hambre! Seis tacos de birria bien servidos, doraditos con queso, cebolla y cilantro, acompañados de su consomé. Una orden grande, jugosa y sin miedo pa'' los que vienen a darle con todo.', 5),
+  ('Taquiza Órale', 'Tacos', '¿No sabes qué elegir? Llévate los tres: pastor, birria y carnitas. Seis taquitos bien servidos, llenos de sabor y tradición, ideales para compartir... o para no compartir.', 6),
+  ('Flor de Jamaica', 'Bebidas de la casa', NULL, 0),
+  ('Tamarindo', 'Bebidas de la casa', NULL, 1),
+  ('Agua de Horchata', 'Bebidas de la casa', NULL, 2),
+  ('Frutos Rojos', 'Sodas artesanales', NULL, 0),
+  ('Frutos Amarillos', 'Sodas artesanales', NULL, 1),
+  ('Sandía Limón', 'Sodas artesanales', NULL, 2),
+  ('Gaseosa', 'Otras bebidas', NULL, 0),
+  ('Cervezas', 'Otras bebidas', NULL, 1),
+  ('Estella', 'Otras bebidas', NULL, 2),
+  ('Botella de Tequila', 'Otras bebidas', NULL, 3),
+  ('Margarita', 'Cocteles', '¡Arriba, abajo, al centro y pa'' dentro! El clásico mexicano: tequila, triple sec y limón, servido bien frío con su característico borde de sal. Ácido, fresco y con el tequila como protagonista.', 0),
+  ('Paloma', 'Cocteles', '¡Qué bonita la condenada! Tequila, toronja y limón en una combinación ligera, cítrica y refrescante, terminada con soda y servida bien fría. ¡México en cada trago!', 1),
+  ('Cantarito', 'Cocteles', '¡Échale tequila! Tequila acompañado de cítricos frescos y soda de toronja, servido al auténtico estilo mexicano. ¡Refrescante, cítrico y hecho para alargar la fiesta!', 2),
+  ('Sunrise', 'Cocteles', '¡Qué chulada! Un cóctel fresco, frutal y vibrante, con tequila, notas cítricas y ese degradado de colores que recuerda un amanecer. Dulce, refrescante y peligrosamente fácil de disfrutar.', 3),
+  ('El Caporal', 'Cocteles', '¡Este sí trae espuelas! Tequila y flor de Jamaica se encuentran en un cóctel intenso y refrescante, con el equilibrio perfecto entre carácter y frescura. ¡México en el Llano, servido en un solo trago!', 4),
+  ('Shot de Tequila', 'Cocteles', NULL, 5),
+  ('Tinto Mexicano', 'Cocteles', NULL, 6),
+  ('Quesadilla al Estilo Michoacán', 'Quesadillas', '¡Puro Michoacán! Auténtica quesadilla rellena de carnitas hechas con puerco cocido en su propia grasa, servida en tortilla de trigo con queso fundido, cebolla y cilantro, acompañada de sour cream para rematar el antojo.', 0),
+  ('Gringa al Pastor', 'Quesadillas', '¡Ándale! Puerco al pastor, bien marinado en especias, servido en tortilla de trigo con queso fundido, piña caramelizada, cebolla y cilantro fresco. Una gringa que reúne todo el sabor del pastor en una presentación más ligera.', 1),
+  ('Quesabirria Órale', 'Quesadillas', '¡Madre de quesabirria! Tortillas de trigo crujientes, rellenas de queso fundido y birria jugosa. Servidas con cebolla y cilantro, acompañadas de salsa chipotle y caldo de birria para disfrutar al estilo tradicional.', 2),
+  ('Pizzeta de Cochinita Pibil', 'Pizzas', 'Salsa mexicana, cochinita pibil jugosa y abundante queso fundido, terminada con cebolla morada y un toque fresco de cilantro. ¡Yucatán se vino de fiesta pa'' Órale!', 0),
+  ('Pizzeta de Carnitas', 'Pizzas', 'Salsa mexicana, carnitas de cerdo jugosas y un montón de queso fundido, rematada con cebolla y cilantro fresco. ¡Una marranada bien hecha y orgullosamente Órale!', 1),
+  ('Pizzeta al Pastor', 'Pizzas', 'Salsa mexicana, puerco al pastor bien sazonado y abundante queso fundido, rematada con piña caramelizada, cebolla y cilantro. Todo el sabor del taco al pastor, ahora en pizza.', 2),
+  ('Pizzeta de Birria', 'Pizzas', 'Salsa mexicana, jugosa birria y abundante queso fundido, terminada con pico de gallo fresco. Una combinación bien mexicana y al puro estilo Órale.', 3),
+  ('Ramen de Birria', 'Exclusivos del restaurante', '¡Umm! El sabor intenso de nuestra birria en un delicioso caldo con fideos, queso, cebolla y cilantro. Acompañado de totopos crujientes. ¡La fusión que no sabías que necesitabas!', 0),
+  ('Plátano Chingón', 'Exclusivos del restaurante', '¡Puro pinche antojo! Plátano asado, cargado de nuestra jugosa birria, abundante queso, sour cream y salsa cheddar, terminado con pico de gallo fresco. ¡Dulce, salado y bien mexicano!', 1),
+  ('La Mestiza', 'Exclusivos del restaurante', '¡No mames, qué antojo! Papas a la francesa bien crujientes, cargadas de birria jugosa, chorizo, plátano maduro y mucho queso fundido, rematadas con pico de gallo fresco, guacamole y nuestras salsas de la casa. ¡Un desmadre de sabores al puro estilo Órale!', 2),
+  ('La Mera Burger', 'Exclusivos del restaurante', '¡No manches! Pan artesanal cargado de nuestra jugosa birria, abundante queso, vegetales frescos y el toque especial de nuestra salsa mexicana de la casa. Acompañada de totopos crujientes. ¡Está de poca madre!', 3),
+  ('Burrito El Patrón', 'Exclusivos del restaurante', '¡Esto es un desmadre! Tortilla de harina bien cargada de carne y chorizo criollo, frijol refrito, abundante queso, cebolla salteada, pico de gallo y guacamole. Acompañado de nuestra salsa chipotle. ¡Puro sabor mexicano en cada mordida!', 4),
+  ('Burrito Ranchero', 'Exclusivos del restaurante', '¡Esto es un desmadre! Burrito ranchero con carne molida y chorizo criollo, frijol refrito, queso fundido, vegetales, todo envuelto en una tortilla de harina calentita y acompañado de salsa chipotle. Un burrito de los dioses.', 5)
+) AS v(nombre, cat, descr, orden)
+WHERE p.nombre = v.nombre AND p.tipo = 'extra' AND p.categoria IS NULL;

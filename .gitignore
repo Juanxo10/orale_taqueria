@@ -3,3 +3,6 @@ node_modules/
 *.log
 logs/
 dist/
+
+# Salida de herramientas locales (capturas y registros del navegador de pruebas)
+.playwright-mcp/

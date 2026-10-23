@@ -12,12 +12,26 @@ const wrap = (fn) => async (req, res, next) => {
 };
 const bad = (message) => { throw { status: 400, message }; };
 
+const UNIDADES = ["kg", "g", "lb", "L", "ml", "gal", "unidades"];
+
 function datosInsumo(b) {
   const nombre = String(b.nombre || "").trim();
-  const unidad = String(b.unidad || "").trim();
-  if (!nombre || !unidad) bad("Nombre y unidad son requeridos");
-  return { nombre, unidad };
+  if (!nombre) bad("El nombre es requerido");
+  if (!UNIDADES.includes(b.unidad)) bad("Unidad inválida");
+  if (!["crudo", "preparado"].includes(b.tipo)) bad("Tipo inválido");
+  return { nombre, unidad: b.unidad, tipo: b.tipo };
 }
+
+// Lista de { insumo_id, cantidad } sin repetidos y con cantidad > 0.
+function itemsReceta(items) {
+  if (!Array.isArray(items) || items.some((i) => !Number.isInteger(i.insumo_id) || !(num(i.cantidad) > 0))) {
+    bad("Cada insumo necesita una cantidad mayor que 0");
+  }
+  if (new Set(items.map((i) => i.insumo_id)).size !== items.length) bad("Insumo repetido en la receta");
+  return items.map((i) => ({ insumo_id: i.insumo_id, cantidad: num(i.cantidad) }));
+}
+
+const idParam = (v) => (/^\d+$/.test(v) ? Number(v) : bad("Id inválido"));
 
 router.get("/", wrap(() => s.listar()));
 
@@ -34,18 +48,23 @@ router.get("/recetas", wrap(() => s.listarRecetas()));
 
 router.post("/", wrap((req) => s.crear(datosInsumo(req.body))));
 
-router.put("/recetas/:producto", wrap(async (req) => {
-  const items = req.body.items;
-  if (!Array.isArray(items) || items.some((i) => !Number.isInteger(i.insumo_id) || !(num(i.cantidad) > 0))) {
-    bad("Cada insumo necesita una cantidad mayor que 0");
-  }
-  if (new Set(items.map((i) => i.insumo_id)).size !== items.length) bad("Insumo repetido en la receta");
-  await s.guardarReceta(decodeURIComponent(req.params.producto), items.map((i) => ({ insumo_id: i.insumo_id, cantidad: num(i.cantidad) })));
+router.put("/recetas/:productoId", wrap(async (req) => {
+  await s.guardarReceta(idParam(req.params.productoId), itemsReceta(req.body.items));
   return { ok: true };
 }));
 
-router.put("/:id", wrap((req) => s.actualizar(req.params.id, datosInsumo(req.body))));
+router.get("/preparaciones", wrap(() => s.listarPreparaciones()));
 
-router.delete("/:id", wrap(async (req) => { await s.eliminar(req.params.id); return { ok: true }; }));
+router.put("/preparaciones/:id", wrap(async (req) => {
+  const id = idParam(req.params.id);
+  const items = itemsReceta(req.body.items);
+  if (items.some((i) => i.insumo_id === id)) bad("Un preparado no puede llevarse a sí mismo");
+  await s.guardarPreparacion(id, items);
+  return { ok: true };
+}));
+
+router.put("/:id", wrap((req) => s.actualizar(idParam(req.params.id), datosInsumo(req.body))));
+
+router.delete("/:id", wrap(async (req) => { await s.eliminar(idParam(req.params.id)); return { ok: true }; }));
 
 module.exports = router;

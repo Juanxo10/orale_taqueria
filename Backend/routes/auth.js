@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const rateLimit = require("express-rate-limit");
+const limiters = require("../middlewares/limiters");
 const { body, validationResult, matchedData } = require("express-validator");
 const { authenticate, requireStaff } = require("../middlewares/authMiddleware");
 const { login, refresh, verify, logout } = require("../controllers/authController");
@@ -52,7 +53,7 @@ function handleValidationErrors(req, res, next) {
 router.post("/login", loginLimiter, loginValidation, handleValidationErrors, login);
 
 // POST /api/auth/refresh
-router.post("/refresh", refreshValidation, handleValidationErrors, refresh);
+router.post("/refresh", limiters.refresh, refreshValidation, handleValidationErrors, refresh);
 
 // GET /api/auth/verify  (requiere access token válido + rol staff)
 router.get("/verify", authenticate, requireStaff, verify);

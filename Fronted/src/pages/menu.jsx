@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 import MenuIcon from "../components/MenuIcons";
 import Navbar from "../components/Navbar";
 import { API_URL } from "../config";
-import { MENU, ALL_EXTRAS, DOM } from "../data/menuData";
+import { useMenu, DOM } from "../data/menuData";
 
+import { almacenLocal } from "../data/almacen";
 const fmt = (n) => "$" + n.toLocaleString("es-CO");
 // Fotos de productos: guardar en src/assets/menu/ con el nombre exacto del producto (ej. "Tacos Carnitas.jpg").
 const FOTOS = Object.fromEntries(
@@ -99,6 +100,7 @@ export default function Menu() {
   const [tiendaAbierta, setTiendaAbierta] = useState(null);
   const [desactivados, setDesactivados] = useState(new Set());
   const [extraItems, setExtraItems] = useState({});
+  const MENU = useMenu();
   const [activeCat, setActiveCat] = useState(null);
   const [sheet, setSheet] = useState(false);
   const clickLock = useRef(false);
@@ -135,7 +137,7 @@ export default function Menu() {
     }, { rootMargin: `-${(nav?.offsetHeight ?? 72) + 90}px 0px -60% 0px` });
     document.querySelectorAll(".mn-sec").forEach((el) => io.observe(el));
     return () => { io.disconnect(); removeEventListener("resize", setH); };
-  }, [tiendaAbierta]);
+  }, [tiendaAbierta, MENU]);
 
   // Resplandor que sigue al puntero + ondas de agua (canvas) que nacen al moverlo. Sin re-render.
   useEffect(() => {
@@ -209,16 +211,17 @@ export default function Menu() {
   const setQty = (name, delta) => setExtraItems((prev) => {
     const q = (prev[name] || 0) + delta;
     if (q <= 0) { const n = { ...prev }; delete n[name]; return n; }
+    if (q > 50) return prev; // mismo tope que valida el servidor
     return { ...prev, [name]: q };
   });
 
-  const lines = ALL_EXTRAS.filter(({ name }) => extraItems[name] > 0);
+  const lines = MENU.flatMap((c) => c.items).filter(({ name }) => extraItems[name] > 0);
   const totalQty = lines.reduce((s, { name }) => s + extraItems[name], 0);
   const extrasTotal = lines.reduce((s, { name, price }) => s + extraItems[name] * price, 0);
 
   const irAPago = () => {
     if (!totalQty) return;
-    try { localStorage.setItem("pepas_order", JSON.stringify({ bowls: [], extraItems })); } catch { /* sin storage */ }
+    try { almacenLocal.set("orale_pedido", JSON.stringify({ extraItems })); } catch { /* sin storage */ }
     navigate("/pago");
   };
 
@@ -303,13 +306,13 @@ export default function Menu() {
                   <h2><MenuIcon cat={cat} size={26} />{cat}</h2>
                   {note && <div className="mn-note">{note}</div>}
                   <div className="mn-grid">
-                    {items.map(({ name, price, desc }) => {
+                    {items.map(({ name, price, desc, foto }) => {
                       const qty = extraItems[name] || 0;
                       const off = desactivados.has(name);
                       return (
                         <article key={name} className={`mn-item${qty ? " sel" : ""}${off ? " off" : ""}`}>
                           <div className="mn-img">
-                            {FOTOS[name] ? <img src={FOTOS[name]} alt={name} loading="lazy"
+                            {foto || FOTOS[name] ? <img src={foto || FOTOS[name]} alt={name} loading="lazy"
                               onLoad={(e) => e.currentTarget.parentElement.classList.toggle("tall", e.currentTarget.naturalHeight > e.currentTarget.naturalWidth)} /> : <span>Foto próximamente</span>}
                           </div>
                           <div className="mn-name">{name}</div>
