@@ -1,9 +1,13 @@
 const pool = require("../db");
+const { registrar } = require("./consentimientoService");
 
 const TIPOS = ["sugerencia", "queja", "reclamo"];
 
 // ── Crear sugerencia / queja / reclamo ────────────────────
-async function crearSugerencia({ nombre, mensaje, tipo = "sugerencia" }) {
+async function crearSugerencia({ nombre, mensaje, tipo = "sugerencia", acepta_datos, ip, user_agent }) {
+  if (acepta_datos !== true) {
+    throw { status: 400, message: "Debes autorizar el tratamiento de tus datos para enviar el mensaje" };
+  }
   if (!TIPOS.includes(tipo)) {
     throw { status: 400, message: "Tipo inválido: usa sugerencia, queja o reclamo" };
   }
@@ -24,6 +28,7 @@ async function crearSugerencia({ nombre, mensaje, tipo = "sugerencia" }) {
     [nombreSanitizado, mensajeSanitizado, tipo]
   );
 
+  await registrar(pool, { tipos: ["datos"], sugerenciaId: rows[0].id, ip, userAgent: user_agent });
   return rows[0];
 }
 

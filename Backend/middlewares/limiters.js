@@ -11,5 +11,7 @@ module.exports = {
   global: limitar(MIN15, 1500, "Demasiadas solicitudes. Intenta de nuevo en unos minutos."),
   crearPedido: limitar(MIN15, 20, "Has enviado demasiados pedidos seguidos. Intenta de nuevo en unos minutos."),
   sugerencia: limitar(60 * 60 * 1000, 5, "Has enviado varios mensajes seguidos. Intenta de nuevo más tarde."),
+  // Rutas públicas que llaman a Wompi o firman datos: tope más bajo que el global
+  wompi: limitar(MIN15, 30, "Demasiadas solicitudes de pago. Intenta de nuevo en unos minutos."),
   refresh: limitar(MIN15, 60, "Demasiados intentos. Vuelve a iniciar sesión."),
 };

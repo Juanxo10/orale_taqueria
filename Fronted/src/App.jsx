@@ -11,6 +11,7 @@ import Login from './pages/login'
 import PedidoConfirmado from './pages/pedidoConfirmado'
 import Privacidad from './pages/privacidad'
 import Terminos from './pages/terminos'
+import Reembolsos from './pages/reembolsos'
 import ErrorBoundary from './components/ErrorBoundary'
 import { almacenLocal } from './data/almacen'
 import { apiFetch } from './data/api'
@@ -57,6 +58,7 @@ function App() {
         <Route path="/pedido-confirmado" element={<PedidoConfirmado />} />
         <Route path="/privacidad" element={<Privacidad />} />
         <Route path="/terminos" element={<Terminos />} />
+        <Route path="/reembolsos" element={<Reembolsos />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<ProtectedAdmin />} />
       </Routes>

@@ -82,7 +82,7 @@ export default function Privacidad() {
           con las finalidades de esta política. Guardamos la fecha y la hora como prueba. Sin esa autorización no podemos tomar el pedido.
         </p>
         <p>
-          En el formulario de sugerencias, al enviarlo aceptas esta política; puedes dejar el nombre en blanco. Puedes revocar tu autorización cuando
+          En el formulario de sugerencias marcas una casilla de autorización antes de enviarlo; puedes dejar el nombre en blanco. Puedes revocar tu autorización cuando
           quieras (ver “Tus derechos”), salvo que la ley o un contrato nos obliguen a conservar los datos.
         </p>
       </Sec>
@@ -92,8 +92,8 @@ export default function Privacidad() {
         <Ul>
           <li><B>Wompi</B> (pasarela de pagos): procesa tu pago en línea bajo sus propios términos y política de privacidad.</li>
           <li><B>Supabase</B> (base de datos): almacena la información de los pedidos en servidores seguros.</li>
-          <li><B>Proveedor de alojamiento</B> del sitio web, para que la página esté disponible.</li>
-          <li><B>Google:</B> el mapa de la página de Ubicación (solo si aceptas las cookies) y las tipografías del sitio (Google Fonts).</li>
+          <li><B>Proveedores de alojamiento y base de datos</B> (Vercel, Railway y Supabase) del sitio web, para que la página esté disponible.</li>
+          <li><B>Google:</B> el mapa de la página de Ubicación (solo si aceptas las cookies).</li>
           <li><B>WhatsApp (Meta):</B> cuando conversamos contigo por ese canal.</li>
           <li><B>Nuestro equipo</B> de cocina, caja y entregas: solo lo necesario para atender tu pedido.</li>
           <li><B>Autoridades,</B> cuando la ley nos lo exija.</li>
@@ -145,7 +145,6 @@ export default function Privacidad() {
         <p>Y, de terceros:</p>
         <Ul>
           <li><B>Google Maps</B> (mapa de la página de Ubicación): solo se carga si aceptas todas las cookies, y Google puede usar sus propias cookies.</li>
-          <li><B>Google Fonts:</B> al cargar las tipografías, tu navegador se conecta a servidores de Google, que reciben tu dirección IP.</li>
           <li><B>Wompi:</B> al pagar, su sitio puede usar sus propias cookies.</li>
         </Ul>
         <p>
@@ -173,7 +172,7 @@ export default function Privacidad() {
         <p>
           Guardamos los datos de tus pedidos mientras sean necesarios para las finalidades de esta política y durante los plazos que exijan las normas
           contables, tributarias y de protección al consumidor. Los mensajes de sugerencias, quejas y reclamos los conservamos mientras sea necesario para
-          atenderlos. Cuando ya no se necesiten, los eliminamos o los anonimizamos.
+          atenderlos. Cuando ya no se necesiten, los eliminamos o los anonimizamos. También guardamos la prueba de tu autorización (fecha, versión de los textos, dirección IP y navegador) para poder demostrarla.
         </p>
       </Sec>
 

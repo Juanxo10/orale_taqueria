@@ -42,7 +42,7 @@ export default function Terminos() {
         <Ul>
           <li>Solo recibimos pedidos cuando la tienda está abierta. Si está cerrada, el sitio te lo indica y no puedes pedir.</li>
           <li>
-            Tu pedido queda confirmado al enviarlo si pagas en efectivo al recibir, o cuando Wompi aprueba tu pago si pagas en línea. Mientras el pago
+            Tu pedido queda confirmado al enviarlo si pagas en caja al recoger, o cuando Wompi aprueba tu pago si pagas en línea. Mientras el pago
             esté pendiente, el pedido no se prepara.
           </li>
           <li>
@@ -58,7 +58,7 @@ export default function Terminos() {
           <li>
             El valor del domicilio y el total se muestran en el resumen antes de que confirmes. Si eliges recoger en tienda, no pagas domicilio.
           </li>
-          <li><B>Efectivo contraentrega:</B> pagas al recibir tu pedido.</li>
+          <li><B>Pagar en caja:</B> solo disponible si recoges tu pedido en la tienda; pagas al recogerlo. Los domicilios se pagan únicamente en línea.</li>
           <li>
             <B>Pago en línea (tarjeta, PSE o Nequi):</B> se hace en la plataforma de Wompi, que procesa tus datos de pago. Nosotros no los vemos ni los
             guardamos. Si tu banco rechaza el pago, el pedido queda cancelado y no se te cobra.
@@ -91,6 +91,7 @@ export default function Terminos() {
             <B>Derecho de retracto:</B> por ser alimentos y bebidas preparados al momento, que se deterioran con rapidez, el derecho de retracto de las
             compras a distancia no aplica a estos productos (Ley 1480 de 2011, art. 47). Esto no afecta tus derechos si el pedido llega mal.
           </li>
+          <li>Consulta el detalle en la <a className="text-primary underline" href="/reembolsos">Política de Cancelaciones y Reembolsos</a>.</li>
         </Ul>
       </Sec>
 

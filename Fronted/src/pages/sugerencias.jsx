@@ -38,12 +38,18 @@ export default function Sugerencias() {
   const [state, setState] = useState("idle"); // idle | loading | ok | error
   const [error, setError] = useState("");
   const [tipo, setTipo] = useState("sugerencia");
+  const [acepta, setAcepta] = useState(false);
 
   const enviar = async (e) => {
     e.preventDefault();
     if (form.mensaje.trim().length < 5) {
       setState("error");
       setError("El mensaje debe tener al menos 5 caracteres");
+      return;
+    }
+    if (!acepta) {
+      setState("error");
+      setError("Debes autorizar el tratamiento de tus datos para enviar el mensaje");
       return;
     }
     setState("loading");
@@ -53,7 +59,7 @@ export default function Sugerencias() {
       res = await fetch(`${API_URL}/api/sugerencias`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, tipo }),
+        body: JSON.stringify({ ...form, tipo, acepta_datos: acepta }),
       });
     } catch {
       setState("error");
@@ -231,10 +237,13 @@ export default function Sugerencias() {
                     )}
                   </AnimatePresence>
 
-                  <p className="text-xs leading-relaxed opacity-80 text-center">
-                    Al enviar aceptas que usemos tu mensaje y tu nombre (opcional) solo para atenderlo, según nuestra{" "}
-                    <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline font-bold">Política de Privacidad</a>.
-                  </p>
+                  <label className="flex items-start gap-3 text-xs leading-relaxed cursor-pointer">
+                    <input type="checkbox" checked={acepta} onChange={(e) => setAcepta(e.target.checked)} className="mt-0.5 w-4 h-4 shrink-0 accent-[#fe2b24]" />
+                    <span>
+                      Autorizo el tratamiento de mi mensaje y mi nombre (opcional) solo para atender esta solicitud, según la{" "}
+                      <a href="/privacidad" target="_blank" rel="noopener noreferrer" className="underline font-bold">Política de Privacidad</a>.
+                    </span>
+                  </label>
 
                   <motion.button
                     type="submit"

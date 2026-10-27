@@ -8,7 +8,6 @@ import { almacenLocal, almacenSesion } from "../data/almacen";
 const fmt = (n) => "$" + Number(n).toLocaleString("es-CO");
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root{--g900:#1c1210;--g800:#fe2b24;--g700:#c81812;--g600:#e0241d;--g400:#fbba24;--g200:#f6d9b5;--g100:#fff1de;--gold:#fbba24;--cream:#f8f0e4;--border:#ecdcc6;--text:#1c1210;--muted:#7a6a60;--red:#dc2626;--red-bg:#fef2f2;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
@@ -78,8 +77,8 @@ textarea.fi{resize:vertical;min-height:70px;}
 .btn-card{width:100%;padding:1rem;background:var(--g800);color:#fff;border:none;border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.98rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.55rem;transition:all .15s;}
 .btn-card:hover{background:var(--g700);}
 .btn-card:disabled{opacity:.7;cursor:not-allowed;}
-.btn-wompi{width:100%;padding:1rem;background:#5c2ded;color:#fff;border:none;border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.98rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.55rem;transition:all .15s;box-shadow:0 4px 18px rgba(92,45,237,.3);}
-.btn-wompi:hover{background:#4a22c7;}
+.btn-wompi{width:100%;padding:1rem;background:var(--g800);color:#fff;border:none;border-radius:14px;font-family:'Plus Jakarta Sans',sans-serif;font-size:.98rem;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:.55rem;transition:all .15s;}
+.btn-wompi:hover{background:var(--g700);}
 .btn-wompi:disabled{opacity:.7;cursor:not-allowed;}
 .fine{text-align:center;font-size:.7rem;color:#aaa;margin-top:.85rem;line-height:1.6;}
 .success-card{background:#fff1de;border:1px solid var(--g200);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1.2rem;color:var(--g800);}
@@ -101,12 +100,13 @@ export default function Pago() {
   const [fbarrio, setFbarrio] = useState("");
   const [freferencia, setFreferencia] = useState("");
   const [fnotes, setFnotes] = useState("");
-  const [acepta, setAcepta] = useState(false); // autorización de datos + términos (Ley 1581 de 2012)
+  const [aceptaTerminos, setAceptaTerminos] = useState(false); // términos de servicio
+  const [aceptaDatos, setAceptaDatos] = useState(false); // autorización de tratamiento de datos (Ley 1581 de 2012)
 
   // Field errors
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [payMethod, setPayMethod] = useState("efectivo"); // "efectivo" | "wompi"
+  const [payMethod, setPayMethod] = useState("wompi"); // "efectivo" (solo al recoger, se paga en caja) | "wompi"
   const [tipoEntrega, setTipoEntrega] = useState("domicilio"); // "domicilio" | "recogida"
 
   const fnameRef = useRef(null);
@@ -182,8 +182,8 @@ export default function Pago() {
       e.fnotes = "Máximo 300 caracteres";
     }
 
-    if (!acepta) {
-      e.acepta = "Debes aceptar para continuar con tu pedido";
+    if (!aceptaTerminos || !aceptaDatos) {
+      e.acepta = "Debes marcar ambas casillas para continuar con tu pedido";
     }
 
     soloAcepta.current = Object.keys(e).join() === "acepta";
@@ -214,7 +214,8 @@ export default function Pago() {
       },
       metodo_pago: "Contraentrega en efectivo",
       tipo_entrega: tipoEntrega,
-      acepta_terminos: acepta,
+      acepta_terminos: aceptaTerminos,
+      acepta_datos: aceptaDatos,
     };
 
     try {
@@ -284,7 +285,8 @@ export default function Pago() {
       },
       metodo_pago: "Transferencia Wompi",
       tipo_entrega: tipoEntrega,
-      acepta_terminos: acepta,
+      acepta_terminos: aceptaTerminos,
+      acepta_datos: aceptaDatos,
     };
 
     try {
@@ -322,10 +324,6 @@ export default function Pago() {
         // noop
       }
 
-      // Calcular total para enviar a Wompi (en centavos)
-      const total = grandTotal;
-      const amountInCents = total * 100;
-
       // Usar numero_pedido como referencia única
       const reference = data.numero_pedido || String(data.id);
 
@@ -336,19 +334,19 @@ export default function Pago() {
       const hashRes = await fetch(`${API_URL}/api/wompi/integrity-hash`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reference, amountInCents, currency: "COP" }),
+        body: JSON.stringify({ reference }),
       });
       if (!hashRes.ok) {
         const err = await hashRes.json().catch(() => ({}));
         alert(err.error || "Error al generar el hash de pago");
         return;
       }
-      const { integrity } = await hashRes.json();
+      const { integrity, amountInCents: montoServidor } = await hashRes.json();
 
       const wompiUrl = new URL("https://checkout.wompi.co/p/");
       wompiUrl.searchParams.set("public-key", publicKey);
       wompiUrl.searchParams.set("currency", "COP");
-      wompiUrl.searchParams.set("amount-in-cents", String(amountInCents));
+      wompiUrl.searchParams.set("amount-in-cents", String(montoServidor));
       wompiUrl.searchParams.set("reference", reference);
       wompiUrl.searchParams.set("signature:integrity", integrity);
       // Solo incluir redirect-url en producción (HTTPS); localhost no está permitido por Wompi
@@ -417,7 +415,7 @@ export default function Pago() {
         {/* Tipo de entrega */}
         <span className="slabel">Cómo quieres recibir tu pedido</span>
         <div className="pm-grid" style={{marginBottom:"1.2rem"}}>
-          <div className={`pm${tipoEntrega === "domicilio" ? " sel" : ""}`} onClick={() => setTipoEntrega("domicilio")}>
+          <div className={`pm${tipoEntrega === "domicilio" ? " sel" : ""}`} onClick={() => { setTipoEntrega("domicilio"); setPayMethod("wompi"); }}>
             <div className="pm-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--g700)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
             <div className="pm-info">
               <strong>Domicilio a tu dirección</strong>
@@ -479,11 +477,17 @@ export default function Pago() {
 
         <div className="form-group full" ref={aceptaRef} style={{marginBottom:"1.2rem"}}>
           <label className="consent">
-            <input type="checkbox" checked={acepta} onChange={(e) => { setAcepta(e.target.checked); if (e.target.checked) setErrors((p) => ({ ...p, acepta: undefined })); }} />
+            <input type="checkbox" checked={aceptaTerminos} onChange={(e) => { setAceptaTerminos(e.target.checked); if (e.target.checked && aceptaDatos) setErrors((p) => ({ ...p, acepta: undefined })); }} />
             <span>
-              Autorizo el tratamiento de mis datos personales para gestionar este pedido y declaro que leí y acepto la{" "}
-              <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de Privacidad</a> y los{" "}
-              <a href="/terminos" target="_blank" rel="noopener noreferrer">Términos de Servicio</a>.
+              Leí y acepto los <a href="/terminos" target="_blank" rel="noopener noreferrer">Términos de Servicio</a> y la{" "}
+              <a href="/reembolsos" target="_blank" rel="noopener noreferrer">Política de Cancelaciones y Reembolsos</a>.
+            </span>
+          </label>
+          <label className="consent" style={{marginTop:".6rem"}}>
+            <input type="checkbox" checked={aceptaDatos} onChange={(e) => { setAceptaDatos(e.target.checked); if (e.target.checked && aceptaTerminos) setErrors((p) => ({ ...p, acepta: undefined })); }} />
+            <span>
+              Autorizo el tratamiento de mis datos personales (nombre, teléfono y dirección) solo para gestionar y entregar este pedido, según la{" "}
+              <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de Privacidad</a>.
             </span>
           </label>
           {errors.acepta && <span className="err-msg show">{errors.acepta}</span>}
@@ -492,14 +496,16 @@ export default function Pago() {
         {/* Forma de pago */}
         <span className="slabel">Forma de pago</span>
         <div className="pm-grid">
+          {tipoEntrega === "recogida" && (
           <div className={`pm${payMethod === "efectivo" ? " sel" : ""}`} onClick={() => setPayMethod("efectivo")}>
             <div className="pm-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--g700)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M12 9v6M10 10h3a1 1 0 0 1 0 2h-2a1 1 0 0 0 0 2h3"/></svg></div>
             <div className="pm-info">
-              <strong>{tipoEntrega === "recogida" ? "Pagar en caja" : "Contraentrega en efectivo"}</strong>
-              <span>{tipoEntrega === "recogida" ? "Pagas directamente en la tienda al recoger tu pedido." : "Pagas al domiciliario cuando llegue tu pedido."}</span>
+              <strong>Pagar en caja</strong>
+              <span>Pagas directamente en la tienda al recoger tu pedido.</span>
             </div>
             <div className="pm-radio">{payMethod === "efectivo" ? "✓" : ""}</div>
           </div>
+          )}
           <div className={`pm${payMethod === "wompi" ? " sel" : ""}`} onClick={() => setPayMethod("wompi")}>
             <div className="pm-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--g700)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg></div>
             <div className="pm-info">
@@ -512,16 +518,13 @@ export default function Pago() {
         </div>
 
         {/* Panel contraentrega */}
-        {payMethod === "efectivo" && (
+        {payMethod === "efectivo" && tipoEntrega === "recogida" && (
           <div className="extra-panel show">
             <strong>¿Cómo funciona?</strong>
             <ul>
               <li>Confirmas tu pedido desde esta página</li>
               <li>Preparamos tu pedido</li>
-              {tipoEntrega === "recogida"
-                ? <li>Vienes a la tienda y pagas en caja</li>
-                : <li>Despachamos y pagas en efectivo al domiciliario</li>
-              }
+              <li>Vienes a la tienda y pagas en caja</li>
               <li>¡Disfruta!</li>
             </ul>
           </div>
@@ -542,7 +545,7 @@ export default function Pago() {
 
         {/* CTA */}
         <div>
-          {payMethod === "efectivo" ? (
+          {payMethod === "efectivo" && tipoEntrega === "recogida" ? (
             <button className="btn-card" onClick={handleConfirm} disabled={isSubmitting}>
               {isSubmitting ? "Creando pedido..." : "Confirmar pedido"}
             </button>

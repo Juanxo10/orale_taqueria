@@ -3,6 +3,8 @@ const crypto = require("crypto");
 const express = require("express");
 const { updateWompiPayment } = require("../services/pedidoService");
 const logger = require("../utils/logger");
+const limiters = require("../middlewares/limiters");
+const pool = require("../db");
 
 const router = Router();
 
@@ -101,11 +103,26 @@ router.post(
 // ─── POST /api/wompi/integrity-hash ─────────────────────────────────────────
 // El frontend llama este endpoint para obtener el hash de integridad requerido
 // por Wompi en el checkout. Se genera en el backend para no exponer el secreto.
-router.post("/integrity-hash", (req, res) => {
-  const { reference, amountInCents, currency = "COP" } = req.body || {};
+// El monto NO se toma de lo que envía el navegador: se lee del pedido guardado, así nadie puede pedir una firma por otro valor.
+router.post("/integrity-hash", limiters.wompi, async (req, res) => {
+  const { reference } = req.body || {};
+  const currency = "COP";
 
-  if (!reference || !amountInCents) {
-    return res.status(400).json({ error: "Faltan reference o amountInCents" });
+  if (typeof reference !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(reference)) {
+    return res.status(400).json({ error: "Referencia inválida" });
+  }
+
+  let amountInCents;
+  try {
+    const { rows } = await pool.query(
+      "SELECT total FROM pedidos WHERE numero_pedido = $1 AND metodo_pago = 'Transferencia Wompi' AND estado = 'pendiente_pago'",
+      [reference]
+    );
+    if (!rows.length) return res.status(404).json({ error: "Pedido no encontrado o ya pagado" });
+    amountInCents = Math.round(Number(rows[0].total) * 100);
+  } catch (err) {
+    logger.error({ err }, "Error leyendo el pedido para firmar el pago");
+    return res.status(500).json({ error: "Error interno" });
   }
 
   const secret = process.env.WOMPI_INTEGRITY_SECRET;
@@ -118,20 +135,21 @@ router.post("/integrity-hash", (req, res) => {
   const toHash = String(reference) + String(amountInCents) + String(currency) + secret;
   const integrity = crypto.createHash("sha256").update(toHash).digest("hex");
 
-  res.json({ integrity });
+  res.json({ integrity, amountInCents });
 });
 
 // ─── GET /api/wompi/verificar/:transactionId ──────────────────────────────────
 // El frontend llama esto al volver del checkout de Wompi para confirmar el pago
-router.get("/verificar/:transactionId", async (req, res) => {
+router.get("/verificar/:transactionId", limiters.wompi, async (req, res) => {
   const { transactionId } = req.params;
+  if (!/^[A-Za-z0-9_-]{1,64}$/.test(transactionId)) return res.status(400).json({ error: "Id de transacción inválido" });
   try {
     // Usar producción o sandbox según el tipo de llave privada configurada
     const privateKey = process.env.WOMPI_PRIVATE_KEY || "";
     const baseUrl = privateKey.startsWith("prv_prod")
       ? "https://production.wompi.co/v1"
       : "https://sandbox.wompi.co/v1";
-    const r = await fetch(`${baseUrl}/transactions/${transactionId}`);
+    const r = await fetch(`${baseUrl}/transactions/${transactionId}`, { signal: AbortSignal.timeout(8_000) });
     if (!r.ok) return res.status(502).json({ error: "No se pudo consultar Wompi" });
     const data = await r.json();
     const tx = data?.data;

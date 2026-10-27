@@ -29,7 +29,7 @@ const ANTOJOS = [
 const PASOS = [
   { title: "Eliges tus tacos", text: "Escoge tus tacos, tus salsas y los extras que quieras desde el menú.", chips: ["Tacos", "Salsas", "Extras"], img: img3, alt: "Tacos con salsa goteando", bg: "#fe2b24", fg: "#ffffff", accent: "#fbba24" },
   { title: "Al comal, al momento", text: "Tortilla recién calentada, carne jugosa y todo armado cuando lo pides.", chips: ["Sin congelados", "Bien calientitos"], img: img1, video: video3, alt: "Taco con limón", bg: "#1d1210", fg: "#fbf1e3", accent: "#fe2b24" },
-  { title: "A tu puerta", text: "Lo llevamos en 30–45 minutos. Pagas contraentrega, sin complicaciones.", chips: ["30–45 min", "Domicilio $6.000", "Contraentrega"], img: img8, alt: "Plato de tacos servido", bg: "#fbba24", fg: "#2a1204", accent: "#fe2b24" },
+  { title: "A tu puerta", text: "Lo llevamos en 30–45 minutos. Pagas en línea, sin complicaciones.", chips: ["30–45 min", "Domicilio $6.000", "Pago en línea"], img: img8, alt: "Plato de tacos servido", bg: "#fbba24", fg: "#2a1204", accent: "#fe2b24" },
 ];
 
 // Taco decorativo que asoma en diagonal desde un costado (PNG 360x360: no ampliar de ~260px).
@@ -141,10 +141,10 @@ export default function Index() {
             </p>
             <div className="rise flex flex-col sm:flex-row gap-3 w-full sm:w-auto" style={{ animationDelay: "0.55s" }}>
               <button
-                className="bg-primary-container text-white px-8 py-4 md:px-10 md:py-5 rounded-full font-label-md text-base md:text-lg shadow-[0_6px_0_#8f0f0b] hover:translate-y-[3px] hover:shadow-[0_3px_0_#8f0f0b] active:translate-y-[6px] active:shadow-none transition-all duration-200"
+                className="btn-orale btn-orale--rojo btn-orale--grande"
                 onClick={() => navigate("/menu")}
               >
-                Pedir mis tacos
+                <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>Pedir mis tacos
               </button>
               <button
                 className="bg-transparent border-2 border-primary text-primary px-8 py-4 md:px-10 md:py-5 rounded-full font-label-md text-base md:text-lg hover:bg-primary hover:text-on-primary transition-colors duration-300"
@@ -339,10 +339,10 @@ export default function Index() {
               Sin filas ni complicaciones: pides, nosotros armamos los tacos al momento y tú esperas en casa con la salsa lista.
             </p>
             <button
-              className="bg-primary text-on-primary w-full max-w-xs sm:w-auto sm:max-w-none px-10 py-4 rounded-full font-label-md text-label-md shadow-[0_5px_0_#7a4d00] hover:translate-y-[2px] hover:shadow-[0_3px_0_#7a4d00] transition-all"
+              className="btn-orale btn-orale--grande w-full max-w-xs sm:w-auto sm:max-w-none"
               onClick={() => navigate("/menu")}
             >
-              Pedir Ahora
+              <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>Pedir ahora
             </button>
             <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8 border-t border-outline-variant pt-8 md:pt-10 text-on-surface">
               <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
@@ -355,7 +355,7 @@ export default function Index() {
               </div>
               <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
                 <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">payments</span>
-                <span className="font-label-md text-label-md">Pago Contraentrega</span>
+                <span className="font-label-md text-label-md">Pago en línea</span>
               </div>
             </div>
           </div>

@@ -3,8 +3,8 @@
 export const NEGOCIO = {
   nombre: "Órale Taquería",
   nit: "",
-  correo: "",
+  correo: "oraleft@gmail.com",
   telefono: "313 2664332",
   direccion: "Calle 16 # 31-38, Barrio El Bachué, Acacías, Meta, Colombia",
-  actualizado: "23 de octubre de 2026",
+  actualizado: "27 de octubre de 2026",
 };

@@ -1,6 +1,7 @@
 const { Router } = require("express");
 const { authenticate, requireAdmin } = require("../middlewares/authMiddleware");
 const s = require("../services/productoService");
+const { conCache, limpiarCache } = require("../utils/cacheCorto");
 
 const router = Router();
 
@@ -24,10 +25,10 @@ function datosProducto(b) {
 }
 
 // GET /api/productos/menu — público
-router.get("/menu", wrap(() => s.menu()));
+router.get("/menu", wrap(() => conCache("menu", 30_000, () => s.menu())));
 
-router.post("/", authenticate, requireAdmin, wrap((req) => s.crear(datosProducto(req.body))));
-router.put("/:id", authenticate, requireAdmin, wrap((req) => s.actualizar(idParam(req.params.id), datosProducto(req.body))));
-router.delete("/:id", authenticate, requireAdmin, wrap(async (req) => { await s.archivar(idParam(req.params.id)); return { ok: true }; }));
+router.post("/", authenticate, requireAdmin, wrap(async (req) => { const r = await s.crear(datosProducto(req.body)); limpiarCache("menu"); return r; }));
+router.put("/:id", authenticate, requireAdmin, wrap(async (req) => { const r = await s.actualizar(idParam(req.params.id), datosProducto(req.body)); limpiarCache("menu"); return r; }));
+router.delete("/:id", authenticate, requireAdmin, wrap(async (req) => { await s.archivar(idParam(req.params.id)); limpiarCache("menu"); return { ok: true }; }));
 
 module.exports = router;

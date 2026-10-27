@@ -2,15 +2,22 @@
 // Lo estrictamente necesario (carrito, sesión) funciona siempre; lo de terceros (mapa de Google) solo con "todas".
 import { useEffect, useState } from "react";
 import { almacenLocal } from "./almacen";
+import { NEGOCIO } from "./legalData";
 
 const KEY = "orale_cookies";
+const META = "orale_cookies_meta"; // versión de los textos y fecha en que decidió
 const CAMBIO = "orale:consent";
 const ABRIR = "orale:cookies-abrir";
 
-export const leerConsentimiento = () => almacenLocal.get(KEY);
+// Si la Política cambió desde que decidió, vuelve a preguntar
+export const leerConsentimiento = () => {
+  const meta = almacenLocal.get(META);
+  return meta && meta.includes(NEGOCIO.actualizado) ? almacenLocal.get(KEY) : null;
+};
 
 export function guardarConsentimiento(valor) {
   almacenLocal.set(KEY, valor);
+  almacenLocal.set(META, `${NEGOCIO.actualizado}|${new Date().toISOString()}`);
   window.dispatchEvent(new Event(CAMBIO));
 }
 

@@ -11,6 +11,7 @@ const LINKS = [
 const LEGAL = [
   { label: "Política de Privacidad", to: "/privacidad" },
   { label: "Términos de Servicio", to: "/terminos" },
+  { label: "Cancelaciones y Reembolsos", to: "/reembolsos" },
 ];
 
 const SOCIAL =

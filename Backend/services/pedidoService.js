@@ -1,4 +1,5 @@
 const pool = require("../db");
+const { registrar } = require("./consentimientoService");
 
 const ESTADOS_VALIDOS = ["nuevo", "preparando", "camino", "entregado", "cancelado"];
 const METODOS_VALIDOS = ["Contraentrega en efectivo", "Transferencia Wompi"];
@@ -15,10 +16,10 @@ function invalidarCache() {
 }
 
 // ── Crear pedido ─────────────────────────────────────────
-async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "domicilio", acepta_terminos }) {
+async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "domicilio", acepta_terminos, acepta_datos, ip, user_agent }) {
   // Autorización previa y expresa del cliente (Ley 1581 de 2012): sin ella no se guarda ningún dato
-  if (acepta_terminos !== true) {
-    throw { status: 400, message: "Debes aceptar la Política de Privacidad y los Términos de Servicio para hacer tu pedido" };
+  if (acepta_terminos !== true || acepta_datos !== true) {
+    throw { status: 400, message: "Debes aceptar los Términos de Servicio y autorizar el tratamiento de tus datos para hacer tu pedido" };
   }
 
   if (!METODOS_VALIDOS.includes(metodo_pago)) {
@@ -30,6 +31,10 @@ async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "d
   }
 
   const esRecogida = tipo_entrega === "recogida";
+  // El efectivo (pagar en caja) solo aplica al recoger; los domicilios se pagan en línea
+  if (!esRecogida && metodo_pago === "Contraentrega en efectivo") {
+    throw { status: 400, message: "Los domicilios se pagan únicamente en línea (Wompi)" };
+  }
   const { nombre, telefono, direccion, barrio, referencia, notas } = cliente || {};
 
   if (!nombre || !telefono) {
@@ -116,6 +121,8 @@ async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "d
     );
     const pedidoId = pedidoRes.rows[0].id;
 
+    await registrar(client, { tipos: ["terminos", "datos"], pedidoId, ip, userAgent: user_agent });
+
     // Insertar extras
     for (const ext of extrasData) {
       await client.query(
@@ -139,7 +146,7 @@ async function listarPedidos() {
   if (_cache && Date.now() - _cacheTs < CACHE_TTL) return _cache;
   // 1 sola query para pedidos
   const pedidosRes = await pool.query(
-    "SELECT * FROM pedidos WHERE estado != 'pendiente_pago' ORDER BY creado_en DESC"
+    "SELECT * FROM pedidos WHERE estado != 'pendiente_pago' ORDER BY creado_en DESC LIMIT 1000" // tope: la lista no crece sin fin con los meses
   );
   if (!pedidosRes.rows.length) return [];
 

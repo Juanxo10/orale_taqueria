@@ -2,6 +2,7 @@ const { Router } = require("express");
 const { authenticate, requireStaff } = require("../middlewares/authMiddleware");
 const pool = require("../db");
 const logger = require("../utils/logger");
+const { conCache, limpiarCache } = require("../utils/cacheCorto");
 
 const router = Router();
 
@@ -15,7 +16,7 @@ const estadoTienda = async () => {
 // GET /api/tienda/estado — público
 router.get("/estado", async (_req, res, next) => {
   try {
-    res.json({ abierto: await estadoTienda() });
+    res.json({ abierto: await conCache("tienda:estado", 5_000, estadoTienda) });
   } catch (err) { next(err); }
 });
 
@@ -27,6 +28,7 @@ router.patch("/estado", authenticate, requireStaff, async (_req, res, next) => {
        ON CONFLICT (clave) DO UPDATE SET valor = 1 - configuracion.valor
        RETURNING valor`
     );
+    limpiarCache("tienda:");
     res.json({ abierto: Number(rows[0].valor) === 1 });
   } catch (err) { next(err); }
 });
@@ -39,7 +41,7 @@ const listarDesactivados = async () => {
 // GET /api/tienda/productos — público, devuelve lista de productos desactivados (sin stock)
 router.get("/productos", async (_req, res, next) => {
   try {
-    res.json({ desactivados: await listarDesactivados() });
+    res.json({ desactivados: await conCache("tienda:productos", 5_000, listarDesactivados) });
   } catch (err) { next(err); }
 });
 
@@ -55,6 +57,7 @@ router.patch("/productos/:nombre", authenticate, requireStaff, async (req, res, 
     );
     if (rows.length === 0) return res.status(404).json({ error: "Producto no encontrado" });
     logger.info({ producto: nombre, activo: rows[0].activo, userId: req.user.id, email: req.user.email }, "Producto activado/desactivado");
+    limpiarCache("tienda:");
     res.json({ desactivados: await listarDesactivados() });
   } catch (err) { next(err); }
 });

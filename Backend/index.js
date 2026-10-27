@@ -37,7 +37,7 @@ app.use(cors(corsOptions));
 // Debe montarse ANTES del parser JSON global: si no, express.json() ya
 // consume el body y el webhook nunca puede leerlo (siempre falla).
 app.use("/api/wompi/webhook", express.raw({ type: "application/json" }));
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "100kb" }));
 
 // ─── Trust proxy (necesario para rate-limit detrás de reverse proxy / HTTPS) ─
 app.set("trust proxy", 1);
@@ -76,11 +76,12 @@ const PORT = process.env.PORT || 3000;
 revisarClavesPorDefecto()
   .catch((err) => logger.error({ err }, "No se pudo revisar las contraseñas del personal"))
   .then(() => {
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       logger.info(`Servidor corriendo en http://localhost:${PORT}`);
       warmup();
       // Revisar pagos Wompi pendientes: inmediatamente y cada 1 minuto
       setTimeout(revisarPendientesWompi, 10_000); // 10s después de arrancar
       setInterval(revisarPendientesWompi, 60_000);
     });
+    server.requestTimeout = 30_000; // una petición que tarda más de 30 s se corta
   });

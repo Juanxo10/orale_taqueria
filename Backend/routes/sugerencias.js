@@ -8,8 +8,8 @@ const router = Router();
 // POST /api/sugerencias — enviar sugerencia (público)
 router.post("/", limiters.sugerencia, async (req, res) => {
   try {
-    const { nombre, mensaje, tipo } = req.body;
-    const result = await crearSugerencia({ nombre, mensaje, tipo });
+    const { nombre, mensaje, tipo, acepta_datos } = req.body;
+    const result = await crearSugerencia({ nombre, mensaje, tipo, acepta_datos, ip: req.ip, user_agent: req.get("user-agent") });
     res.status(201).json({ ok: true, id: result.id });
   } catch (err) {
     const status = err.status || 500;

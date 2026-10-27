@@ -24,7 +24,6 @@ const statusLabel = (s, estadoPago) => {
 };
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root{
   /* Paleta Órale: --g* conserva los nombres históricos pero ahora son carbón-café (900-700), rojo (600), amarillo (400/200) y crema (100) */
   --g900:#2a1204;--g800:#3a1a10;--g700:#5a2a1c;--g600:#e0241d;--g400:#fbba24;--g200:#ffe3a1;--g100:#fdf0dc;

@@ -14,7 +14,7 @@ const POSITION_CLASS = {
   static: "",
 };
 
-export default function Navbar({ active, position = "sticky", rightSlot, showLinks = true }) {
+export default function Navbar({ active, position = "sticky", rightSlot, showLinks = true, showPedir = true }) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -59,14 +59,14 @@ export default function Navbar({ active, position = "sticky", rightSlot, showLin
         )}
 
         <div className="flex items-center gap-2 md:gap-0">
-          {rightSlot ?? (
+          {rightSlot ?? (showPedir && (
             <button
-              className="bg-primary text-on-primary flex-shrink-0 whitespace-nowrap px-5 py-2.5 md:px-8 md:py-3 rounded-full font-label-md text-label-md shadow-[0_4px_0_#7a4d00] hover:translate-y-[2px] hover:shadow-[0_2px_0_#7a4d00] hover:bg-white active:translate-y-1 active:shadow-none transition-all duration-200"
+              className="btn-orale flex-shrink-0"
               onClick={() => goTo("/menu")}
             >
-              Pedir Tacos
+              <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>Pedir tacos
             </button>
-          )}
+          ))}
 
           {showLinks && (
             <button

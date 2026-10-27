@@ -1,5 +1,6 @@
 const { Router } = require("express");
 const rateLimit = require("express-rate-limit");
+const { ipKeyGenerator } = rateLimit;
 const limiters = require("../middlewares/limiters");
 const { body, validationResult, matchedData } = require("express-validator");
 const { authenticate, requireStaff } = require("../middlewares/authMiddleware");
@@ -14,6 +15,17 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: "Demasiados intentos de login. Intenta de nuevo en 15 minutos." },
+});
+
+// Además del límite por IP: máximo 10 fallos por cuenta cada 15 min, aunque cambien de IP
+const loginPorCuenta = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  skipSuccessfulRequests: true,
+  keyGenerator: (req) => (typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase().slice(0, 100) : ipKeyGenerator(req.ip)),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Demasiados intentos para esta cuenta. Intenta de nuevo en 15 minutos." },
 });
 
 // ─── Validaciones ────────────────────────────────────────────────────────────
@@ -50,7 +62,7 @@ function handleValidationErrors(req, res, next) {
 // ─── Rutas ───────────────────────────────────────────────────────────────────
 
 // POST /api/auth/login
-router.post("/login", loginLimiter, loginValidation, handleValidationErrors, login);
+router.post("/login", loginLimiter, loginPorCuenta, loginValidation, handleValidationErrors, login);
 
 // POST /api/auth/refresh
 router.post("/refresh", limiters.refresh, refreshValidation, handleValidationErrors, refresh);

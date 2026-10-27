@@ -15,7 +15,6 @@ const FOTOS = Object.fromEntries(
 const slug = (s) => "cat-" + s.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 :root{--red:#fe2b24;--red-d:#c81812;--yel:#fbba24;--bg:#140c0a;--card:#261715;--card2:#301c19;--line:#4a302b;--txt:#fbf1e3;--mut:#d9c3b0;}
 .mn{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;}
 .mn *{box-sizing:border-box;}
@@ -259,7 +258,17 @@ export default function Menu() {
   return (
     <div className="mn" ref={rootRef}>
       <style>{CSS}</style>
-      <Navbar active="menu" position="sticky" showLinks={false} />
+      <Navbar
+        active="menu"
+        position="sticky"
+        showLinks={false}
+        rightSlot={<button
+            className="flex-shrink-0 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 font-label-md text-label-md text-on-primary hover:bg-white transition-colors"
+            onClick={() => navigate("/")}
+          >
+            <span className="material-symbols-outlined text-lg" aria-hidden="true">arrow_back</span>Inicio
+          </button>}
+      />
 
       {tiendaAbierta === null && (
         <div className="mn-closed"><h2>Verificando disponibilidad…</h2></div>

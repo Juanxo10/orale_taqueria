@@ -13,6 +13,18 @@ body {
 }
 
 .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined Variable';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 
@@ -261,3 +273,25 @@ body {
     stroke-dashoffset: 0;
   }
 }
+
+/* Botón de pedir: lettering grueso como el logo, borde y sombra dura, un poco torcido */
+.btn-orale {
+  --bg: #fbba24; --fg: #fff; --sh: #2a1204;
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  background: var(--bg); color: var(--fg);
+  border: 3px solid #fff; border-radius: 14px;
+  padding: .55rem 1.5rem .5rem;
+  font-family: 'Londrina Solid', Impact, sans-serif; font-size: 1.45rem; line-height: 1;
+  text-shadow: 0 2px 0 #2a1204;
+  letter-spacing: .04em; text-transform: uppercase; white-space: nowrap; cursor: pointer;
+  box-shadow: 0 5px 0 var(--sh);
+  transform: rotate(-2deg);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.btn-orale .material-symbols-outlined { font-size: 1.35rem; font-variation-settings: 'FILL' 1, 'wght' 500; }
+.btn-orale:hover { transform: rotate(0) translateY(3px); box-shadow: 0 2px 0 var(--sh); }
+.btn-orale:active { transform: rotate(0) translateY(5px); box-shadow: 0 0 0 var(--sh); }
+.btn-orale:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.btn-orale--rojo { --bg: #fe2b24; --fg: #fff; --sh: #fbba24; }
+.btn-orale--grande { font-size: 1.75rem; padding: .7rem 2rem .6rem; }
+@media (prefers-reduced-motion: reduce) { .btn-orale, .btn-orale:hover, .btn-orale:active { transform: none; transition: none; } }

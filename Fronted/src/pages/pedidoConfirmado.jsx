@@ -6,7 +6,6 @@ import logo from "../assets/Logo_tacos.jpg";
 
 import { almacenSesion } from "../data/almacen";
 const CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Bowlby+One&display=swap');
 :root{--g900:#1c1210;--g800:#fe2b24;--g700:#c81812;--g600:#e0241d;--g400:#fbba24;--g200:#f6d9b5;--g100:#fff1de;--gold:#fbba24;--cream:#f8f0e4;--border:#ecdcc6;--text:#1c1210;--muted:#7a6a60;--white:#fff;}
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Plus Jakarta Sans',sans-serif;background:radial-gradient(circle at top,#f9f5ea 0,#f8f0e4 42%,#fff1de 100%);color:var(--text);min-height:100vh;}
@@ -154,7 +153,7 @@ export default function PedidoConfirmado() {
     return null;
   }
 
-  const metodoPagoLabel = order.metodo_pago === "Transferencia Wompi" ? "Transferencia Wompi" : "Contraentrega en efectivo";
+  const metodoPagoLabel = order.metodo_pago === "Transferencia Wompi" ? "Transferencia Wompi" : "Pagar en caja";
   const esRechazado = paymentStatus === "rechazado" || paymentStatus === "error";
   const esPendiente = paymentStatus !== "aprobado" && !esRechazado;
 

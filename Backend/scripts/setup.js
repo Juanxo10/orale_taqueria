@@ -7,7 +7,7 @@ const pool = require("../db");
 const sql = (f) => fs.readFileSync(path.join(__dirname, "..", "db", f), "utf8");
 
 (async () => {
-  for (const f of ["schema.sql", "migration_auth.sql", "migration_sugerencias.sql", "migration_tipo_entrega.sql", "migration_wompi.sql", "migration_productos_activo.sql", "migration_insumos.sql", "migration_rls.sql", "migration_consentimiento.sql", "migration_quitar_bowls.sql"]) {
+  for (const f of ["schema.sql", "migration_auth.sql", "migration_sugerencias.sql", "migration_tipo_entrega.sql", "migration_wompi.sql", "migration_productos_activo.sql", "migration_insumos.sql", "migration_rls.sql", "migration_consentimiento.sql", "migration_consentimientos.sql","migration_quitar_bowls.sql"]) {
     await pool.query(sql(f));
   }
   const { rows } = await pool.query("SELECT COUNT(*)::int AS n FROM productos");

@@ -32,7 +32,7 @@ router.get("/", authenticate, requireStaff, async (_req, res) => {
 // POST /api/pedidos — crear un pedido nuevo
 router.post("/", limiters.crearPedido, async (req, res) => {
   try {
-    const result = await crearPedido(req.body);
+    const result = await crearPedido({ ...req.body, ip: req.ip, user_agent: req.get("user-agent") });
     res.status(201).json(result);
   } catch (err) {
     if (err.status) {
