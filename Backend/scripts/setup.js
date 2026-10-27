@@ -19,6 +19,8 @@ const sql = (f) => fs.readFileSync(path.join(__dirname, "..", "db", f), "utf8");
   // Después de los seeds: clasifica los insumos sembrados en crudo/preparado y rellena el menú
   await pool.query(sql("migration_materia_prima.sql"));
   await pool.query(sql("seed_menu.sql"));
+  // Necesita las categorías ya creadas y sembradas (asigna cada una a cocina o barra)
+  await pool.query(sql("migration_estaciones.sql"));
 
   const produccion = process.env.NODE_ENV === "production";
   if (produccion && (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSWORD.length < 10 || process.env.ADMIN_PASSWORD === "admin123")) {
