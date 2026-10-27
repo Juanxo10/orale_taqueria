@@ -4,7 +4,7 @@
 import { useEffect, useState } from "react";
 import { API_URL } from "../config";
 
-export const DOM = 6000;
+export const DOM = 7000;
 
 export const MENU = [
   { cat: "Entradas", items: [

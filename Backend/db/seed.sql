@@ -1,5 +1,5 @@
 -- Generado por scripts/genSeed.mjs desde Fronted/src/data/menuData.js (Orale Taquería)
-INSERT INTO configuracion (clave, valor) VALUES ('domicilio', 6000)
+INSERT INTO configuracion (clave, valor) VALUES ('domicilio', 7000)
 ON CONFLICT (clave) DO NOTHING;
 
 INSERT INTO productos (nombre, tipo, precio) VALUES

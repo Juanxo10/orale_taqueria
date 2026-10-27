@@ -26,10 +26,11 @@ const ANTOJOS = [
   { title: "Directo del comal", tag: "Del comal", text: "Mira cómo los armamos: todo se hace al momento.", img: img7, video: video2, alt: "Preparación de tacos" },
 ];
 
+
 const PASOS = [
   { title: "Eliges tus tacos", text: "Escoge tus tacos, tus salsas y los extras que quieras desde el menú.", chips: ["Tacos", "Salsas", "Extras"], img: img3, alt: "Tacos con salsa goteando", bg: "#fe2b24", fg: "#ffffff", accent: "#fbba24" },
   { title: "Al comal, al momento", text: "Tortilla recién calentada, carne jugosa y todo armado cuando lo pides.", chips: ["Sin congelados", "Bien calientitos"], img: img1, video: video3, alt: "Taco con limón", bg: "#1d1210", fg: "#fbf1e3", accent: "#fe2b24" },
-  { title: "A tu puerta", text: "Lo llevamos en 30–45 minutos. Pagas en línea, sin complicaciones.", chips: ["30–45 min", "Domicilio $6.000", "Pago en línea"], img: img8, alt: "Plato de tacos servido", bg: "#fbba24", fg: "#2a1204", accent: "#fe2b24" },
+  { title: "A tu puerta", text: "Lo llevamos en 30–45 minutos. Pagas en línea, sin complicaciones.", chips: ["30–45 min", "Domicilio $7.000", "Pago en línea"], img: img8, alt: "Plato de tacos servido", bg: "#fbba24", fg: "#2a1204", accent: "#fe2b24" },
 ];
 
 // Taco decorativo que asoma en diagonal desde un costado (PNG 360x360: no ampliar de ~260px).
@@ -351,7 +352,7 @@ export default function Index() {
               </div>
               <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
                 <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">moped</span>
-                <span className="font-label-md text-label-md">Domicilio $6.000</span>
+                <span className="font-label-md text-label-md">Domicilio $7.000</span>
               </div>
               <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
                 <span className="material-symbols-outlined text-2xl md:text-3xl text-primary">payments</span>

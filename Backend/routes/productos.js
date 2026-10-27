@@ -19,8 +19,9 @@ function datosProducto(b) {
   const precio = Number(b.precio);
   if (!nombre || !categoria) bad("Nombre y categoría son requeridos");
   if (!Number.isInteger(precio) || precio <= 0) bad("El precio debe ser un entero mayor que 0");
-  const foto = texto(b.foto, 500) || null;
-  if (foto && !/^https?:\/\//i.test(foto)) bad("La foto debe ser un enlace http(s)");
+  // shortcut: la foto arrastrada se guarda como data URL (ya reducida en el navegador) en la BD, sin storage externo; migrar a un bucket si el menú crece
+  const foto = texto(b.foto, 400000) || null;
+  if (foto && !/^https?:\/\/\S{1,500}$/i.test(foto) && !/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(foto)) bad("La foto debe ser un enlace http(s) o una imagen");
   return { nombre, categoria, precio, descripcion: texto(b.descripcion, 1000) || null, foto };
 }
 

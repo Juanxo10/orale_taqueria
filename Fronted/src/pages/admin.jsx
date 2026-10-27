@@ -20,7 +20,7 @@ const initials = (name) =>
 const statusLabel = (s, estadoPago) => {
   // Un pedido "cancelado" por pago rechazado no es lo mismo que uno cancelado manualmente por el staff
   if (s === "cancelado" && (estadoPago === "rechazado" || estadoPago === "error")) return "Rechazado";
-  return { nuevo: "Nuevo", preparando: "Preparando", camino: "En camino", entregado: "Entregado", cancelado: "Cancelado" }[s] || s;
+  return { nuevo: "Nuevo", preparando: "Preparando", listo: "Listo", camino: "En camino", entregado: "Entregado", cancelado: "Cancelado" }[s] || s;
 };
 
 const CSS = `
@@ -97,9 +97,14 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .status-badge{border-radius:999px;font-size:.68rem;font-weight:700;padding:.22rem .7rem;display:inline-flex;align-items:center;gap:.3rem;white-space:nowrap;}
 .status-badge.nuevo{background:var(--status-nuevo-bg);color:var(--status-nuevo);}
 .status-badge.preparando{background:var(--status-prep-bg);color:var(--status-prep);}
+.status-badge.listo{background:#dcfce7;color:#166534;}
 .status-badge.camino{background:var(--status-camino-bg);color:var(--status-camino);}
 .status-badge.entregado{background:var(--status-entregado-bg);color:var(--status-entregado);}
 .status-badge.cancelado{background:var(--status-cancelado-bg);color:var(--status-cancelado);}
+.est-chips{display:flex;gap:.4rem;flex-wrap:wrap;margin:.2rem 0 .85rem;}
+.est-chip{border-radius:999px;font-size:.68rem;font-weight:700;padding:.2rem .65rem;background:var(--g100);color:var(--g800);}
+.est-chip.preparando{background:var(--status-prep-bg);color:var(--status-prep);}
+.est-chip.listo{background:#dcfce7;color:#166534;}
 .status-select{border:1.5px solid var(--border);border-radius:8px;padding:.28rem .55rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.75rem;font-weight:600;cursor:pointer;color:var(--text);background:#fff;outline:none;transition:border-color .15s;}
 .status-select:focus{border-color:var(--g600);}
 .action-btn{border:none;border-radius:8px;padding:.3rem .7rem;font-family:'Plus Jakarta Sans',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:.3rem;}
@@ -439,6 +444,7 @@ body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:va
 .user-email{font-size:.78rem;color:var(--muted);}
 .role-badge{display:inline-block;border-radius:999px;font-size:.68rem;font-weight:700;padding:.2rem .65rem;}
 .role-badge.admin{background:#fef3c7;color:#92400e;}
+.role-badge.cocina,.role-badge.barra{background:#dcfce7;color:#166534;}
 .role-badge.empleado{background:var(--g100);color:var(--g800);}
 .active-dot{display:inline-flex;align-items:center;gap:.35rem;font-size:.78rem;font-weight:600;}
 .active-dot .dot{width:8px;height:8px;border-radius:50%;}
@@ -577,6 +583,7 @@ const FILTERS = [
   { key: "todos", label: "Todos" },
   { key: "nuevo", label: "Nuevos" },
   { key: "preparando", label: "Preparando" },
+  { key: "listo", label: "Listos" },
   { key: "camino", label: "En camino" },
   { key: "entregado", label: "Entregados" },
   { key: "cancelado", label: "Cancelados" },
@@ -1090,7 +1097,7 @@ export default function Admin() {
             <div className="brand-name">Órale Tacos</div>
             <div className="brand-sub">Panel de administración</div>
           </div>
-          <span className="admin-badge">{isAdmin ? "Admin" : "Empleado"}</span>
+          <span className="admin-badge">{{ admin: "Admin", cocina: "Cocina", barra: "Barra" }[adminUser.rol] || "Empleado"}</span>
         </div>
         {/* Botones desktop */}
         <div className="nav-right">
@@ -1200,6 +1207,13 @@ export default function Admin() {
                         </div>
                       </Fragment>
                     ))}
+                    {Object.keys(o.estaciones || {}).length > 0 && (
+                      <div className="est-chips">
+                        {Object.entries(o.estaciones).map(([est, { estado }]) => (
+                          <span key={est} className={`est-chip ${estado}`}>{est === "barra" ? "Barra" : "Cocina"}: {estado}</span>
+                        ))}
+                      </div>
+                    )}
                     <span className="oc-section-lbl">Entrega</span>
                     <div className="addr-row">
                       <span className="addr-icon"></span>
@@ -1221,13 +1235,19 @@ export default function Admin() {
                       <button className="btn-print" onClick={() => printOrder(o)} title="Imprimir ticket de cocina">🖨️ Imprimir</button>
                       {o.status === "nuevo" && (
                         <>
-                          <button className="action-btn btn-advance" onClick={() => changeStatus(o.id, "preparando")}>Preparar pedido</button>
+                          {!Object.keys(o.estaciones || {}).length && <button className="action-btn btn-advance" onClick={() => changeStatus(o.id, "preparando")}>Preparar pedido</button>}
                           <button className="action-btn btn-cancel" onClick={() => changeStatus(o.id, "cancelado")}>Cancelar</button>
                         </>
                       )}
                       {o.status === "preparando" && (
                         <>
-                          <button className="action-btn btn-advance" onClick={() => changeStatus(o.id, "camino")}>Enviar pedido</button>
+                          {!Object.keys(o.estaciones || {}).length && <button className="action-btn btn-advance" onClick={() => changeStatus(o.id, "camino")}>Enviar pedido</button>}
+                          <button className="action-btn btn-cancel" onClick={() => changeStatus(o.id, "cancelado")}>Cancelar</button>
+                        </>
+                      )}
+                      {o.status === "listo" && (
+                        <>
+                          <button className="action-btn btn-advance" onClick={() => changeStatus(o.id, "camino")}>{o.tipo_entrega === "recogida" ? "Entregar en tienda" : "Enviar pedido"}</button>
                           <button className="action-btn btn-cancel" onClick={() => changeStatus(o.id, "cancelado")}>Cancelar</button>
                         </>
                       )}
@@ -1730,7 +1750,7 @@ export default function Admin() {
                         <div className="user-name">{u.nombre}</div>
                         <div className="user-email">{u.email}</div>
                       </td>
-                      <td><span className={`role-badge ${u.rol}`}>{u.rol === "admin" ? "Admin" : "Empleado"}</span></td>
+                      <td><span className={`role-badge ${u.rol}`}>{{ admin: "Admin", cocina: "Cocina", barra: "Barra" }[u.rol] || "Empleado"}</span></td>
                       <td>
                         <span className="active-dot">
                           <span className={`dot ${u.activo ? "on" : "off"}`}></span>
@@ -1776,6 +1796,8 @@ export default function Admin() {
                 <label>Rol</label>
                 <select value={formData.rol} onChange={(e) => setFormData({ ...formData, rol: e.target.value })}>
                   <option value="empleado">Empleado</option>
+                  <option value="cocina">Cocina</option>
+                  <option value="barra">Barra</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>

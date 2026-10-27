@@ -70,8 +70,8 @@ async function login(req, res) {
       return res.status(401).json({ error: "Credenciales incorrectas" });
     }
 
-    // 4. Verificar rol admin o empleado
-    if (user.rol !== "admin" && user.rol !== "empleado") {
+    // 4. Verificar rol de staff
+    if (!["admin", "empleado", "cocina", "barra"].includes(user.rol)) {
       logger.warn({ userId: user.id, ip: req.ip }, "Login fallido — usuario sin permisos de staff");
       return res.status(403).json({ error: "No tienes permisos para acceder" });
     }

@@ -39,7 +39,7 @@ export default function Login() {
       almacenLocal.set("token", data.accessToken);
       almacenLocal.set("refreshToken", data.refreshToken);
       almacenLocal.set("adminUser", JSON.stringify(data.user));
-      navigate("/admin");
+      navigate({ cocina: "/cocina", barra: "/barra" }[data.user.rol] || "/admin");
     } catch {
       setError("Error de conexión con el servidor");
     } finally {

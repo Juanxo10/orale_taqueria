@@ -43,6 +43,12 @@ const CSS = `
 .ins-over{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:flex;align-items:flex-start;justify-content:center;padding:4vh 1rem;overflow-y:auto;}
 .ins-modal{background:#fff;border-radius:16px;padding:1.2rem;width:100%;max-width:640px;box-shadow:0 12px 40px rgba(0,0,0,.3);display:flex;flex-direction:column;gap:.6rem;}
 .ins-modal h2{font-size:1rem;font-weight:800;margin:0;}
+.ins-drop{border:2px dashed var(--border);border-radius:12px;padding:.8rem;text-align:center;font-size:.78rem;font-weight:600;color:var(--muted);cursor:pointer;background:#fafaf7;}
+.ins-drop.over{border-color:var(--brand);background:#fff7ed;}
+.ins-drop img{max-height:120px;max-width:100%;border-radius:8px;display:block;margin:0 auto .4rem;}
+.ins-conf{max-width:440px;}
+.ins-conf p{font-size:.88rem;line-height:1.5;margin:0;color:#333;}
+.ins-conf p.warn{color:#991b1b;font-weight:700;}
 @media(max-width:1000px){.ins-grid{grid-template-columns:minmax(0,1fr);}.ins-scroll{max-height:none;}}
 @media(max-width:700px){.ins-two{grid-template-columns:1fr;}}
 `;
@@ -67,7 +73,27 @@ const fmt = (cant, base) => { const { n, u } = legible(cant, base); return `${n}
 const norm = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const VACIO = { nombre: "", categoria: "", precio: "", descripcion: "", foto: "" };
 
-function Modal({ titulo, onClose, children }) {
+// Reduce la imagen a 800px máx. y la devuelve como data URL JPEG (cabe en el límite de 1 MB del backend)
+const imagenADataUrl = (file) => new Promise((ok, fail) => {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => {
+    const k = Math.min(1, 800 / Math.max(img.width, img.height));
+    const c = document.createElement("canvas");
+    c.width = Math.round(img.width * k);
+    c.height = Math.round(img.height * k);
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    ok(c.toDataURL("image/jpeg", 0.8));
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); fail(new Error("No se pudo leer la imagen")); };
+  img.src = url;
+});
+
+function Modal({ titulo, onClose, children, className = "" }) {
   useEffect(() => {
     const k = (e) => e.key === "Escape" && onClose();
     addEventListener("keydown", k);
@@ -75,7 +101,7 @@ function Modal({ titulo, onClose, children }) {
   }, [onClose]);
   return (
     <div className="ins-over" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="ins-modal" role="dialog" aria-label={titulo}>
+      <div className={`ins-modal ${className}`} role="dialog" aria-label={titulo}>
         <h2>{titulo}</h2>
         {children}
       </div>
@@ -138,6 +164,9 @@ export default function Insumos({ token, isAdmin, menu, recargarMenu }) {
   const [draft, setDraft] = useState([]); // receta en edición: { insumo_id, texto, cantidad, unidad }
   const [prod, setProd] = useState(null); // modal de producto: { id?, nombre, categoria, precio, descripcion, foto }
   const [prep, setPrep] = useState(null); // modal de receta de un preparado: insumo
+  const [conf, setConf] = useState(null); // confirmación de borrado: { nombre, detalle, onOk }
+  const [arrastrando, setArrastrando] = useState(false);
+  const [catNueva, setCatNueva] = useState(false); // categoría escrita a mano en vez de elegida
 
   const headers = { "Content-Type": "application/json", Authorization: `Bearer ${token}` };
 
@@ -214,7 +243,19 @@ export default function Insumos({ token, isAdmin, menu, recargarMenu }) {
 
   const abrirPrep = (i) => { setPrep(i); setDraft(filasDe(preparaciones.filter((p) => p.preparado_id === i.id), (p) => p.crudo_id)); };
 
+  const soltarFoto = async (e) => {
+    e.preventDefault();
+    setArrastrando(false);
+    const f = (e.dataTransfer?.files || e.target.files)?.[0];
+    if (!f) return;
+    if (!f.type.startsWith("image/")) return setError("El archivo debe ser una imagen (JPG, PNG o WebP).");
+    try { setProd((p) => ({ ...p, foto: "" })); const foto = await imagenADataUrl(f); setProd((p) => ({ ...p, foto })); setError(""); }
+    catch (err) { setError(err.message); }
+  };
+
   const abrirProducto = (p) => {
+    setCatNueva(false);
+    setError("");
     setProd(p);
     setDraft(p.id ? filasDe(recetas.filter((r) => r.producto_id === p.id), (r) => r.insumo_id) : []);
   };
@@ -318,7 +359,7 @@ export default function Insumos({ token, isAdmin, menu, recargarMenu }) {
                                 Receta / editar
                               </button>
                               <button className="ins-btn del" disabled={!p.id}
-                                onClick={() => window.confirm(`¿Quitar "${p.name}" del menú? Los pedidos viejos se conservan.`) && accion(async () => { await api(`/productos/${p.id}`, "DELETE"); await recargarMenu(); })()}>
+                                onClick={() => setConf({ nombre: p.name, detalle: "Dejará de aparecer en el menú. Los pedidos anteriores se conservan.", onOk: accion(async () => { await api(`/productos/${p.id}`, "DELETE"); await recargarMenu(); }) })}>
                                 Quitar
                               </button>
                             </div>
@@ -405,7 +446,7 @@ export default function Insumos({ token, isAdmin, menu, recargarMenu }) {
                         <div className="ins-row" style={{ justifyContent: "flex-end" }}>
                           {i.tipo === "preparado" && <button className="ins-btn alt" onClick={() => abrirPrep(i)}>Receta</button>}
                           <button className="ins-btn alt" onClick={() => setEdit({ ...i })}>Editar</button>
-                          <button className="ins-btn del" onClick={() => window.confirm(`¿Eliminar "${i.nombre}"? También se quita de las recetas.`) && accion(() => api(`/insumos/${i.id}`, "DELETE"))()}>Eliminar</button>
+                          <button className="ins-btn del" onClick={() => setConf({ nombre: i.nombre, detalle: "También se quitará de todas las recetas donde se use.", onOk: accion(() => api(`/insumos/${i.id}`, "DELETE")) })}>Eliminar</button>
                         </div>
                       </td>
                     )}
@@ -417,23 +458,56 @@ export default function Insumos({ token, isAdmin, menu, recargarMenu }) {
         </div>
       </div>
 
+      {conf && (
+        <Modal titulo="Confirmar eliminación" className="ins-conf" onClose={() => setConf(null)}>
+          <p>¿Está seguro de que desea eliminar <b>«{conf.nombre}»</b>?</p>
+          <p>{conf.detalle}</p>
+          <p className="warn">Esta acción no se puede deshacer.</p>
+          <div className="ins-row" style={{ justifyContent: "flex-end", marginTop: ".4rem" }}>
+            <button className="ins-btn alt" onClick={() => setConf(null)}>Cancelar</button>
+            <button className="ins-btn" style={{ background: "#b91c1c" }} onClick={() => { const f = conf.onOk; setConf(null); f(); }}>Sí, eliminar</button>
+          </div>
+        </Modal>
+      )}
+
       {prod && (
         <Modal titulo={prod.id ? `Editar ${prod.nombre}` : "Nuevo producto"} onClose={() => setProd(null)}>
           <div className="ins-form">
             <label>Nombre<input className="ins-in full" value={prod.nombre} onChange={(e) => setProd({ ...prod, nombre: e.target.value })} /></label>
             <label>Categoría
-              <input className="ins-in full" list="ins-cats" value={prod.categoria} placeholder="Elige o escribe una nueva"
-                onChange={(e) => setProd({ ...prod, categoria: e.target.value })} />
-              <datalist id="ins-cats">{menu.map((c) => <option key={c.cat} value={c.cat} />)}</datalist>
+              {catNueva ? (
+                <div className="ins-row" style={{ flexWrap: "nowrap" }}>
+                  <input className="ins-in grow" autoFocus placeholder="Nombre de la nueva categoría" value={prod.categoria}
+                    onChange={(e) => setProd({ ...prod, categoria: e.target.value })} />
+                  <button type="button" className="ins-btn alt" onClick={() => { setCatNueva(false); setProd({ ...prod, categoria: "" }); }}>Cancelar</button>
+                </div>
+              ) : (
+                <select className="ins-in full" value={prod.categoria}
+                  onChange={(e) => e.target.value === "__nueva" ? (setCatNueva(true), setProd({ ...prod, categoria: "" })) : setProd({ ...prod, categoria: e.target.value })}>
+                  <option value="" disabled>Elige una categoría…</option>
+                  {menu.map((c) => <option key={c.cat} value={c.cat}>{c.cat}</option>)}
+                  <option value="__nueva">+ Nueva categoría…</option>
+                </select>
+              )}
             </label>
             <label>Precio (COP)<input className="ins-in full" type="number" min="0" step="500" value={prod.precio} onChange={(e) => setProd({ ...prod, precio: e.target.value })} /></label>
-            <label>Foto (enlace, opcional)<input className="ins-in full" placeholder="https://…" value={prod.foto} onChange={(e) => setProd({ ...prod, foto: e.target.value })} /></label>
+            <div className="span" style={{ display: "flex", flexDirection: "column", gap: ".2rem", fontSize: ".7rem", fontWeight: 700, color: "var(--muted)" }}>Foto (opcional)
+              <div className={`ins-drop${arrastrando ? " over" : ""}`}
+                onDragOver={(e) => { e.preventDefault(); setArrastrando(true); }} onDragLeave={() => setArrastrando(false)}
+                onDrop={soltarFoto} onClick={(e) => e.currentTarget.querySelector("input").click()}>
+                {prod.foto && <img src={prod.foto} alt="Vista previa" />}
+                {prod.foto ? "Arrastra otra imagen o haz clic para cambiarla" : "Arrastra una imagen desde tu computador o haz clic para elegirla"}
+                <input type="file" accept="image/*" hidden onChange={soltarFoto} onClick={(e) => e.stopPropagation()} />
+              </div>
+              {prod.foto && <button type="button" className="ins-btn del" style={{ alignSelf: "flex-start" }} onClick={() => setProd({ ...prod, foto: "" })}>Quitar foto</button>}
+            </div>
             <label className="span">Descripción
               <textarea className="ins-in full" rows={3} value={prod.descripcion} onChange={(e) => setProd({ ...prod, descripcion: e.target.value })} />
             </label>
           </div>
           <h4>Ingredientes que gasta 1 unidad vendida</h4>
           <RecetaEditor draft={draft} setDraft={setDraft} porId={porId} opciones={[...preparados, ...crudos]} />
+          {error && <div className="ins-err">{error}</div>}
           <div className="ins-row" style={{ marginTop: ".4rem" }}>
             <button className="ins-btn" onClick={guardarProducto}>Guardar producto</button>
             <button className="ins-btn alt" onClick={() => setProd(null)}>Cancelar</button>
