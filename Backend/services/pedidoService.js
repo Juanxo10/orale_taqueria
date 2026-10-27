@@ -1,6 +1,8 @@
 const pool = require("../db");
 
-const ESTADOS_VALIDOS = ["nuevo", "preparando", "camino", "entregado", "cancelado"];
+const ESTADOS_VALIDOS = ["nuevo", "preparando", "listo", "camino", "entregado", "cancelado"];
+const ESTACIONES = ["cocina", "barra"];
+const ESTADOS_ESTACION = ["pendiente", "preparando", "listo"];
 const METODOS_VALIDOS = ["Contraentrega en efectivo", "Transferencia Wompi"];
 const TIPOS_ENTREGA_VALIDOS = ["domicilio", "recogida"];
 
@@ -67,7 +69,7 @@ async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "d
     const conf = {};
     for (const row of confRes.rows) conf[row.clave] = Number(row.valor);
 
-    const DOMICILIO_CONFIG = conf.domicilio        ?? conf.precio_domicilio        ?? 6000;
+    const DOMICILIO_CONFIG = conf.domicilio        ?? conf.precio_domicilio        ?? 7000;
     const DOMICILIO       = esRecogida ? 0 : DOMICILIO_CONFIG;
 
     // Recopilar todos los nombres de productos necesarios
@@ -78,7 +80,9 @@ async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "d
 
     // Obtener productos de la DB en una sola consulta
     const prodRes = await client.query(
-      "SELECT id, nombre, tipo, precio FROM productos WHERE nombre = ANY($1) AND activo = true",
+      `SELECT p.id, p.nombre, p.tipo, p.precio, COALESCE(c.estacion, 'cocina') AS estacion
+       FROM productos p LEFT JOIN categorias c ON c.nombre = p.categoria
+       WHERE p.nombre = ANY($1) AND p.activo = true`,
       [Array.from(allNames)]
     );
     const prodMap = {};
@@ -95,7 +99,7 @@ async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "d
       const prod = prodMap[name];
       if (!prod) throw { status: 400, message: `Producto no encontrado: ${name}` };
       subtotal += prod.precio * qty;
-      extrasData.push({ productoId: prod.id, cantidad: qty });
+      extrasData.push({ productoId: prod.id, cantidad: qty, estacion: prod.estacion });
     }
 
     const notasFinal = notas || null;
@@ -124,6 +128,11 @@ async function crearPedido({ extraItems, cliente, metodo_pago, tipo_entrega = "d
       );
     }
 
+    // Una fila por estación que tenga productos en este pedido
+    for (const estacion of new Set(extrasData.map((e) => e.estacion))) {
+      await client.query("INSERT INTO pedido_estaciones (pedido_id, estacion) VALUES ($1,$2)", [pedidoId, estacion]);
+    }
+
     await client.query("COMMIT");
     return pedidoRes.rows[0];
   } catch (err) {
@@ -146,18 +155,31 @@ async function listarPedidos() {
   const pedidoIds = pedidosRes.rows.map((p) => p.id);
 
   const extrasRes = await pool.query(
-    `SELECT pe.pedido_id, pr.nombre, pe.cantidad
+    `SELECT pe.pedido_id, pr.nombre, pe.cantidad, COALESCE(c.estacion, 'cocina') AS estacion
      FROM pedido_extras pe
      JOIN productos pr ON pe.producto_id = pr.id
+     LEFT JOIN categorias c ON c.nombre = pr.categoria
      WHERE pe.pedido_id = ANY($1)`,
+    [pedidoIds]
+  );
+  const estRes = await pool.query(
+    "SELECT pedido_id, estacion, estado FROM pedido_estaciones WHERE pedido_id = ANY($1)",
     [pedidoIds]
   );
 
   // Indexar extras por pedido_id
   const extrasByPedido = {};
+  const estacionesByPedido = {};
   for (const e of extrasRes.rows) {
     if (!extrasByPedido[e.pedido_id]) extrasByPedido[e.pedido_id] = {};
     extrasByPedido[e.pedido_id][e.nombre] = e.cantidad;
+    // Items por estación para las pantallas de cocina y barra
+    const est = (estacionesByPedido[e.pedido_id] ||= {});
+    (est[e.estacion] ||= { estado: "pendiente", items: {} }).items[e.nombre] = e.cantidad;
+  }
+  for (const r of estRes.rows) {
+    const est = estacionesByPedido[r.pedido_id];
+    if (est?.[r.estacion]) est[r.estacion].estado = r.estado;
   }
 
   const result = pedidosRes.rows.map((p) => {
@@ -179,6 +201,7 @@ async function listarPedidos() {
       total: p.total,
       hora: p.creado_en,
       extraItems: extrasByPedido[p.id] || {},
+      estaciones: estacionesByPedido[p.id] || {},
     };
   });
 
@@ -201,6 +224,40 @@ async function cambiarEstado(id, estado) {
   }
   invalidarCache();
   return res.rows[0];
+}
+
+// ── Cambiar estado de una estación (cocina / barra) ─────
+// Recalcula el estado global: alguna preparando → 'preparando'; todas listas → 'listo'
+async function cambiarEstadoEstacion(id, estacion, estado) {
+  if (!ESTACIONES.includes(estacion) || !ESTADOS_ESTACION.includes(estado)) {
+    throw { status: 400, message: "Estación o estado inválido" };
+  }
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const ped = await client.query("SELECT estado FROM pedidos WHERE id = $1 FOR UPDATE", [id]);
+    if (!ped.rows.length) throw { status: 404, message: "Pedido no encontrado" };
+    if (["camino", "entregado", "cancelado", "pendiente_pago"].includes(ped.rows[0].estado)) {
+      throw { status: 409, message: "El pedido ya no admite cambios en cocina o barra" };
+    }
+    const upd = await client.query(
+      "UPDATE pedido_estaciones SET estado = $1, actualizado_en = NOW() WHERE pedido_id = $2 AND estacion = $3",
+      [estado, id, estacion]
+    );
+    if (!upd.rowCount) throw { status: 404, message: "Este pedido no tiene productos de esa estación" };
+
+    const todas = (await client.query("SELECT estado FROM pedido_estaciones WHERE pedido_id = $1", [id])).rows.map((r) => r.estado);
+    const global = todas.every((e) => e === "listo") ? "listo" : todas.some((e) => e !== "pendiente") ? "preparando" : "nuevo";
+    await client.query("UPDATE pedidos SET estado = $1 WHERE id = $2", [global, id]);
+    await client.query("COMMIT");
+    invalidarCache();
+    return { id: Number(id), estacion, estado, status: global };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 // ── Actualizar pago Wompi ─────────────────────────────────
@@ -312,4 +369,4 @@ async function revisarPendientesWompi() {
   }
 }
 
-module.exports = { crearPedido, listarPedidos, cambiarEstado, updateWompiPayment, warmup, invalidarCache, revisarPendientesWompi };
+module.exports = { crearPedido, listarPedidos, cambiarEstado, cambiarEstadoEstacion, updateWompiPayment, warmup, invalidarCache, revisarPendientesWompi };

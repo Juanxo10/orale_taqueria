@@ -16,7 +16,7 @@ router.use(authenticate, requireAdmin);
 const userValidation = [
   body("nombre").trim().notEmpty().withMessage("El nombre es requerido"),
   body("email").trim().notEmpty().withMessage("El email es requerido").isEmail().withMessage("Email inválido").normalizeEmail(),
-  body("rol").isIn(["admin", "empleado"]).withMessage("Rol debe ser admin o empleado"),
+  body("rol").isIn(["admin", "empleado", "cocina", "barra"]).withMessage("Rol debe ser admin, empleado, cocina o barra"),
 ];
 
 const createValidation = [

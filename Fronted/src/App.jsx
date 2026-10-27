@@ -8,6 +8,7 @@ import Sugerencias from './pages/sugerencias'
 import Pago from './pages/pago'
 import Admin from './pages/admin'
 import Login from './pages/login'
+import Estacion from './pages/estacion'
 import PedidoConfirmado from './pages/pedidoConfirmado'
 import Privacidad from './pages/privacidad'
 import Terminos from './pages/terminos'
@@ -18,7 +19,7 @@ import { apiFetch } from './data/api'
 // Carga diferida y aislada: si un bloqueador de rastreadores bloquea este archivo, el resto del sitio sigue funcionando
 const AvisoDatos = lazy(() => import('./components/AvisoDatos'))
 
-function ProtectedAdmin() {
+function ProtectedAdmin({ children }) {
   const [auth, setAuth] = useState(null); // null=loading, true, false
 
   useEffect(() => {
@@ -42,6 +43,12 @@ function ProtectedAdmin() {
 
   if (auth === null) return null;
   if (!auth) return <Navigate to="/login" replace />;
+  if (children) return children;
+  // cocina y barra solo usan su pantalla, no el panel de admin
+  try {
+    const rol = JSON.parse(almacenLocal.get("adminUser") || "{}").rol;
+    if (rol === "cocina" || rol === "barra") return <Navigate to={`/${rol}`} replace />;
+  } catch { /* sesión corrupta: la API decide */ }
   return <Admin />;
 }
 
@@ -59,6 +66,8 @@ function App() {
         <Route path="/terminos" element={<Terminos />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin" element={<ProtectedAdmin />} />
+        <Route path="/cocina" element={<ProtectedAdmin><Estacion estacion="cocina" /></ProtectedAdmin>} />
+        <Route path="/barra" element={<ProtectedAdmin><Estacion estacion="barra" /></ProtectedAdmin>} />
       </Routes>
       <ErrorBoundary><Suspense fallback={null}><AvisoDatos /></Suspense></ErrorBoundary>
     </BrowserRouter>
