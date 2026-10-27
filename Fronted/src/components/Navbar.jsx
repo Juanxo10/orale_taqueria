@@ -64,7 +64,7 @@ export default function Navbar({ active, position = "sticky", rightSlot, showLin
               className="btn-orale flex-shrink-0"
               onClick={() => goTo("/menu")}
             >
-              <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>Pedir tacos
+              <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>¡A comer!
             </button>
           ))}
 

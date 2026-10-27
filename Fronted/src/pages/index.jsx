@@ -145,7 +145,7 @@ export default function Index() {
                 className="btn-orale btn-orale--rojo btn-orale--grande"
                 onClick={() => navigate("/menu")}
               >
-                <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>Pedir mis tacos
+                <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>¡Quiero mis tacos!
               </button>
               <button
                 className="bg-transparent border-2 border-primary text-primary px-8 py-4 md:px-10 md:py-5 rounded-full font-label-md text-base md:text-lg hover:bg-primary hover:text-on-primary transition-colors duration-300"
@@ -343,7 +343,7 @@ export default function Index() {
               className="btn-orale btn-orale--grande w-full max-w-xs sm:w-auto sm:max-w-none"
               onClick={() => navigate("/menu")}
             >
-              <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>Pedir ahora
+              <span className="material-symbols-outlined" aria-hidden="true">local_fire_department</span>¡Órale, a pedir!
             </button>
             <div className="mt-10 md:mt-14 grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-8 border-t border-outline-variant pt-8 md:pt-10 text-on-surface">
               <div className="flex flex-row sm:flex-col items-center md:items-start justify-center gap-3 sm:gap-2">
