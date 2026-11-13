@@ -22,7 +22,7 @@ export const B = ({ children }) => <strong className="text-on-surface">{children
 export function Contacto() {
   return (
     <Ul>
-      <li><B>{NEGOCIO.nombre}</B>{NEGOCIO.nit ? `, NIT ${NEGOCIO.nit}` : ""}</li>
+      <li><B>{NEGOCIO.nombre}</B>{NEGOCIO.nit ? `, ${NEGOCIO.nit}` : ""}</li>
       <li>Dirección: {NEGOCIO.direccion}</li>
       <li>Teléfono / WhatsApp: <a className="text-primary underline" href={`tel:+57${NEGOCIO.telefono.replace(/\D/g, "")}`}>{NEGOCIO.telefono}</a></li>
       {NEGOCIO.correo && <li>Correo: <a className="text-primary underline" href={`mailto:${NEGOCIO.correo}`}>{NEGOCIO.correo}</a></li>}

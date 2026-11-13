@@ -11,7 +11,6 @@ const staffRoutes = require("./routes/staff");
 const sugerenciasRoutes = require("./routes/sugerencias");
 const tiendaRoutes = require("./routes/tienda");
 const wompiRoutes = require("./routes/wompi");
-const insumosRoutes = require("./routes/insumos");
 const facturacionRoutes = require("./routes/facturacion");
 const limiters = require("./middlewares/limiters");
 const pool = require("./db");
@@ -62,7 +61,6 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/sugerencias", sugerenciasRoutes);
 app.use("/api/tienda", tiendaRoutes);
 app.use("/api/wompi", wompiRoutes);
-app.use("/api/insumos", insumosRoutes);
 app.use("/api/facturacion", facturacionRoutes);
 app.use("/api/productos", productosRoutes);
 

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config";
 import { useMenu, cargarMenu, groupExtras } from "../data/menuData";
 import Facturacion from "../components/Facturacion";
-import Insumos from "../components/Insumos";
+import Productos from "../components/Productos";
 import logo from "../assets/Logo_tacos.jpg";
 
 import { almacenLocal } from "../data/almacen";
@@ -627,7 +627,7 @@ export default function Admin() {
   // Inventario (productos sin stock)
   const [productosDesactivados, setProductosDesactivados] = useState(new Set());
   const [invCargando, setInvCargando] = useState(false);
-  const [invTab, setInvTab] = useState("disponibilidad"); // "disponibilidad" | "insumos"
+  const [invTab, setInvTab] = useState("disponibilidad"); // "disponibilidad" | "productos"
   // Modal de confirmación genérico
   const [confirmModal, setConfirmModal] = useState(null); // { mensaje, onConfirm }
   const [ordersLoading, setOrdersLoading] = useState(true);
@@ -1812,14 +1812,14 @@ export default function Admin() {
 
       {/* INVENTARIO */}
       {view === "inventario" && (
-        <div className={`inv-page${invTab === "insumos" ? " wide" : ""}`}>
+        <div className={`inv-page${invTab === "productos" ? " wide" : ""}`}>
           <h2>Inventario</h2>
           <div className="filter-tabs" style={{ marginBottom: "1.2rem" }}>
             <button className={`ftab${invTab === "disponibilidad" ? " active" : ""}`} onClick={() => setInvTab("disponibilidad")}>Disponibilidad de productos</button>
-            {isAdmin && <button className={`ftab${invTab === "insumos" ? " active" : ""}`} onClick={() => setInvTab("insumos")}>Materia prima</button>}
+            {isAdmin && <button className={`ftab${invTab === "productos" ? " active" : ""}`} onClick={() => setInvTab("productos")}>Productos</button>}
           </div>
-          {invTab === "insumos" && isAdmin && (
-            <Insumos token={token} isAdmin={isAdmin} menu={menu} recargarMenu={() => cargarMenu(true)} />
+          {invTab === "productos" && isAdmin && (
+            <Productos token={token} isAdmin={isAdmin} menu={menu} recargarMenu={() => cargarMenu(true)} />
           )}
           {invTab === "disponibilidad" && menu.map(({ cat, items }) => (
             <div key={cat} className="inv-section">

@@ -5,7 +5,8 @@ import PageHeader, { SideTaco } from "../components/PageHeader";
 import { guardarConsentimiento, useConsentimiento } from "../data/preferencias";
 
 const TICKER = ["Ven por tus tacos", "Acacías, Meta", "Salsa de la casa", "Te esperamos", "Órale, pásale"];
-const DIRECCION = "Calle 16 # 31-38, Barrio El Bachué, Acacías, Meta";
+const DIRECCION = "Diagonal 8 # 8-99, Barrio Las Ferias (frente al coliseo), Acacías, Meta";
+const DESTINO = encodeURIComponent(DIRECCION + ", Colombia");
 
 const reveal = (i = 0) => ({
   initial: { opacity: 0, y: 36 },
@@ -60,7 +61,7 @@ export default function Ubicacion() {
 
               <motion.div {...reveal(2)} className="flex flex-col sm:flex-row gap-4">
                 <motion.a
-                  href="https://www.google.com/maps/dir/?api=1&destination=Calle%2016%20%23%2031-38%2C%20Barrio%20El%20Bach%C3%BA%C3%A9%2C%20Acac%C3%ADas%2C%20Meta"
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${DESTINO}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ y: 3 }}
@@ -98,7 +99,7 @@ export default function Ubicacion() {
                     className="w-full h-full border-0"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
-                    src="https://www.google.com/maps?q=Calle%2016%20%23%2031-38%2C%20Barrio%20El%20Bach%C3%BA%C3%A9%2C%20Acac%C3%ADas%2C%20Meta%2C%20Colombia&output=embed"
+                    src={`https://www.google.com/maps?q=${DESTINO}&output=embed`}
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-4 p-6 text-center">
@@ -115,7 +116,7 @@ export default function Ubicacion() {
                         Cargar mapa
                       </button>
                       <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(DIRECCION + ", Colombia")}`}
+                        href={`https://www.google.com/maps/search/?api=1&query=${DESTINO}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-5 py-2.5 rounded-full border border-outline-variant text-on-surface font-label-md text-sm"

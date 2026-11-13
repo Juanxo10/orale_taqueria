@@ -27,7 +27,7 @@ export default function Footer() {
           <img alt="Órale Tacos" className="h-14 w-auto object-contain rounded-xl" src={logo} />
           <p className="flex items-start justify-center md:justify-start gap-2 font-body-md text-sm text-on-surface-variant max-w-xs">
             <span className="material-symbols-outlined text-primary text-lg shrink-0">location_on</span>
-            <span>Calle 16 # 31-38, Barrio El Bachué, Acacías, Meta</span>
+            <span>Diagonal 8 # 8-99, Barrio Las Ferias, Acacías, Meta</span>
           </p>
         </div>
 
