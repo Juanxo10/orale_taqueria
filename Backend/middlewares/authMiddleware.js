@@ -38,21 +38,11 @@ function requireAdmin(req, res, next) {
  * Debe usarse DESPUÉS de authenticate.
  */
 function requireStaff(req, res, next) {
-  if (!req.user || !["admin", "empleado", "cocina", "barra"].includes(req.user.rol)) {
+  if (!req.user || (req.user.rol !== "admin" && req.user.rol !== "empleado")) {
     logger.warn({ userId: req.user?.id, ip: req.ip }, "Intento de acceso sin permisos de staff");
     return res.status(403).json({ error: "No tienes permisos para acceder" });
   }
   next();
 }
 
-/**
- * Admin y empleado cambian cualquier estación; cocina y barra solo la suya.
- */
-function requireEstacion(req, res, next) {
-  const rol = req.user?.rol;
-  if (rol === "admin" || rol === "empleado" || rol === req.params.estacion) return next();
-  logger.warn({ userId: req.user?.id, ip: req.ip }, "Intento de cambiar otra estación");
-  return res.status(403).json({ error: "No tienes permisos para esta estación" });
-}
-
-module.exports = { authenticate, requireAdmin, requireStaff, requireEstacion };
+module.exports = { authenticate, requireAdmin, requireStaff };
