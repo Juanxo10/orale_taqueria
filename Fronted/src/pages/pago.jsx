@@ -2,9 +2,11 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/Logo_tacos.jpg";
 import { API_URL } from "../config";
+import { apiFetch } from "../data/api";
 import { useMenu, DOM } from "../data/menuData";
 
 import { almacenLocal, almacenSesion } from "../data/almacen";
+const PRUEBA = "Pedido de prueba";
 const fmt = (n) => "$" + Number(n).toLocaleString("es-CO");
 
 const CSS = `
@@ -191,7 +193,7 @@ export default function Pago() {
     return Object.keys(e).length === 0;
   };
 
-  const handleConfirm = async () => {
+  const handleConfirm = async (metodo = "Contraentrega en efectivo") => {
     if (isSubmitting) {
       return;
     }
@@ -212,7 +214,7 @@ export default function Pago() {
         referencia: tipoEntrega === "domicilio" ? freferencia.trim() : "",
         notas: fnotes.trim(),
       },
-      metodo_pago: "Contraentrega en efectivo",
+      metodo_pago: metodo,
       tipo_entrega: tipoEntrega,
       acepta_terminos: aceptaTerminos,
       acepta_datos: aceptaDatos,
@@ -220,7 +222,7 @@ export default function Pago() {
 
     try {
       setIsSubmitting(true);
-      const res = await fetch(`${API_URL}/api/pedidos`, {
+      const res = await (metodo === PRUEBA ? apiFetch : fetch)(`${API_URL}/api/pedidos`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -546,12 +548,18 @@ export default function Pago() {
         {/* CTA */}
         <div>
           {payMethod === "efectivo" && tipoEntrega === "recogida" ? (
-            <button className="btn-card" onClick={handleConfirm} disabled={isSubmitting}>
+            <button className="btn-card" onClick={() => handleConfirm()} disabled={isSubmitting}>
               {isSubmitting ? "Creando pedido..." : "Confirmar pedido"}
             </button>
           ) : (
             <button className="btn-wompi" onClick={handleWompiPay} disabled={isSubmitting}>
               {isSubmitting ? "Redirigiendo..." : "Pagar con transferencia"}
+            </button>
+          )}
+          {/* Solo con sesión de personal iniciada; el servidor también lo exige */}
+          {almacenLocal.get("token") && (
+            <button className="btn-card" style={{ marginTop: ".7rem", background: "#555" }} onClick={() => handleConfirm(PRUEBA)} disabled={isSubmitting}>
+              Pedido de prueba (sin pago)
             </button>
           )}
         </div>

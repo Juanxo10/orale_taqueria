@@ -153,7 +153,7 @@ export default function PedidoConfirmado() {
     return null;
   }
 
-  const metodoPagoLabel = order.metodo_pago === "Transferencia Wompi" ? "Transferencia Wompi" : "Pagar en caja";
+  const metodoPagoLabel = { "Transferencia Wompi": "Transferencia Wompi", "Pedido de prueba": "Pedido de prueba" }[order.metodo_pago] || "Pagar en caja";
   const esRechazado = paymentStatus === "rechazado" || paymentStatus === "error";
   const esPendiente = paymentStatus !== "aprobado" && !esRechazado;
 
