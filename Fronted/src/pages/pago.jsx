@@ -128,10 +128,10 @@ export default function Pago() {
       } else {
         navigate("/menu");
       }
-    } catch (_) {
+    } catch {
       navigate("/menu");
     }
-  }, []);
+  }, [navigate]);
 
   const extraItems = orderData?.extraItems || {};
 
@@ -245,13 +245,13 @@ export default function Pago() {
 
       try {
         almacenSesion.set("orale_ultimo_pedido", JSON.stringify(confirmedOrder));
-      } catch (_) {
+      } catch {
         // noop
       }
 
       try {
         almacenLocal.remove("orale_pedido");
-      } catch (_) {
+      } catch {
         // noop
       }
 
@@ -316,13 +316,13 @@ export default function Pago() {
 
       try {
         almacenSesion.set("orale_ultimo_pedido", JSON.stringify(confirmedOrder));
-      } catch (_) {
+      } catch {
         // noop
       }
 
       try {
         almacenLocal.remove("orale_pedido");
-      } catch (_) {
+      } catch {
         // noop
       }
 
