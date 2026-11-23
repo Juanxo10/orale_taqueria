@@ -977,7 +977,7 @@ export default function Admin() {
         <div class="client-tel">${esc(o.tel)}</div>
       </div>
       ${extras}
-      <div class="divider"></div><div class="section-lbl">DESECHABLE x${desechables(o)}</div>
+      <div style="margin-top:10px;border:3px solid #000;padding:6px;text-align:center;font-size:18px;font-weight:900;">DESECHABLES: ${desechables(o)}</div>
       <div class="entrega-block">${entrega}</div>
       <div class="total-block"><span class="total-lbl">Total</span><span class="total-val">${fmt(o.total)}</span></div>
     </body></html>`;
@@ -1207,7 +1207,7 @@ export default function Admin() {
                       </div>
                     </div>
                     
-                    <span className="oc-section-lbl">Desechable ×{desechables(o)}</span>
+                    <div style={{display:"inline-flex",alignItems:"center",gap:".4rem",background:"#fff3cd",border:"1.5px solid #e0a800",color:"#664d03",borderRadius:8,padding:".3rem .7rem",fontWeight:800,fontSize:".85rem",marginBottom:".85rem"}}>🥡 Desechables: {desechables(o)}</div>
                     {groupExtras(o.extraItems).map(({ cat, items }) => (
                       <Fragment key={cat}>
                         <span className="oc-section-lbl">{cat}</span>
@@ -1326,7 +1326,7 @@ export default function Admin() {
                           </div>
                         </div>
                         
-                        <span className="oc-section-lbl">Desechable ×{desechables(o)}</span>
+                        <div style={{display:"inline-flex",alignItems:"center",gap:".4rem",background:"#fff3cd",border:"1.5px solid #e0a800",color:"#664d03",borderRadius:8,padding:".3rem .7rem",fontWeight:800,fontSize:".85rem",marginBottom:".85rem"}}>🥡 Desechables: {desechables(o)}</div>
                         {groupExtras(o.extraItems).map(({ cat, items }) => (
                           <Fragment key={cat}>
                             <span className="oc-section-lbl">{cat}</span>

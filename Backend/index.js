@@ -63,7 +63,6 @@ app.use("/api/tienda", tiendaRoutes);
 app.use("/api/wompi", wompiRoutes);
 app.use("/api/facturacion", facturacionRoutes);
 app.use("/api/productos", productosRoutes);
-app.use("/api/impresion", require("./routes/impresion"));
 
 // ─── Manejo de errores global ────────────────────────────────────────────────
 app.use((err, req, res, _next) => {
