@@ -32,8 +32,8 @@ export const MENU = [
     { name: "Sandía Limón", price: 16000 },
   ]},
   { cat: "Otras bebidas", items: [
-    { name: "Gaseosa", price: 5000 },
-    { name: "Cervezas", price: 5000 },
+    { name: "Gaseosa", price: 5000, desc: "Coca-Cola o Ginger. Dinos cuál prefieres en las notas del pedido." },
+    { name: "Cervezas", price: 5000, desc: "Corona, Estella, Michelob Ultra o Sol. Dinos cuál prefieres en las notas del pedido." },
     { name: "Estella", price: 6000 },
     { name: "Botella de Tequila", price: 180000 },
   ]},
