@@ -921,6 +921,8 @@ export default function Admin() {
     setOrders((prev) => prev.filter((o) => o.id !== id));
   };
 
+  const desechables = (o) => Object.values(o.extraItems || {}).reduce((s, q) => s + q, 0);
+
   const printOrder = (o) => {
     const extras = groupExtras(o.extraItems).map(({ cat, items }) =>
       `<div class="divider"></div><div class="section-lbl">${esc(cat.toUpperCase())}</div><div class="extra-list">${items.map(([n,q]) => `<div class="extra-row"><span>${esc(n)}</span><span>x${esc(q)}</span></div>`).join("")}</div>`
@@ -966,6 +968,7 @@ export default function Admin() {
         <div class="client-tel">${esc(o.tel)}</div>
       </div>
       ${extras}
+      <div class="divider"></div><div class="section-lbl">DESECHABLE x${desechables(o)}</div>
       <div class="entrega-block">${entrega}</div>
       <div class="total-block"><span class="total-lbl">Total</span><span class="total-val">${fmt(o.total)}</span></div>
     </body></html>`;
@@ -1191,6 +1194,7 @@ export default function Admin() {
                       </div>
                     </div>
                     
+                    <span className="oc-section-lbl">Desechable ×{desechables(o)}</span>
                     {groupExtras(o.extraItems).map(({ cat, items }) => (
                       <Fragment key={cat}>
                         <span className="oc-section-lbl">{cat}</span>
@@ -1309,6 +1313,7 @@ export default function Admin() {
                           </div>
                         </div>
                         
+                        <span className="oc-section-lbl">Desechable ×{desechables(o)}</span>
                         {groupExtras(o.extraItems).map(({ cat, items }) => (
                           <Fragment key={cat}>
                             <span className="oc-section-lbl">{cat}</span>
