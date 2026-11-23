@@ -5,9 +5,9 @@ INSERT INTO categorias (nombre, nota, orden) VALUES
   ('Bebidas de la casa', NULL, 2),
   ('Sodas artesanales', NULL, 3),
   ('Otras bebidas', NULL, 4),
-  ('Quesadillas', NULL, 6),
-  ('Pizzas', 'Todas nuestras pizzas nacen de nuestra masa artesanal, preparada en casa.', 7),
-  ('Exclusivos del restaurante', NULL, 8)
+  ('Quesadillas', NULL, 5),
+  ('Pizzas', 'Todas nuestras pizzas nacen de nuestra masa artesanal, preparada en casa.', 6),
+  ('Exclusivos del restaurante', NULL, 7)
 ON CONFLICT (nombre) DO NOTHING;
 
 UPDATE productos p SET categoria = v.cat, descripcion = v.descr, orden = v.orden

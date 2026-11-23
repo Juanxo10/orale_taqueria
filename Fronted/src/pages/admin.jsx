@@ -629,6 +629,15 @@ export default function Admin() {
   // ── Notificaciones de nuevo pedido ────────────────────────
   const knownIdsRef = useRef(null); // null = primera carga (no notificar)
   const [newOrderToast, setNewOrderToast] = useState(null); // { count, nombre }
+  // Solo el computador de cocina debe tenerlo activo (se guarda por navegador)
+  const [autoPrint, setAutoPrint] = useState(() => almacenLocal.get("autoPrint") === "1");
+  const autoPrintRef = useRef(autoPrint);
+  const toggleAutoPrint = () => {
+    const v = !autoPrint;
+    setAutoPrint(v);
+    autoPrintRef.current = v;
+    almacenLocal.set("autoPrint", v ? "1" : "0");
+  };
   const [showNotifBanner, setShowNotifBanner] = useState(
     () => typeof Notification !== "undefined" && Notification.permission === "default"
   );
@@ -735,7 +744,7 @@ export default function Admin() {
       } else {
         run();
       }
-    } catch (_) {}
+    } catch { /* sin audio: no es crítico */ }
   };
 
   const playAlertSound = () => {
@@ -743,7 +752,7 @@ export default function Admin() {
       const ctx = audioCtxRef.current;
       if (!ctx || ctx.state === "suspended") return;
       beep(ctx);
-    } catch (_) {}
+    } catch { /* sin audio: no es crítico */ }
   };
 
   const fetchOrders = () => {
@@ -766,6 +775,9 @@ export default function Admin() {
         const nuevos = incoming.filter((o) => !knownIdsRef.current.has(o.id));
         if (nuevos.length > 0) {
           knownIdsRef.current = incomingIds;
+
+          // Ticket automático (escalonado para que la impresora no se pise)
+          if (autoPrintRef.current) nuevos.forEach((o, i) => setTimeout(() => printOrder(o), i * 2000));
 
           // Sonido
           playAlertSound();
@@ -903,7 +915,7 @@ export default function Admin() {
 
   const changeStatus = async (id, val) => {
     // Imprime antes de cualquier await para que el navegador no bloquee la ventana de impresión
-    if (val === "preparando") { const o = orders.find((x) => x.id === id); if (o) printOrder(o); }
+    if (val === "preparando" && !autoPrintRef.current) { const o = orders.find((x) => x.id === id); if (o) printOrder(o); }
     setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status: val } : o)));
     try {
       const res = await apiFetch(`${API_URL}/api/pedidos/${id}/estado`, {
@@ -917,9 +929,6 @@ export default function Admin() {
     }
   };
 
-  const deleteOrder = (id) => {
-    setOrders((prev) => prev.filter((o) => o.id !== id));
-  };
 
   const desechables = (o) => Object.values(o.extraItems || {}).reduce((s, q) => s + q, 0);
 
@@ -972,12 +981,15 @@ export default function Admin() {
       <div class="entrega-block">${entrega}</div>
       <div class="total-block"><span class="total-lbl">Total</span><span class="total-val">${fmt(o.total)}</span></div>
     </body></html>`;
-    const w = window.open("", "_blank", "width=420,height=650");
-    if (!w) return alert("El navegador bloqueó la ventana de impresión: permite ventanas emergentes para este sitio");
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    w.print();
+    // iframe oculto: no lo bloquea el navegador, así sirve también para imprimir sin clic (impresión automática)
+    const f = document.createElement("iframe");
+    f.style.cssText = "position:fixed;width:0;height:0;border:0;right:0;bottom:0";
+    document.body.appendChild(f);
+    f.contentDocument.write(html);
+    f.contentDocument.close();
+    f.contentWindow.focus();
+    f.contentWindow.print();
+    setTimeout(() => f.remove(), 60000);
   };
 
   const sendWA = (o, tipo) => {
@@ -1052,7 +1064,7 @@ export default function Admin() {
           <span className="notif-banner-text">Activa las notificaciones para recibir alertas cuando llegue un pedido nuevo</span>
           <div style={{display:"flex",gap:".5rem",alignItems:"center"}}>
             <button className="btn-allow-notif" onClick={() => {
-              Notification.requestPermission().then((p) => {
+              Notification.requestPermission().then(() => {
                 setShowNotifBanner(false);
               });
             }}>Activar</button>
@@ -1105,6 +1117,7 @@ export default function Admin() {
           {isAdmin && <button className={`btn-historial${view==="facturacion"?" active":""}`} onClick={() => { setView(view==="facturacion"?"hoy":"facturacion"); setSearch(""); setFilterStatus("todos"); }}>{view==="facturacion"?"Volver":"Facturación"}</button>}
           {isAdmin && <button className={`btn-historial${view==="stats"?" active":""}`} onClick={() => { setView(view==="stats"?"hoy":"stats"); setSearch(""); setFilterStatus("todos"); }}>{view==="stats"?"Volver":"Estadísticas"}</button>}
           {isAdmin && <button className={`btn-historial${view==="historial"?" active":""}`} onClick={() => { setView(view==="historial"?"hoy":"historial"); setSearch(""); setFilterStatus("todos"); }}>{view==="historial"?"Volver a hoy":"Historial"}</button>}
+          <button className={`btn-historial${autoPrint?" active":""}`} onClick={toggleAutoPrint} title="Imprime el ticket solo cuando llega un pedido">🖨️ Auto: {autoPrint?"ON":"OFF"}</button>
           <button className={`btn-historial${view==="inventario"?" active":""}`} onClick={() => setView(view==="inventario"?"hoy":"inventario")}>{view==="inventario"?"Volver":"Inventario"}</button>
           {tiendaAbierta !== null && (
             <button className={`caja-btn${tiendaAbierta ? " abierta" : " cerrada"}`} onClick={toggleCaja} disabled={cajaCargando}>

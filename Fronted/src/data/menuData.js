@@ -2,7 +2,7 @@
 // MENU es el menú inicial: siembra la BD (`node Backend/scripts/genSeed.mjs`) y sirve de respaldo
 // mientras carga o si la API falla.
 import { useEffect, useState } from "react";
-import { API_URL } from "../config";
+import { API_URL } from "../config.js";
 
 export const DOM = 7000;
 
