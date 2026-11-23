@@ -40,13 +40,6 @@ export const MENU = [
     { name: "Sol", price: 5000 },
     { name: "Botella de Tequila", price: 180000 },
   ]},
-  { cat: "Cocteles", items: [
-    { name: "Margarita", price: 22000, desc: "¡Arriba, abajo, al centro y pa' dentro! El clásico mexicano: tequila, triple sec y limón, servido bien frío con su característico borde de sal. Ácido, fresco y con el tequila como protagonista." },
-    { name: "Paloma", price: 23000, desc: "¡Qué bonita la condenada! Tequila, toronja y limón en una combinación ligera, cítrica y refrescante, terminada con soda y servida bien fría. ¡México en cada trago!" },
-    { name: "Cantarito", price: 25000, desc: "¡Échale tequila! Tequila acompañado de cítricos frescos y soda de toronja, servido al auténtico estilo mexicano. ¡Refrescante, cítrico y hecho para alargar la fiesta!" },
-    { name: "Sunrise", price: 22000, desc: "¡Qué chulada! Un cóctel fresco, frutal y vibrante, con tequila, notas cítricas y ese degradado de colores que recuerda un amanecer. Dulce, refrescante y peligrosamente fácil de disfrutar." },
-    { name: "El Caporal", price: 27000, desc: "¡Este sí trae espuelas! Tequila y flor de Jamaica se encuentran en un cóctel intenso y refrescante, con el equilibrio perfecto entre carácter y frescura. ¡México en el Llano, servido en un solo trago!" },
-  ]},
   { cat: "Quesadillas", items: [
     { name: "Quesadilla al Estilo Michoacán", price: 20000, desc: "¡Puro Michoacán! Auténtica quesadilla rellena de carnitas hechas con puerco cocido en su propia grasa, servida en tortilla de trigo con queso fundido, cebolla y cilantro, acompañada de sour cream para rematar el antojo." },
     { name: "Gringa al Pastor", price: 20000, desc: "¡Ándale! Puerco al pastor, bien marinado en especias, servido en tortilla de trigo con queso fundido, piña caramelizada, cebolla y cilantro fresco. Una gringa que reúne todo el sabor del pastor en una presentación más ligera." },
