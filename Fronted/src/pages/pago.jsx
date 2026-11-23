@@ -556,12 +556,6 @@ export default function Pago() {
               {isSubmitting ? "Redirigiendo..." : "Pagar con transferencia"}
             </button>
           )}
-          {/* Solo con sesión de personal iniciada; el servidor también lo exige */}
-          {almacenLocal.get("token") && (
-            <button className="btn-card" style={{ marginTop: ".7rem", background: "#555" }} onClick={() => handleConfirm(PRUEBA)} disabled={isSubmitting}>
-              Pedido de prueba (sin pago)
-            </button>
-          )}
         </div>
       </div>
     </>
