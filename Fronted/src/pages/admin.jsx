@@ -977,7 +977,7 @@ export default function Admin() {
         <div class="client-tel">${esc(o.tel)}</div>
       </div>
       ${extras}
-      <div class="divider"></div><div class="section-lbl">DESECHABLES</div><div class="extra-list"><div class="extra-row"><span>Total</span><span>x${desechables(o)}</span></div></div>
+      <div class="divider"></div><div class="extra-list"><div class="extra-row"><span>Desechables</span><span>+${desechables(o)}</span></div></div>
       <div class="entrega-block">${entrega}</div>
       <div class="total-block"><span class="total-lbl">Total</span><span class="total-val">${fmt(o.total)}</span></div>
     </body></html>`;
@@ -1207,7 +1207,7 @@ export default function Admin() {
                       </div>
                     </div>
                     
-                    <><span className="oc-section-lbl">Desechables</span><div className="bowl-item" style={{ marginBottom: ".85rem" }}><div className="bowl-tags"><span className="btag inc">{desechables(o)} en total</span></div></div></>
+                    <><div className="bowl-item" style={{ marginBottom: ".85rem" }}><div className="bowl-tags"><span className="btag inc">Desechables +{desechables(o)}</span></div></div></>
                     {groupExtras(o.extraItems).map(({ cat, items }) => (
                       <Fragment key={cat}>
                         <span className="oc-section-lbl">{cat}</span>
@@ -1326,7 +1326,7 @@ export default function Admin() {
                           </div>
                         </div>
                         
-                        <><span className="oc-section-lbl">Desechables</span><div className="bowl-item" style={{ marginBottom: ".85rem" }}><div className="bowl-tags"><span className="btag inc">{desechables(o)} en total</span></div></div></>
+                        <><div className="bowl-item" style={{ marginBottom: ".85rem" }}><div className="bowl-tags"><span className="btag inc">Desechables +{desechables(o)}</span></div></div></>
                         {groupExtras(o.extraItems).map(({ cat, items }) => (
                           <Fragment key={cat}>
                             <span className="oc-section-lbl">{cat}</span>
