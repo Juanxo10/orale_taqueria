@@ -38,8 +38,6 @@ FROM (VALUES
   ('Cantarito', 'Cocteles', '¡Échale tequila! Tequila acompañado de cítricos frescos y soda de toronja, servido al auténtico estilo mexicano. ¡Refrescante, cítrico y hecho para alargar la fiesta!', 2),
   ('Sunrise', 'Cocteles', '¡Qué chulada! Un cóctel fresco, frutal y vibrante, con tequila, notas cítricas y ese degradado de colores que recuerda un amanecer. Dulce, refrescante y peligrosamente fácil de disfrutar.', 3),
   ('El Caporal', 'Cocteles', '¡Este sí trae espuelas! Tequila y flor de Jamaica se encuentran en un cóctel intenso y refrescante, con el equilibrio perfecto entre carácter y frescura. ¡México en el Llano, servido en un solo trago!', 4),
-  ('Shot de Tequila', 'Cocteles', NULL, 5),
-  ('Tinto Mexicano', 'Cocteles', NULL, 6),
   ('Quesadilla al Estilo Michoacán', 'Quesadillas', '¡Puro Michoacán! Auténtica quesadilla rellena de carnitas hechas con puerco cocido en su propia grasa, servida en tortilla de trigo con queso fundido, cebolla y cilantro, acompañada de sour cream para rematar el antojo.', 0),
   ('Gringa al Pastor', 'Quesadillas', '¡Ándale! Puerco al pastor, bien marinado en especias, servido en tortilla de trigo con queso fundido, piña caramelizada, cebolla y cilantro fresco. Una gringa que reúne todo el sabor del pastor en una presentación más ligera.', 1),
   ('Quesabirria Órale', 'Quesadillas', '¡Madre de quesabirria! Tortillas de trigo crujientes, rellenas de queso fundido y birria jugosa. Servidas con cebolla y cilantro, acompañadas de salsa chipotle y caldo de birria para disfrutar al estilo tradicional.', 2),

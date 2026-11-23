@@ -43,8 +43,6 @@ export const MENU = [
     { name: "Cantarito", price: 25000, desc: "¡Échale tequila! Tequila acompañado de cítricos frescos y soda de toronja, servido al auténtico estilo mexicano. ¡Refrescante, cítrico y hecho para alargar la fiesta!" },
     { name: "Sunrise", price: 22000, desc: "¡Qué chulada! Un cóctel fresco, frutal y vibrante, con tequila, notas cítricas y ese degradado de colores que recuerda un amanecer. Dulce, refrescante y peligrosamente fácil de disfrutar." },
     { name: "El Caporal", price: 27000, desc: "¡Este sí trae espuelas! Tequila y flor de Jamaica se encuentran en un cóctel intenso y refrescante, con el equilibrio perfecto entre carácter y frescura. ¡México en el Llano, servido en un solo trago!" },
-    { name: "Shot de Tequila", price: 15000 },
-    { name: "Tinto Mexicano", price: 3000 },
   ]},
   { cat: "Quesadillas", items: [
     { name: "Quesadilla al Estilo Michoacán", price: 20000, desc: "¡Puro Michoacán! Auténtica quesadilla rellena de carnitas hechas con puerco cocido en su propia grasa, servida en tortilla de trigo con queso fundido, cebolla y cilantro, acompañada de sour cream para rematar el antojo." },
